@@ -1,11 +1,926 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TUTOR MATCH - Premium Tutoring Experience</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="theme-transition overflow-x-hidden">
+    <div id="particles" class="fixed inset-0 pointer-events-none z-0"></div>
     
+    <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-500">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center space-x-4 magnetic cursor-pointer">
+                    <div class="w-12 h-12 liquid-morph bg-gradient-to-r from-blue-500 to-blue-800 flex items-center justify-center shadow-2xl">
+                        <i data-lucide="graduation-cap" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <span class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                        TUTOR MATCH
+                    </span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="find-tutor.html" class="magnetic text-white hover:text-blue-300 font-medium transition-all duration-300">Find Tutors</a>
+                    <a href="become-tutor.html" class="magnetic text-white hover:text-purple-300 font-medium transition-all duration-300">Become a Tutor</a>
+                    <a href="about.html" class="magnetic text-white hover:text-green-300 font-medium transition-all duration-300">About</a>
+                    <a href="contact.html" class="magnetic text-white hover:text-pink-300 font-medium transition-all duration-300">Contact</a>
+                    
+                    <div class="flex items-center space-x-4">
+                        <button class="magnetic text-white hover:text-blue-300 font-medium px-4 py-2 rounded-xl glass dark:glass-dark transition-all duration-300 hover:scale-105">
+                            <i data-lucide="log-in" class="w-4 h-4 inline mr-2"></i>
+                            Log In
+                        </button>
+                        
+                        <button class="magnetic bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-semibold px-6 py-2 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
+                            <i data-lucide="user-plus" class="w-4 h-4 inline mr-2"></i>
+                            Sign Up
+                        </button>
+                    </div>
+                    
+                    <button id="theme-toggle" class="magnetic glass dark:glass-dark p-3 rounded-2xl">
+                        <i data-lucide="sun" class="w-5 h-5 text-white dark:hidden"></i>
+                        <i data-lucide="moon" class="w-5 h-5 text-white hidden dark:block"></i>
+                    </button>
+                </div>
+                
+                <div class="md:hidden">
+                    <button class="magnetic glass dark:glass-dark p-3 rounded-2xl">
+                        <i data-lucide="menu" class="w-6 h-6 text-white"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <section class="min-h-screen flex items-center justify-center relative overflow-hidden gradient-mesh pt-20">
+        <div class="absolute inset-0 bg-black/10 dark:bg-black/30"></div>
+        
+        <div class="absolute top-20 left-10 w-20 h-20 bg-white/20 rounded-full blur-xl animate-pulse"></div>
+        <div class="absolute top-40 right-20 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl animate-pulse delay-300"></div>
+        <div class="absolute bottom-20 left-1/4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl animate-pulse delay-700"></div>
+        
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center relative z-10">
+            <div class="space-y-8">
+                <h1 class="text-6xl md:text-8xl font-black text-white mb-8">
+                    <span class="word-animate bounce-in delay-100">Find</span>
+                    <span class="word-animate slide-in-left delay-200">Your</span>
+                    <span class="word-animate zoom-in delay-300">Perfect</span>
+                    <br>
+                    <span class="word-animate flip-in delay-400 bg-gradient-to-r from-blue-300 to-blue-500 bg-clip-text text-transparent">Tutor</span>
+                    <span class="word-animate rotate-in delay-500">at</span>
+                    <span class="word-animate pulse-glow delay-600 bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">AUB</span>
+                </h1>
+                
+                <p class="text-xl md:text-2xl text-white/90 max-w-4xl mx-auto leading-relaxed slide-reveal delay-700">
+                    Experience premium tutoring with verified AUB experts. From CMPS 201 to Advanced Calculus - 
+                    we connect you with the best minds on campus.
+                </p>
+                
+                <div class="max-w-3xl mx-auto scale-bounce delay-800">
+                    <div class="search-enhanced p-3">
+                        <div class="flex items-center">
+                            <div class="pl-6">
+                                <i data-lucide="search" class="w-7 h-7 text-white/70"></i>
+                            </div>
+                            <input 
+                                type="text" 
+                                placeholder="Search by course (CMPS 201, STAT 230, MATH 201)..."
+                                class="flex-1 px-6 py-5 bg-transparent text-white placeholder-white/60 focus:outline-none text-lg font-medium"
+                                readonly
+                            />
+                            <button class="btn-premium magnetic">
+                                <i data-lucide="sparkles" class="w-5 h-5 inline mr-2"></i>
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-6 justify-center items-center rotate-reveal delay-1000">
+                    <a href="find-tutor.html" class="btn-premium magnetic glow-blue group">
+                            <i data-lucide="rocket" class="w-6 h-6 inline mr-3 group-hover:animate-bounce"></i>
+                               Start Learning
+                               </a>
+
+                </div>
+                
+                <div class="grid grid-cols-3 gap-8 max-w-2xl mx-auto mt-16 float-up delay-1200">
+                    <div class="glass dark:glass-dark rounded-2xl p-6 magnetic">
+                        <div class="text-3xl font-bold text-white mb-2">500+</div>
+                        <div class="text-white/70">Expert Tutors</div>
+                    </div>
+                    <div class="glass dark:glass-dark rounded-2xl p-6 magnetic">
+                        <div class="text-3xl font-bold text-white mb-2">50+</div>
+                        <div class="text-white/70">Courses Covered</div>
+                    </div>
+                    <div class="glass dark:glass-dark rounded-2xl p-6 magnetic">
+                        <div class="text-3xl font-bold text-white mb-2">98%</div>
+                        <div class="text-white/70">Success Rate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-32 px-6 lg:px-8 gradient-mesh relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/10 dark:bg-black/30"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-20">
+                <h2 class="text-5xl md:text-6xl font-bold text-white mb-6 animate-title">
+                    <span class="word-animate flying-word delay-100">Premium</span>
+                    <span class="word-animate flying-word delay-300">Features</span>
+                </h2>
+                <p class="text-xl text-white/90 max-w-3xl mx-auto animate-subtitle">
+                    <span class="word-animate flying-word delay-500">Experience</span>
+                    <span class="word-animate flying-word delay-600">tutoring</span>
+                    <span class="word-animate flying-word delay-700">like</span>
+                    <span class="word-animate flying-word delay-800">never</span>
+                    <span class="word-animate flying-word delay-900">before</span>
+                    <span class="word-animate flying-word delay-1000">with</span>
+                    <span class="word-animate flying-word delay-1100">our</span>
+                    <span class="word-animate flying-word delay-1200">cutting-edge</span>
+                    <span class="word-animate flying-word delay-1300">platform</span>
+                </p>
+            </div>
+            
+
+            
+            <div class="grid md:grid-cols-3 gap-12">
+                <div class="group magnetic flying-card" style="animation-delay: 0.2s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-8 h-full hover:scale-105 transition-all duration-500 glow-blue floating-element">
+                        <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-8 liquid-morph group-hover:scale-110 transition-transform duration-300 icon-bounce">
+                            <i data-lucide="brain" class="w-10 h-10 text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-4">AI-Powered Matching</h3>
+                        <p class="text-white/80 leading-relaxed">
+                            Our advanced algorithm matches you with the perfect tutor based on your learning style, 
+                            course difficulty, and academic goals.
+                        </p>
+                    </div>
+                </div>
+                <div class="group magnetic flying-card" style="animation-delay: 0.4s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-8 h-full hover:scale-105 transition-all duration-500 glow-purple floating-element">
+                        <div class="w-20 h-20 bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl flex items-center justify-center mb-8 liquid-morph group-hover:scale-110 transition-transform duration-300 icon-bounce" style="animation-delay: 0.2s;">
+                            <i data-lucide="shield-check" class="w-10 h-10 text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-4">Verified Excellence</h3>
+                        <p class="text-white/80 leading-relaxed">
+                            Every tutor undergoes rigorous verification including transcript review, 
+                            skill assessment, and background checks.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="group magnetic flying-card" style="animation-delay: 0.6s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-8 h-full hover:scale-105 transition-all duration-500 glow-green floating-element">
+                        <div class="w-20 h-20 bg-gradient-to-r from-blue-700 to-blue-900 rounded-2xl flex items-center justify-center mb-8 liquid-morph group-hover:scale-110 transition-transform duration-300 icon-bounce" style="animation-delay: 0.4s;">
+                            <i data-lucide="zap" class="w-10 h-10 text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-4">Instant Booking</h3>
+                        <p class="text-white/80 leading-relaxed">
+                            Book sessions in real-time with smart calendar integration, 
+                            automatic reminders, and seamless payment processing.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="py-32 px-6 lg:px-8 gradient-mesh relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/10 dark:bg-black/30"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-20">
+                <h2 class="text-5xl md:text-6xl font-bold text-white mb-6">
+                    <span class="word-animate flying-word delay-100">Courses</span>
+                    <span class="word-animate flying-word delay-200">We</span>
+                    <span class="word-animate flying-word delay-300">Serve</span>
+                </h2>
+                <p class="text-xl text-white/90 max-w-3xl mx-auto">
+                    <span class="word-animate flying-word delay-400">Expert</span>
+                    <span class="word-animate flying-word delay-500">tutoring</span>
+                    <span class="word-animate flying-word delay-600">across</span>
+                    <span class="word-animate flying-word delay-700">all</span>
+                    <span class="word-animate flying-word delay-800">major</span>
+                    <span class="word-animate flying-word delay-900">AUB</span>
+                    <span class="word-animate flying-word delay-1000">subjects</span>
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 max-w-6xl mx-auto">
+                <div class="flying-card magnetic" style="animation-delay: 0.2s;">
+                    <div class="glass dark:glass-dark rounded-2xl p-6 text-center hover:scale-105 transition-all duration-500 floating-element group">
+                        <div class="text-4xl mb-3 icon-bounce">💻</div>
+                        <h4 class="font-bold text-white text-sm mb-2">Computer Science</h4>
+                        <div class="text-xs text-white/70 space-y-1">
+                            <div>CMPS 200</div>
+                            <div>CMPS 201</div>
+                            <div>CMPS 202</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flying-card magnetic" style="animation-delay: 0.3s;">
+                    <div class="glass dark:glass-dark rounded-2xl p-6 text-center hover:scale-105 transition-all duration-500 floating-element group">
+                        <div class="text-4xl mb-3 icon-bounce" style="animation-delay: 0.1s;">📐</div>
+                        <h4 class="font-bold text-white text-sm mb-2">Mathematics</h4>
+                        <div class="text-xs text-white/70 space-y-1">
+                            <div>MATH 201</div>
+                            <div>MATH 202</div>
+                            <div>MATH 218</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flying-card magnetic" style="animation-delay: 0.4s;">
+                    <div class="glass dark:glass-dark rounded-2xl p-6 text-center hover:scale-105 transition-all duration-500 floating-element group">
+                        <div class="text-4xl mb-3 icon-bounce" style="animation-delay: 0.2s;">📊</div>
+                        <h4 class="font-bold text-white text-sm mb-2">Statistics</h4>
+                        <div class="text-xs text-white/70 space-y-1">
+                            <div>STAT 230</div>
+                            <div>STAT 231</div>
+                            <div>STAT 330</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flying-card magnetic" style="animation-delay: 0.5s;">
+                    <div class="glass dark:glass-dark rounded-2xl p-6 text-center hover:scale-105 transition-all duration-500 floating-element group">
+                        <div class="text-4xl mb-3 icon-bounce" style="animation-delay: 0.3s;">⚛️</div>
+                        <h4 class="font-bold text-white text-sm mb-2">Physics</h4>
+                        <div class="text-xs text-white/70 space-y-1">
+                            <div>PHYS 201</div>
+                            <div>PHYS 202</div>
+                            <div>PHYS 210</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flying-card magnetic" style="animation-delay: 0.6s;">
+                    <div class="glass dark:glass-dark rounded-2xl p-6 text-center hover:scale-105 transition-all duration-500 floating-element group">
+                        <div class="text-4xl mb-3 icon-bounce" style="animation-delay: 0.4s;">🧪</div>
+                        <h4 class="font-bold text-white text-sm mb-2">Chemistry</h4>
+                        <div class="text-xs text-white/70 space-y-1">
+                            <div>CHEM 201</div>
+                            <div>CHEM 202</div>
+                            <div>CHEM 210</div>
+                        </div>
+                    </div>
+                </div>
+                
+                
+                <div class="flying-card magnetic" style="animation-delay: 0.7s;">
+                    <div class="glass dark:glass-dark rounded-2xl p-6 text-center hover:scale-105 transition-all duration-500 floating-element group">
+                        <div class="text-4xl mb-3 icon-bounce" style="animation-delay: 0.5s;">🧬</div>
+                        <h4 class="font-bold text-white text-sm mb-2">Biology</h4>
+                        <div class="text-xs text-white/70 space-y-1">
+                            <div>BIOL 200</div>
+                            <div>BIOL 201</div>
+                            <div>BIOL 202</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flying-card magnetic" style="animation-delay: 0.8s;">
+                    <div class="glass dark:glass-dark rounded-2xl p-6 text-center hover:scale-105 transition-all duration-500 floating-element group">
+                        <div class="text-4xl mb-3 icon-bounce" style="animation-delay: 0.6s;">📈</div>
+                        <h4 class="font-bold text-white text-sm mb-2">Economics</h4>
+                        <div class="text-xs text-white/70 space-y-1">
+                            <div>ECON 201</div>
+                            <div>ECON 202</div>
+                            <div>ECON 210</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flying-card magnetic" style="animation-delay: 0.9s;">
+                    <div class="glass dark:glass-dark rounded-2xl p-6 text-center hover:scale-105 transition-all duration-500 floating-element group">
+                        <div class="text-4xl mb-3 icon-bounce" style="animation-delay: 0.7s;">💼</div>
+                        <h4 class="font-bold text-white text-sm mb-2">Business</h4>
+                        <div class="text-xs text-white/70 space-y-1">
+                            <div>BUSS 200</div>
+                            <div>BUSS 210</div>
+                            <div>BUSS 220</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flying-card magnetic" style="animation-delay: 1.0s;">
+                    <div class="glass dark:glass-dark rounded-2xl p-6 text-center hover:scale-105 transition-all duration-500 floating-element group">
+                        <div class="text-4xl mb-3 icon-bounce" style="animation-delay: 0.8s;">⚙️</div>
+                        <h4 class="font-bold text-white text-sm mb-2">Engineering</h4>
+                        <div class="text-xs text-white/70 space-y-1">
+                            <div>ENGR 200</div>
+                            <div>ENGR 210</div>
+                            <div>ENGR 220</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flying-card magnetic" style="animation-delay: 1.1s;">
+                    <div class="glass dark:glass-dark rounded-2xl p-6 text-center hover:scale-105 transition-all duration-500 floating-element group">
+                        <div class="text-4xl mb-3 icon-bounce" style="animation-delay: 0.9s;">🧠</div>
+                        <h4 class="font-bold text-white text-sm mb-2">Psychology</h4>
+                        <div class="text-xs text-white/70 space-y-1">
+                            <div>PSYC 201</div>
+                            <div>PSYC 202</div>
+                            <div>PSYC 210</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flying-card magnetic" style="animation-delay: 1.2s;">
+                    <div class="glass dark:glass-dark rounded-2xl p-6 text-center hover:scale-105 transition-all duration-500 floating-element group">
+                        <div class="text-4xl mb-3 icon-bounce" style="animation-delay: 1.0s;">🗣️</div>
+                        <h4 class="font-bold text-white text-sm mb-2">Languages</h4>
+                        <div class="text-xs text-white/70 space-y-1">
+                            <div>ARAB 201</div>
+                            <div>ENGL 201</div>
+                            <div>FREN 201</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flying-card magnetic" style="animation-delay: 1.3s;">
+                    <div class="glass dark:glass-dark rounded-2xl p-6 text-center hover:scale-105 transition-all duration-500 floating-element group border-2 border-dashed border-white/30">
+                        <div class="text-4xl mb-3 icon-bounce" style="animation-delay: 1.1s;">✨</div>
+                        <h4 class="font-bold text-white text-sm mb-2">& More</h4>
+                        <div class="text-xs text-white/70 space-y-1">
+                            <div>50+ Courses</div>
+                            <div>All Majors</div>
+                            <div>Available</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-16 text-center">
+                <div class="glass dark:glass-dark rounded-3xl p-8 max-w-4xl mx-auto">
+                    <h3 class="text-2xl font-bold text-white mb-8">Course Coverage</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                        <div>
+                            <div class="text-3xl font-bold text-blue-400 mb-2">50+</div>
+                            <div class="text-white/70">Courses Available</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-green-400 mb-2">8</div>
+                            <div class="text-white/70">Faculties Covered</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-purple-400 mb-2">24/7</div>
+                            <div class="text-white/70">Support Available</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-yellow-400 mb-2">100%</div>
+                            <div class="text-white/70">AUB Verified</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-32 px-6 lg:px-8 gradient-mesh relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/10 dark:bg-black/30"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-20">
+                <h2 class="text-5xl md:text-6xl font-bold text-white mb-6">
+                    Meet Our Elite Tutors
+                </h2>
+                <p class="text-xl text-white/90">
+                    Top-rated AUB students and graduates ready to elevate your learning
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="flip-card magnetic flying-card" style="animation-delay: 0.2s;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front glass dark:glass-dark floating-element">
+                            <div class="text-6xl mb-4 icon-bounce">👩‍💻</div>
+                            <h3 class="text-xl font-bold text-white mb-2">Sarah M.</h3>
+                            <div class="text-blue-300 font-semibold mb-2">CMPS 201 Expert</div>
+                            <div class="flex items-center justify-center space-x-1 mb-2">
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                <span class="text-white/80 font-semibold">4.9</span>
+                            </div>
+                        </div>
+                        <div class="flip-card-back bg-gradient-to-br from-blue-500 to-blue-800 text-white">
+                            <h3 class="text-xl font-bold mb-4">Sarah M.</h3>
+                            <p class="text-sm mb-4">Computer Science Senior with 3+ years tutoring experience</p>
+                            <div class="space-y-2 text-sm">
+                                <div>📚 127 Sessions</div>
+                                <div>⭐ 4.9/5 Rating</div>
+                                <div>💰 $25/hour</div>
+                            </div>
+                            <button class="mt-4 bg-white text-blue-600 px-4 py-2 rounded-full font-semibold hover:scale-105 transition-transform">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flip-card magnetic flying-card" style="animation-delay: 0.4s;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front glass dark:glass-dark floating-element">
+                            <div class="text-6xl mb-4 icon-bounce" style="animation-delay: 0.2s;">👨‍🎓</div>
+                            <h3 class="text-xl font-bold text-white mb-2">Ahmad K.</h3>
+                            <div class="text-green-300 font-semibold mb-2">STAT 230 Master</div>
+                            <div class="flex items-center justify-center space-x-1 mb-2">
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                <span class="text-white/80 font-semibold">4.8</span>
+                            </div>
+                        </div>
+                        <div class="flip-card-back bg-gradient-to-br from-blue-600 to-blue-900 text-white">
+                            <h3 class="text-xl font-bold mb-4">Ahmad K.</h3>
+                            <p class="text-sm mb-4">Statistics PhD candidate with research experience</p>
+                            <div class="space-y-2 text-sm">
+                                <div>📚 89 Sessions</div>
+                                <div>⭐ 4.8/5 Rating</div>
+                                <div>💰 $30/hour</div>
+                            </div>
+                            <button class="mt-4 bg-white text-green-600 px-4 py-2 rounded-full font-semibold hover:scale-105 transition-transform">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flip-card magnetic flying-card" style="animation-delay: 0.6s;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front glass dark:glass-dark floating-element">
+                            <div class="text-6xl mb-4 icon-bounce" style="animation-delay: 0.4s;">👩‍🏫</div>
+                            <h3 class="text-xl font-bold text-white mb-2">Lara S.</h3>
+                            <div class="text-purple-300 font-semibold mb-2">MATH 201 Pro</div>
+                            <div class="flex items-center justify-center space-x-1 mb-2">
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                <span class="text-white/80 font-semibold">5.0</span>
+                            </div>
+                        </div>
+                        <div class="flip-card-back bg-gradient-to-br from-blue-700 to-blue-950 text-white">
+                            <h3 class="text-xl font-bold mb-4">Lara S.</h3>
+                            <p class="text-sm mb-4">Mathematics TA with perfect student ratings</p>
+                            <div class="space-y-2 text-sm">
+                                <div>📚 156 Sessions</div>
+                                <div>⭐ 5.0/5 Rating</div>
+                                <div>💰 $28/hour</div>
+                            </div>
+                            <button class="mt-4 bg-white text-purple-600 px-4 py-2 rounded-full font-semibold hover:scale-105 transition-transform">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flip-card magnetic flying-card" style="animation-delay: 0.8s;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front glass dark:glass-dark floating-element">
+                            <div class="text-6xl mb-4 icon-bounce" style="animation-delay: 0.6s;">👨‍🔬</div>
+                            <h3 class="text-xl font-bold text-white mb-2">Omar H.</h3>
+                            <div class="text-red-300 font-semibold mb-2">PHYS 201 Guru</div>
+                            <div class="flex items-center justify-center space-x-1 mb-2">
+                                <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                <span class="text-white/80 font-semibold">4.7</span>
+                            </div>
+                        </div>
+                        <div class="flip-card-back bg-gradient-to-br from-blue-800 to-slate-900 text-white">
+                            <h3 class="text-xl font-bold mb-4">Omar H.</h3>
+                            <p class="text-sm mb-4">Physics graduate with lab experience</p>
+                            <div class="space-y-2 text-sm">
+                                <div>📚 73 Sessions</div>
+                                <div>⭐ 4.7/5 Rating</div>
+                                <div>💰 $32/hour</div>
+                            </div>
+                            <button class="mt-4 bg-white text-red-600 px-4 py-2 rounded-full font-semibold hover:scale-105 transition-transform">
+                                Book Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-32 px-6 lg:px-8 gradient-mesh relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/10 dark:bg-black/30"></div>
+        
+        <div class="absolute top-20 left-20 w-24 h-24 bg-yellow-200/30 dark:bg-yellow-500/20 rounded-full blur-xl animate-pulse"></div>
+        <div class="absolute bottom-20 right-20 w-32 h-32 bg-pink-200/30 dark:bg-pink-500/20 rounded-full blur-xl animate-pulse delay-500"></div>
+        <div class="absolute top-1/2 left-10 w-16 h-16 bg-green-200/30 dark:bg-green-500/20 rounded-full blur-xl animate-pulse delay-1000"></div>
+        
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-20">
+                <h2 class="text-5xl md:text-6xl font-bold text-white mb-6">
+                    <span class="word-animate flying-word delay-100">What</span>
+                    <span class="word-animate flying-word delay-200">Students</span>
+                    <span class="word-animate flying-word delay-300">Say</span>
+                </h2>
+                <p class="text-xl text-white/90 max-w-3xl mx-auto">
+                    <span class="word-animate flying-word delay-400">Real</span>
+                    <span class="word-animate flying-word delay-500">feedback</span>
+                    <span class="word-animate flying-word delay-600">from</span>
+                    <span class="word-animate flying-word delay-700">AUB</span>
+                    <span class="word-animate flying-word delay-800">students</span>
+                    <span class="word-animate flying-word delay-900">who</span>
+                    <span class="word-animate flying-word delay-1000">transformed</span>
+                    <span class="word-animate flying-word delay-1100">their</span>
+                    <span class="word-animate flying-word delay-1200">grades</span>
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="flying-card magnetic" style="animation-delay: 0.3s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-8 h-full hover:scale-105 transition-all duration-500 floating-element">
+                        <div class="flex justify-center space-x-1 mb-6">
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce"></i>
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce" style="animation-delay: 0.1s;"></i>
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce" style="animation-delay: 0.2s;"></i>
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce" style="animation-delay: 0.3s;"></i>
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce" style="animation-delay: 0.4s;"></i>
+                        </div>
+                        
+                        <div class="text-center mb-8">
+                            <div class="text-6xl text-blue-300/50 mb-4">"</div>
+                            <p class="text-white/90 text-lg leading-relaxed italic">
+                                Sarah helped me go from failing CMPS 201 to getting an A-. Her explanations are crystal clear and she's incredibly patient. Best investment I made this semester!
+                            </p>
+                        </div>
+                        
+                        <div class="flex items-center justify-center space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-2xl">
+                                👨‍🎓
+                            </div>
+                            <div class="text-center">
+                                <div class="font-bold text-white">Karim A.</div>
+                                <div class="text-blue-300 text-sm">Computer Science Junior</div>
+                                <div class="text-white/60 text-xs">CMPS 201 Student</div>
+                            </div>
+                        </div>
+                      
+                        <div class="mt-6 text-center">
+                            <span class="inline-block bg-blue-500/20 text-blue-300 px-4 py-2 rounded-full text-sm font-semibold">
+                                Grade Improved: F → A-
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flying-card magnetic" style="animation-delay: 0.5s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-8 h-full hover:scale-105 transition-all duration-500 floating-element">
+                        <div class="flex justify-center space-x-1 mb-6">
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce"></i>
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce" style="animation-delay: 0.1s;"></i>
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce" style="animation-delay: 0.2s;"></i>
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce" style="animation-delay: 0.3s;"></i>
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce" style="animation-delay: 0.4s;"></i>
+                        </div>
+                        <div class="text-center mb-8">
+                            <div class="text-6xl text-green-300/50 mb-4">"</div>
+                            <p class="text-white/90 text-lg leading-relaxed italic">
+                                Ahmad made statistics actually enjoyable! His real-world examples and step-by-step approach helped me understand concepts I thought were impossible. Highly recommend!
+                            </p>
+                        </div>
+                        <div class="flex items-center justify-center space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center text-2xl">
+                                👩‍🎓
+                            </div>
+                            <div class="text-center">
+                                <div class="font-bold text-white">Maya S.</div>
+                                <div class="text-green-300 text-sm">Business Administration</div>
+                                <div class="text-white/60 text-xs">STAT 230 Student</div>
+                            </div>
+                        </div>
+                        <div class="mt-6 text-center">
+                            <span class="inline-block bg-green-500/20 text-green-300 px-4 py-2 rounded-full text-sm font-semibold">
+                                Grade Improved: C+ → A
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flying-card magnetic" style="animation-delay: 0.7s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-8 h-full hover:scale-105 transition-all duration-500 floating-element">
+                        <div class="flex justify-center space-x-1 mb-6">
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce"></i>
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce" style="animation-delay: 0.1s;"></i>
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce" style="animation-delay: 0.2s;"></i>
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce" style="animation-delay: 0.3s;"></i>
+                            <i data-lucide="star" class="w-5 h-5 text-yellow-400 fill-current icon-bounce" style="animation-delay: 0.4s;"></i>
+                        </div>
+                        <div class="text-center mb-8">
+                            <div class="text-6xl text-purple-300/50 mb-4">"</div>
+                            <p class="text-white/90 text-lg leading-relaxed italic">
+                                Lara is amazing! She helped me master calculus concepts that seemed impossible. Her teaching style is perfect and she's always available for questions. 10/10!
+                            </p>
+                        </div>
+                        <div class="flex items-center justify-center space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-2xl">
+                                👨‍🔬
+                            </div>
+                            <div class="text-center">
+                                <div class="font-bold text-white">Rami H.</div>
+                                <div class="text-purple-300 text-sm">Engineering Sophomore</div>
+                                <div class="text-white/60 text-xs">MATH 201 Student</div>
+                            </div>
+                        </div>
+                        <div class="mt-6 text-center">
+                            <span class="inline-block bg-purple-500/20 text-purple-300 px-4 py-2 rounded-full text-sm font-semibold">
+                                Grade Improved: D+ → A-
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8 mt-12 max-w-5xl mx-auto">
+                <div class="flying-card magnetic" style="animation-delay: 0.9s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-6 hover:scale-105 transition-all duration-500 floating-element">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-16 h-16 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-2xl flex-shrink-0">
+                                👩‍💼
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex space-x-1 mb-3">
+                                    <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                    <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                    <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                    <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                    <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                </div>
+                                <p class="text-white/90 italic mb-4">
+                                    "Omar's physics sessions saved my GPA! He breaks down complex problems into simple steps. Worth every penny!"
+                                </p>
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-bold text-white text-sm">Nour K.</div>
+                                        <div class="text-orange-300 text-xs">Pre-Med Student</div>
+                                    </div>
+                                    <span class="bg-orange-500/20 text-orange-300 px-3 py-1 rounded-full text-xs">
+                                        PHYS 201
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flying-card magnetic" style="animation-delay: 1.1s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-6 hover:scale-105 transition-all duration-500 floating-element">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-16 h-16 bg-gradient-to-r from-pink-400 to-pink-600 rounded-full flex items-center justify-center text-2xl flex-shrink-0">
+                                👨‍💻
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex space-x-1 mb-3">
+                                    <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                    <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                    <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                    <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                    <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-current"></i>
+                                </div>
+                                <p class="text-white/90 italic mb-4">
+                                    "The platform is incredible! Easy booking, great tutors, and my grades improved dramatically. Highly recommend to all AUB students!"
+                                </p>
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="font-bold text-white text-sm">Layla M.</div>
+                                        <div class="text-pink-300 text-xs">Economics Major</div>
+                                    </div>
+                                    <span class="bg-pink-500/20 text-pink-300 px-3 py-1 rounded-full text-xs">
+                                        Multiple Courses
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-20 text-center">
+                <div class="glass dark:glass-dark rounded-3xl p-8 max-w-4xl mx-auto">
+                    <h3 class="text-2xl font-bold text-white mb-8">Trusted by AUB Students</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-blue-400 mb-2">2,500+</div>
+                            <div class="text-white/70 text-sm">Happy Students</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-green-400 mb-2">4.9/5</div>
+                            <div class="text-white/70 text-sm">Average Rating</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-purple-400 mb-2">15,000+</div>
+                            <div class="text-white/70 text-sm">Sessions Completed</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-yellow-400 mb-2">95%</div>
+                            <div class="text-white/70 text-sm">Grade Improvement</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="py-32 px-6 lg:px-8 gradient-mesh relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/20 dark:bg-black/40"></div>
+        
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <h2 class="text-5xl md:text-6xl font-bold text-white mb-8">
+                Ready to Excel?
+            </h2>
+            <p class="text-xl text-white/90 mb-12 max-w-2xl mx-auto">
+                Join thousands of AUB students who've transformed their academic journey with our premium tutoring platform.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                <button class="btn-premium magnetic glow-blue text-lg px-12 py-5">
+                    <i data-lucide="rocket" class="w-6 h-6 inline mr-3"></i>
+                    Start Your Journey
+                </button>
+                
+                <button class="glass dark:glass-dark text-white px-12 py-5 rounded-full font-semibold text-lg magnetic hover:scale-105 transition-all duration-300">
+                    <i data-lucide="phone" class="w-6 h-6 inline mr-3"></i>
+                    Contact Us
+                </button>
+            </div>
+        </div>
+    </section>
+    <section class="py-20 px-6 lg:px-8 gradient-mesh relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/10 dark:bg-black/30"></div>
+        <div class="absolute top-10 left-10 w-16 h-16 bg-blue-200/30 dark:bg-blue-500/20 rounded-full blur-xl animate-pulse"></div>
+        <div class="absolute bottom-10 right-10 w-20 h-20 bg-purple-200/30 dark:bg-purple-500/20 rounded-full blur-xl animate-pulse delay-300"></div>
+        
+        <div class="max-w-4xl mx-auto relative z-10">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                    Share Your Experience
+                </h2>
+                <p class="text-lg text-white/90 max-w-2xl mx-auto">
+                    Help us improve by sharing your feedback. Your thoughts matter to us and help make AUB Tutor Hub better for everyone.
+                </p>
+            </div>
+            
+            <div class="glass dark:glass-dark rounded-3xl p-8 md:p-12 shadow-2xl">
+                <form class="space-y-8">
+                    <div class="text-center">
+                        <h3 class="text-xl font-semibold text-white mb-4">How was your experience?</h3>
+                        <div class="flex justify-center space-x-2 mb-6">
+                            <button type="button" class="star-rating w-12 h-12 text-gray-300 hover:text-yellow-400 transition-colors duration-200" data-rating="1">
+                                <i data-lucide="star" class="w-8 h-8"></i>
+                            </button>
+                            <button type="button" class="star-rating w-12 h-12 text-gray-300 hover:text-yellow-400 transition-colors duration-200" data-rating="2">
+                                <i data-lucide="star" class="w-8 h-8"></i>
+                            </button>
+                            <button type="button" class="star-rating w-12 h-12 text-gray-300 hover:text-yellow-400 transition-colors duration-200" data-rating="3">
+                                <i data-lucide="star" class="w-8 h-8"></i>
+                            </button>
+                            <button type="button" class="star-rating w-12 h-12 text-gray-300 hover:text-yellow-400 transition-colors duration-200" data-rating="4">
+                                <i data-lucide="star" class="w-8 h-8"></i>
+                            </button>
+                            <button type="button" class="star-rating w-12 h-12 text-gray-300 hover:text-yellow-400 transition-colors duration-200" data-rating="5">
+                                <i data-lucide="star" class="w-8 h-8"></i>
+                            </button>
+                        </div>
+                        <p id="rating-text" class="text-gray-600 dark:text-gray-400 font-medium"></p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">What would you like to share feedback about?</h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <label class="feedback-category cursor-pointer">
+                                <input type="checkbox" class="hidden" value="tutors">
+                                <div class="glass dark:glass-dark rounded-xl p-4 border-2 border-transparent hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300">
+                                    <div class="flex items-center space-x-3">
+                                        <i data-lucide="users" class="w-6 h-6 text-blue-500"></i>
+                                        <span class="font-medium text-gray-900 dark:text-white">Tutors</span>
+                                    </div>
+                                </div>
+                            </label>
+                            
+                            <label class="feedback-category cursor-pointer">
+                                <input type="checkbox" class="hidden" value="platform">
+                                <div class="glass dark:glass-dark rounded-xl p-4 border-2 border-transparent hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300">
+                                    <div class="flex items-center space-x-3">
+                                        <i data-lucide="monitor" class="w-6 h-6 text-green-500"></i>
+                                        <span class="font-medium text-gray-900 dark:text-white">Platform</span>
+                                    </div>
+                                </div>
+                            </label>
+                            
+                            <label class="feedback-category cursor-pointer">
+                                <input type="checkbox" class="hidden" value="booking">
+                                <div class="glass dark:glass-dark rounded-xl p-4 border-2 border-transparent hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300">
+                                    <div class="flex items-center space-x-3">
+                                        <i data-lucide="calendar" class="w-6 h-6 text-purple-500"></i>
+                                        <span class="font-medium text-gray-900 dark:text-white">Booking System</span>
+                                    </div>
+                                </div>
+                            </label>
+                            
+                            <label class="feedback-category cursor-pointer">
+                                <input type="checkbox" class="hidden" value="support">
+                                <div class="glass dark:glass-dark rounded-xl p-4 border-2 border-transparent hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300">
+                                    <div class="flex items-center space-x-3">
+                                        <i data-lucide="headphones" class="w-6 h-6 text-orange-500"></i>
+                                        <span class="font-medium text-gray-900 dark:text-white">Support</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            Tell us more about your experience
+                        </label>
+                        <textarea 
+                            rows="5" 
+                            placeholder="Share your thoughts, suggestions, or any issues you encountered..."
+                            class="w-full px-6 py-4 bg-white/50 dark:bg-gray-800/50 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-300 resize-none"
+                        ></textarea>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Name (Optional)
+                            </label>
+                            <input 
+                                type="text" 
+                                placeholder="Your name"
+                                class="w-full px-4 py-3 bg-white/50 dark:bg-gray-800/50 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-300"
+                            />
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Email (Optional)
+                            </label>
+                            <input 
+                                type="email" 
+                                placeholder="your.email@aub.edu.lb"
+                                class="w-full px-4 py-3 bg-white/50 dark:bg-gray-800/50 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-blue-500 dark:focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-300"
+                            />
+                        </div>
+                    </div>
+                    <div class="text-center pt-4">
+                        <button type="submit" class="btn-premium magnetic glow-blue text-lg px-12 py-4 group">
+                            <i data-lucide="send" class="w-5 h-5 inline mr-3 group-hover:animate-pulse"></i>
+                            Submit Feedback
+                        </button>
+                        
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                            Your feedback helps us create a better learning experience for all AUB students
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    <footer class="bg-gray-900 dark:bg-black text-white py-20 px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-4 gap-12 mb-12">
+                <div class="col-span-2">
+                    <div class="flex items-center space-x-4 mb-8">
+                        <div class="w-14 h-14 liquid-morph bg-gradient-to-r from-blue-500 to-blue-800 flex items-center justify-center shadow-2xl">
+                            <i data-lucide="graduation-cap" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <span class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                            AUB Tutor Hub
+                        </span>
+                    </div>
+                    <p class="text-gray-400 mb-8 leading-relaxed text-lg">
+                        Revolutionizing education at AUB through premium tutoring experiences. 
+                        Connect, learn, and excel with the best minds on campus.
+                    </p>
+                    <div class="text-sm text-gray-500">
+                        Powered by <span class="text-blue-400 font-semibold">GapGuide Technologies</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-6 text-xl text-white">For Students</h4>
+                    <ul class="space-y-4 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Find Tutors</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Book Sessions</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Track Progress</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Get Support</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-6 text-xl text-white">For Tutors</h4>
+                    <ul class="space-y-4 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Join Platform</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Manage Profile</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Earn More</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Resources</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 AUB Tutor Hub. Crafted with ❤️ for academic excellence.</p>
+            </div>
+        </div>
+    </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
