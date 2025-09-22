@@ -1,11 +1,635 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us - AUB Tutor Hub</title>
+
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="about.css" />
 </head>
-<body>
-    
+
+<body class="gradient-mesh theme-transition">
+    <div id="particles" class="fixed inset-0 pointer-events-none z-0"></div>
+
+    <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-500">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="flex items-center space-x-4 magnetic cursor-pointer">
+                    <div
+                        class="w-12 h-12 liquid-morph bg-gradient-to-r from-blue-500 to-blue-800 flex items-center justify-center shadow-2xl">
+                        <i data-lucide="graduation-cap" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <span
+                        class="text-2xl font-bold bg-gradient-to-r from-blue-300 to-white bg-clip-text text-transparent">
+                        AUB Tutor Hub
+                    </span>
+                </a>
+
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="../Homepage/index.html"
+                        class="magnetic text-white hover:text-blue-300 font-medium transition-all duration-300">Home</a>
+                    <a href="find-tutor.html"
+                        class="magnetic text-white hover:text-blue-300 font-medium transition-all duration-300">Find
+                        Tutors</a>
+                    <a href="become-tutor.html"
+                        class="magnetic text-white hover:text-purple-300 font-medium transition-all duration-300">Become
+                        a Tutor</a>
+                    <a href="about.html"
+                        class="magnetic text-blue-300 font-medium transition-all duration-300 border-b-2 border-blue-300">About</a>
+                    <a href="../Contact/contact.html"
+                        class="magnetic text-white hover:text-pink-300 font-medium transition-all duration-300">Contact</a>
+
+
+
+                    <div class="flex items-center space-x-4">
+                        <button
+                            class="magnetic text-white hover:text-blue-300 font-medium px-4 py-2 rounded-xl glass transition-all duration-300 hover:scale-105">
+                            <i data-lucide="log-in" class="w-4 h-4 inline mr-2"></i>Log In
+                        </button>
+                        <button
+                            class="magnetic bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-semibold px-6 py-2 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
+                            <i data-lucide="user-plus" class="w-4 h-4 inline mr-2"></i>Sign Up
+                        </button>
+                    </div>
+                    <button id="theme-toggle" class="magnetic glass dark:glass-dark p-3 rounded-2xl">
+                        <i data-lucide="sun" class="w-5 h-5 text-white dark:hidden"></i>
+                        <i data-lucide="moon" class="w-5 h-5 text-white hidden dark:block"></i>
+                    </button>
+                </div>
+
+                <div class="md:hidden flex items-center space-x-4">
+                    <div class="theme-toggle magnetic" onclick="toggleTheme()"></div>
+                    <button class="magnetic glass p-3 rounded-2xl">
+                        <i data-lucide="menu" class="w-6 h-6 text-white"></i>
+                    </button>
+                </div>
+                <div class="md:hidden">
+                    <button class="magnetic glass dark:glass-dark p-3 rounded-2xl">
+                        <i data-lucide="menu" class="w-6 h-6 text-white"></i>
+                    </button>
+                </div>
+            </div>
+    </nav>
+
+    <section class="min-h-screen flex flex-col items-center justify-center relative overflow-hidden pt-20">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center relative z-10">
+            <h1 class="text-6xl md:text-8xl font-black text-white mb-8 float-up">
+                About <span class="bg-gradient-to-r from-blue-300 to-blue-500 bg-clip-text text-transparent">Us</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-white/90 max-w-4xl mx-auto leading-relaxed scale-bounce delay-200 mb-24">
+                Discover the story behind AUB Tutor Hub and our mission to transform academic success through
+                peer-to-peer learning.
+            </p>
+
+            <div class="max-w-3xl mx-auto scale-bounce delay-400">
+                <div class="glass rounded-3xl p-8 floating-element">
+                    <h2 class="text-2xl font-bold text-white mb-4">Our Mission</h2>
+                    <p class="text-white/90 text-lg leading-relaxed">
+                        To democratize academic excellence by creating meaningful connections between
+                        students, fostering a community where knowledge flows freely and success is shared.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <a href="watch-demo.html"
+            class="glass dark:glass-dark text-white px-10 py-5 rounded-full font-semibold text-lg magnetic hover:scale-105 transition-all duration-300">
+            <i data-lucide="play-circle" class="w-6 h-6 inline mr-3"></i>
+            Watch Demo
+        </a>
+    </section>
+
+
+
+    <section class="py-20 px-6 lg:px-8 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div class="slide-in-left">
+                    <h2 class="text-5xl font-black text-white mb-8">Our Story</h2>
+                    <div class="space-y-6 text-white/80 text-lg leading-relaxed">
+                        <p class="fade-in delay-100">
+                            AUB Tutor Hub was born from a simple yet powerful observation: the best tutors are often
+                            fellow students who have recently conquered the same academic challenges you're facing.
+                        </p>
+                        <p class="fade-in delay-200">
+                            As AUB students ourselves, we experienced firsthand the struggle of finding quality,
+                            affordable tutoring that truly understood the unique demands of our university's rigorous
+                            academic environment.
+                        </p>
+                        <p class="fade-in delay-300">
+                            What started as a small group of friends helping each other study has evolved into AUB's
+                            premier peer tutoring platform, connecting thousands of students with expert tutors who
+                            speak their academic language.
+                        </p>
+                        <p class="fade-in delay-400">
+                            Today, we're proud to be the bridge that connects academic excellence with accessibility,
+                            ensuring every AUB student has the support they need to thrive.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="slide-in-right delay-300">
+                    <div class="glass rounded-3xl p-8 floating-element">
+                        <div
+                            class="w-full h-64 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center text-8xl">
+                            📚
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mt-6 text-center">From Students, For Students</h3>
+                        <p class="text-white/70 text-center mt-4">Built by AUB students who understand your academic
+                            journey</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 px-6 lg:px-8 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-black text-white mb-6 float-up">How We Started</h2>
+                <p class="text-xl text-white/80 max-w-3xl mx-auto scale-bounce delay-200">
+                    The journey from a simple idea to AUB's leading tutoring platform
+                </p>
+            </div>
+
+            <div class="max-w-4xl mx-auto">
+                <div class="space-y-8">
+                    <div class="timeline-item">
+                        <h3 class="text-2xl font-bold text-white mb-3">The Spark - Fall 2022</h3>
+                        <p class="text-white/70 text-lg leading-relaxed">
+                            Three AUB students struggling with calculus couldn't find affordable tutoring. They decided
+                            to help each other and discovered the power of peer learning.
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h3 class="text-2xl font-bold text-white mb-3">Growing the Circle - Spring 2023</h3>
+                        <p class="text-white/70 text-lg leading-relaxed">
+                            Word spread quickly. What started as 3 students became 30, then 100. The informal study
+                            groups were working, but organization was needed.
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h3 class="text-2xl font-bold text-white mb-3">Building the Platform - Summer 2023</h3>
+                        <p class="text-white/70 text-lg leading-relaxed">
+                            Using skills learned in computer science classes, the founders built the first version of
+                            AUB Tutor Hub during summer break.
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h3 class="text-2xl font-bold text-white mb-3">Official Launch - Fall 2023</h3>
+                        <p class="text-white/70 text-lg leading-relaxed">
+                            AUB Tutor Hub officially launched with 50 verified tutors across 15 subjects. The response
+                            was overwhelming and immediate.
+                        </p>
+                    </div>
+
+                    <div class="timeline-item">
+                        <h3 class="text-2xl font-bold text-white mb-3">Today - 2024</h3>
+                        <p class="text-white/70 text-lg leading-relaxed">
+                            Now serving thousands of students with hundreds of expert tutors, we continue to innovate
+                            and expand our impact across the AUB community.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 px-6 lg:px-8 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-black text-white mb-6 float-up">Our Core Values</h2>
+                <p class="text-xl text-white/80 max-w-3xl mx-auto scale-bounce delay-200">
+                    The principles that guide everything we do
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="value-card p-8 text-center magnetic scale-bounce delay-100">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="users" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Community First</h3>
+                    <p class="text-white/70 leading-relaxed">
+                        We believe in the power of peer-to-peer learning and building strong connections within the AUB
+                        community.
+                    </p>
+                </div>
+
+                <div class="value-card p-8 text-center magnetic scale-bounce delay-200">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-r from-green-500 to-green-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="star" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Academic Excellence</h3>
+                    <p class="text-white/70 leading-relaxed">
+                        We maintain the highest standards for our tutors and continuously strive to improve learning
+                        outcomes.
+                    </p>
+                </div>
+
+                <div class="value-card p-8 text-center magnetic scale-bounce delay-300">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="heart" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Accessibility</h3>
+                    <p class="text-white/70 leading-relaxed">
+                        Quality education should be accessible to everyone. We work to keep our services affordable and
+                        inclusive.
+                    </p>
+                </div>
+
+                <div class="value-card p-8 text-center magnetic scale-bounce delay-400">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-r from-orange-500 to-orange-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="zap" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Innovation</h3>
+                    <p class="text-white/70 leading-relaxed">
+                        We embrace technology and innovative approaches to make learning more effective and engaging.
+                    </p>
+                </div>
+
+                <div class="value-card p-8 text-center magnetic scale-bounce delay-500">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-r from-red-500 to-red-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="shield" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Trust & Safety</h3>
+                    <p class="text-white/70 leading-relaxed">
+                        We prioritize the safety and security of our community through rigorous verification processes.
+                    </p>
+                </div>
+
+                <div class="value-card p-8 text-center magnetic scale-bounce delay-600">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-r from-indigo-500 to-indigo-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="trending-up" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Growth Mindset</h3>
+                    <p class="text-white/70 leading-relaxed">
+                        We believe everyone can improve and succeed with the right support, guidance, and dedication.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 px-6 lg:px-8 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-black text-white mb-6 float-up">What Makes Us Different</h2>
+                <p class="text-xl text-white/80 max-w-3xl mx-auto scale-bounce delay-200">
+                    Why AUB students choose us over traditional tutoring services
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-12">
+                <div class="space-y-8 slide-in-left">
+                    <div class="glass p-6 rounded-2xl">
+                        <div class="flex items-start space-x-4">
+                            <div
+                                class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="users-2" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">Peer-to-Peer Learning</h3>
+                                <p class="text-white/70">Our tutors are fellow AUB students who recently mastered the
+                                    subjects you're studying.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass p-6 rounded-2xl">
+                        <div class="flex items-start space-x-4">
+                            <div
+                                class="w-12 h-12 bg-gradient-to-r from-green-500 to-green-700 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="dollar-sign" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">Affordable Pricing</h3>
+                                <p class="text-white/70">Student-friendly rates that won't break your budget, with
+                                    flexible payment options.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass p-6 rounded-2xl">
+                        <div class="flex items-start space-x-4">
+                            <div
+                                class="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="clock" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">Flexible Scheduling</h3>
+                                <p class="text-white/70">Book sessions that fit your schedule, with options for
+                                    last-minute help before exams.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-8 slide-in-right delay-300">
+                    <div class="glass p-6 rounded-2xl">
+                        <div class="flex items-start space-x-4">
+                            <div
+                                class="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-700 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="map-pin" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">On-Campus Convenience</h3>
+                                <p class="text-white/70">Meet your tutor at familiar AUB locations or connect online
+                                    from anywhere.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass p-6 rounded-2xl">
+                        <div class="flex items-start space-x-4">
+                            <div
+                                class="w-12 h-12 bg-gradient-to-r from-red-500 to-red-700 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="award" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">Verified Excellence</h3>
+                                <p class="text-white/70">All tutors are verified AUB students with proven academic
+                                    success in their subjects.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass p-6 rounded-2xl">
+                        <div class="flex items-start space-x-4">
+                            <div
+                                class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-indigo-700 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="smartphone" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white mb-2">Smart Matching</h3>
+                                <p class="text-white/70">Our AI-powered system matches you with the perfect tutor based
+                                    on your learning style.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 px-6 lg:px-8 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-black text-white mb-6 float-up">Meet Our Founders</h2>
+                <p class="text-xl text-white/80 max-w-3xl mx-auto scale-bounce delay-200">
+                    The passionate AUB students who turned a simple idea into reality
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="team-card p-8 text-center magnetic scale-bounce delay-100">
+                    <div
+                        class="w-32 h-32 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6 text-6xl">
+                        👨‍💻</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Ahmad Khalil</h3>
+                    <p class="text-blue-300 font-medium mb-4">Co-Founder & CEO</p>
+                    <p class="text-white/70 mb-6 leading-relaxed">
+                        Computer Science senior who struggled with calculus and turned that experience into a mission to
+                        help fellow students excel.
+                    </p>
+                    <div class="flex justify-center space-x-4">
+                        <a href="#" class="social-link"><i data-lucide="linkedin" class="w-5 h-5"></i></a>
+                        <a href="#" class="social-link"><i data-lucide="github" class="w-5 h-5"></i></a>
+                        <a href="#" class="social-link"><i data-lucide="mail" class="w-5 h-5"></i></a>
+                    </div>
+                </div>
+
+                <div class="team-card p-8 text-center magnetic scale-bounce delay-200">
+                    <div
+                        class="w-32 h-32 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center mx-auto mb-6 text-6xl">
+                        👩‍💼</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Sara Mansour</h3>
+                    <p class="text-purple-300 font-medium mb-4">Co-Founder & COO</p>
+                    <p class="text-white/70 mb-6 leading-relaxed">
+                        Business Administration graduate with a passion for building communities and ensuring every
+                        student has access to quality education.
+                    </p>
+                    <div class="flex justify-center space-x-4">
+                        <a href="#" class="social-link"><i data-lucide="linkedin" class="w-5 h-5"></i></a>
+                        <a href="#" class="social-link"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+                        <a href="#" class="social-link"><i data-lucide="mail" class="w-5 h-5"></i></a>
+                    </div>
+                </div>
+
+                <div class="team-card p-8 text-center magnetic scale-bounce delay-300">
+                    <div
+                        class="w-32 h-32 bg-gradient-to-r from-green-500 to-green-700 rounded-full flex items-center justify-center mx-auto mb-6 text-6xl">
+                        👨‍🎓</div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Omar Farah</h3>
+                    <p class="text-green-300 font-medium mb-4">Co-Founder & CTO</p>
+                    <p class="text-white/70 mb-6 leading-relaxed">
+                        Engineering student who believes technology can make quality education accessible to everyone,
+                        regardless of their background.
+                    </p>
+                    <div class="flex justify-center space-x-4">
+                        <a href="#" class="social-link"><i data-lucide="linkedin" class="w-5 h-5"></i></a>
+                        <a href="#" class="social-link"><i data-lucide="code" class="w-5 h-5"></i></a>
+                        <a href="#" class="social-link"><i data-lucide="mail" class="w-5 h-5"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 px-6 lg:px-8 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-black text-white mb-6 float-up">Our Impact in Numbers</h2>
+                <p class="text-xl text-white/80 max-w-3xl mx-auto scale-bounce delay-200">
+                    The measurable difference we're making in the AUB community
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="glass rounded-3xl p-8 text-center floating-element">
+                    <div class="stat-number mb-4" data-target="500">0</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Active Tutors</h3>
+                    <p class="text-white/70">Expert students ready to help</p>
+                </div>
+
+                <div class="glass rounded-3xl p-8 text-center floating-element" style="animation-delay: 0.2s;">
+                    <div class="stat-number mb-4" data-target="12000">0</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Sessions Completed</h3>
+                    <p class="text-white/70">Successful learning experiences</p>
+                </div>
+
+                <div class="glass rounded-3xl p-8 text-center floating-element" style="animation-delay: 0.4s;">
+                    <div class="stat-number mb-4" data-target="96">0</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Success Rate (%)</h3>
+                    <p class="text-white/70">Students improve their grades</p>
+                </div>
+
+                <div class="glass rounded-3xl p-8 text-center floating-element" style="animation-delay: 0.6s;">
+                    <div class="stat-number mb-4" data-target="60">0</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Subjects Covered</h3>
+                    <p class="text-white/70">Across all AUB faculties</p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 mt-12">
+                <div class="glass rounded-3xl p-8 text-center floating-element" style="animation-delay: 0.8s;">
+                    <div class="stat-number mb-4" data-target="4.9">0</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Average Rating</h3>
+                    <p class="text-white/70">Out of 5 stars from students</p>
+                </div>
+
+                <div class="glass rounded-3xl p-8 text-center floating-element" style="animation-delay: 1s;">
+                    <div class="stat-number mb-4" data-target="24">0</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Hours Response</h3>
+                    <p class="text-white/70">Average tutor response time</p>
+                </div>
+
+                <div class="glass rounded-3xl p-8 text-center floating-element" style="animation-delay: 1.2s;">
+                    <div class="stat-number mb-4" data-target="85">0</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Repeat Students (%)</h3>
+                    <p class="text-white/70">Come back for more sessions</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 px-6 lg:px-8 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto relative z-10 text-center">
+            <h2 class="text-5xl font-black text-white mb-8 float-up">Join Our Community</h2>
+            <p class="text-xl text-white/80 max-w-3xl mx-auto mb-12 scale-bounce delay-200">
+                Whether you're looking for academic support or want to share your knowledge and earn income,
+                there's a place for you in the AUB Tutor Hub family.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
+                <div class="glass p-8 rounded-3xl text-center scale-bounce delay-300">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="search" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Find a Tutor</h3>
+                    <p class="text-white/70 mb-6">Connect with expert AUB students who can help you excel in your
+                        studies</p>
+                    <ul class="text-white/60 text-sm space-y-2 mb-6">
+                        <li>✓ Browse 500+ verified tutors</li>
+                        <li>✓ Read reviews from fellow students</li>
+                        <li>✓ Book sessions instantly</li>
+                        <li>✓ Affordable student rates</li>
+                    </ul>
+                </div>
+
+                <div class="glass p-8 rounded-3xl text-center scale-bounce delay-400">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="user-plus" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Become a Tutor</h3>
+                    <p class="text-white/70 mb-6">Share your knowledge, help fellow students, and earn money doing what
+                        you love</p>
+                    <ul class="text-white/60 text-sm space-y-2 mb-6">
+                        <li>✓ Flexible scheduling</li>
+                        <li>✓ Competitive hourly rates</li>
+                        <li>✓ Build your reputation</li>
+                        <li>✓ Make a real impact</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-6 justify-center items-center scale-bounce delay-500">
+                <a href="find-tutors.html" class="btn-premium px-12 py-4 text-lg magnetic">
+                    <i data-lucide="search" class="w-6 h-6 inline mr-3"></i>Find a Tutor
+                </a>
+                <a href="become-tutor.html"
+                    class="glass text-white px-12 py-4 rounded-full font-semibold text-lg magnetic hover:scale-105 transition-all duration-300">
+                    <i data-lucide="user-plus" class="w-6 h-6 inline mr-3"></i>Become a Tutor
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-black/20 backdrop-blur-lg text-white py-20 px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-4 gap-12 mb-12">
+                <div class="col-span-2">
+                    <div class="flex items-center space-x-4 mb-8">
+                        <div
+                            class="w-14 h-14 liquid-morph bg-gradient-to-r from-blue-500 to-blue-800 flex items-center justify-center shadow-2xl">
+                            <i data-lucide="graduation-cap" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <span
+                            class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                            AUB Tutor Hub
+                        </span>
+                    </div>
+                    <p class="text-white/70 mb-8 leading-relaxed text-lg">
+                        Connecting AUB students with expert tutors for academic excellence. Find your perfect tutor
+                        today.
+                    </p>
+                    <div class="text-sm text-white/50">
+                        Powered by <span class="text-blue-400 font-semibold">GapGuide Technologies</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-bold mb-6 text-xl text-white">Platform</h4>
+                    <ul class="space-y-4 text-white/70">
+                        <li><a href="find-tutors.html"
+                                class="hover:text-white transition-colors hover:translate-x-2 inline-block">Find
+                                Tutors</a></li>
+                        <li><a href="become-tutor.html"
+                                class="hover:text-white transition-colors hover:translate-x-2 inline-block">Become a
+                                Tutor</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">How
+                                It Works</a></li>
+                        <li><a href="#"
+                                class="hover:text-white transition-colors hover:translate-x-2 inline-block">Success
+                                Stories</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold mb-6 text-xl text-white">Company</h4>
+                    <ul class="space-y-4 text-white/70">
+                        <li><a href="about.html"
+                                class="hover:text-white transition-colors hover:translate-x-2 inline-block">About Us</a>
+                        </li>
+                        <li><a href="contact.html"
+                                class="hover:text-white transition-colors hover:translate-x-2 inline-block">Contact</a>
+                        </li>
+                        <li><a href="#"
+                                class="hover:text-white transition-colors hover:translate-x-2 inline-block">Privacy
+                                Policy</a></li>
+                        <li><a href="#"
+                                class="hover:text-white transition-colors hover:translate-x-2 inline-block">Terms of
+                                Service</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-white/20 pt-8 text-center text-white/50">
+                <p>&copy; 2024 AUB Tutor Hub. Empowering academic excellence through expert tutoring.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="about.js"></script>
 </body>
+
 </html>
