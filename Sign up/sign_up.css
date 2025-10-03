@@ -31,7 +31,6 @@
             100% { background-position: 0% 50%; }
         }
         
-        /* Enhanced Glassmorphism */
         .glass {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(25px);
@@ -48,7 +47,6 @@
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
         }
         
-        /* Enhanced Animations */
         @keyframes slideInUp {
             from { opacity: 0; transform: translateY(80px) scale(0.95); }
             to { opacity: 1; transform: translateY(0) scale(1); }
@@ -89,7 +87,6 @@
         .delay-500 { animation-delay: 0.5s; }
         .delay-600 { animation-delay: 0.6s; }
         
-        /* Enhanced Choice Cards */
         .choice-card {
             background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(25px);
@@ -169,7 +166,6 @@
             background: linear-gradient(135deg, rgba(13, 148, 136, 0.15), rgba(15, 118, 110, 0.15));
         }
         
-        /* Enhanced Choice Icons */
         .choice-icon {
             width: 100px;
             height: 100px;
@@ -230,7 +226,6 @@
             transform: translateX(5px);
         }
         
-        /* Enhanced Magnetic Effect */
         .magnetic {
             transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
@@ -239,7 +234,6 @@
             transform: translateY(-5px) scale(1.03);
         }
         
-        /* Enhanced Theme Toggle */
         .theme-toggle-container {
             display: flex;
             align-items: center;
@@ -278,7 +272,6 @@
             color: #60a5fa;
         }
         
-        /* Enhanced Particles */
         .particle {
             position: absolute;
             border-radius: 50%;
@@ -311,7 +304,6 @@
             100% { transform: translateY(-100px) rotate(360deg) scale(0); opacity: 0; }
         }
         
-        /* Enhanced Header */
         .main-title {
             background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 50%, #e0f2fe 100%);
             -webkit-background-clip: text;
@@ -327,7 +319,6 @@
             background-clip: text;
         }
         
-        /* Enhanced Glow Effects */
         .glow-blue {
             box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
         }
@@ -336,7 +327,6 @@
             box-shadow: 0 0 30px rgba(13, 148, 136, 0.3);
         }
         
-        /* Responsive Enhancements */
         @media (max-width: 768px) {
             .choice-card {
                 padding: 2.5rem 2rem;
@@ -362,7 +352,6 @@
             }
         }
         
-        /* Loading Animation */
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -395,4 +384,5 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+
         }
