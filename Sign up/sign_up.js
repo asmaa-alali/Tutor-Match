@@ -1,13 +1,11 @@
 lucide.createIcons();
 
-// Enhanced Loading
         window.addEventListener('load', () => {
             setTimeout(() => {
                 document.getElementById('loadingOverlay').classList.add('hidden');
             }, 1000);
         });
         
-        // Theme Management
         function toggleTheme() {
             document.body.classList.toggle('dark');
             const isDark = document.body.classList.contains('dark');
@@ -26,7 +24,6 @@ lucide.createIcons();
             lucide.createIcons();
         }
         
-        // Initialize theme
         const savedTheme = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
@@ -35,12 +32,10 @@ lucide.createIcons();
             document.body.classList.add('dark');
         }
         
-        // Set initial icons after page load
         document.addEventListener('DOMContentLoaded', () => {
             updateThemeIcons(isDark);
         });
         
-        // Enhanced navbar scroll effect
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
             if (window.scrollY > 50) {
@@ -50,7 +45,6 @@ lucide.createIcons();
             }
         });
         
-        // Enhanced particles system
         function createParticle() {
             const particle = document.createElement('div');
             const types = ['particle-1', 'particle-2', 'particle-3'];
@@ -67,7 +61,6 @@ lucide.createIcons();
         
         setInterval(createParticle, 600);
         
-        // Enhanced magnetic effect
         document.querySelectorAll('.magnetic').forEach(element => {
             element.addEventListener('mousemove', (e) => {
                 const rect = element.getBoundingClientRect();
@@ -82,12 +75,10 @@ lucide.createIcons();
             });
         });
         
-        // Enhanced role selection
         function selectRole(role) {
             const selectedCard = document.querySelector(`.choice-card.${role}`);
             const otherCard = document.querySelector(`.choice-card:not(.${role})`);
             
-            // Animate selection
             selectedCard.style.transform = 'scale(0.95)';
             selectedCard.style.filter = 'brightness(1.2)';
             otherCard.style.opacity = '0.5';
@@ -107,7 +98,6 @@ lucide.createIcons();
             }, 150);
         }
         
-        // Enhanced animations on page load
         document.addEventListener('DOMContentLoaded', () => {
             const animatedElements = document.querySelectorAll('.animate-slide-up, .animate-slide-left, .animate-scale-in');
             animatedElements.forEach((element, index) => {
@@ -123,7 +113,6 @@ lucide.createIcons();
             });
         });
         
-        // Enhanced hover effects
         document.querySelectorAll('.choice-card').forEach(card => {
             card.addEventListener('mouseenter', () => {
                 card.style.boxShadow = card.classList.contains('student') 
@@ -136,10 +125,10 @@ lucide.createIcons();
             });
         });
         
-        // Add parallax effect to background
         window.addEventListener('scroll', () => {
             const scrolled = window.pageYOffset;
             const parallax = document.getElementById('particles');
             const speed = scrolled * 0.5;
             parallax.style.transform = `translateY(${speed}px)`;
+
         });
