@@ -37,7 +37,6 @@ body {
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
-        /* Animations */
         @keyframes slideInUp {
             from { opacity: 0; transform: translateY(60px); }
             to { opacity: 1; transform: translateY(0); }
@@ -71,7 +70,6 @@ body {
         .delay-400 { animation-delay: 0.4s; }
         .delay-500 { animation-delay: 0.5s; }
         
-        /* Form Styles */
         .form-input {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.15);
@@ -134,7 +132,6 @@ body {
             display: none;
         }
         
-        /* Premium Button */
         .btn-premium {
             background: linear-gradient(135deg, #0ea5e9 0%, #0891b2 50%, #0d9488 100%);
             border: none;
@@ -188,7 +185,6 @@ body {
             transform: translateY(-3px) scale(1.02);
         }
         
-        /* Theme Toggle */
         .theme-toggle-container {
             display: flex;
             align-items: center;
@@ -243,7 +239,6 @@ body {
             background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(59, 130, 246, 0.2));
         }
         
-        /* Custom Checkbox */
         .custom-checkbox {
             appearance: none;
             width: 20px;
@@ -272,7 +267,6 @@ body {
             font-weight: bold;
         }
         
-        /* Particles */
         .particle {
             position: absolute;
             width: 3px;
@@ -290,7 +284,6 @@ body {
             100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
         }
         
-        /* Password Strength Indicator */
         .password-strength {
             margin-top: 0.5rem;
         }
@@ -314,8 +307,8 @@ body {
         .strength-good { background: #10b981; width: 75%; }
         .strength-strong { background: #22c55e; width: 100%; }
         
-        /* Responsive */
         @media (max-width: 768px) {
             .form-section { padding: 1.5rem; }
             .grid-cols-2 { grid-template-columns: 1fr; }
+
         }
