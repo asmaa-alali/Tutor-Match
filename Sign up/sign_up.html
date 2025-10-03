@@ -6,11 +6,10 @@
     <title>Sign Up - Tutor Match</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <link rel="stylesheet" href="signup.css"> <!-- ✅ link to CSS -->
+    <link rel="stylesheet" href="signup.css"> 
 </head>
 <body>
-    <!-- your HTML content goes here -->
-     <!-- Loading Overlay -->
+  
     <div id="loadingOverlay" class="loading-overlay">
         <div class="text-center">
             <div class="loading-spinner mx-auto mb-4"></div>
@@ -18,10 +17,8 @@
         </div>
     </div>
 
-    <!-- Enhanced Particles Background -->
     <div id="particles" class="fixed inset-0 pointer-events-none z-0"></div>
 
-    <!-- Navigation -->
     <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-500">
         <div class="max-w-7xl mx-auto px-6 lg:px-8">
             <div class="flex justify-between items-center h-24">
@@ -58,7 +55,6 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
     <main class="min-h-screen flex items-center justify-center px-6 lg:px-8 relative z-10 pt-24">
         <div class="max-w-5xl mx-auto w-full">
             <!-- Enhanced Header -->
@@ -83,7 +79,6 @@
                 </p>
             </div>
 
-            <!-- Enhanced Choice Cards -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 max-w-5xl mx-auto">
                 <!-- Enhanced Student Card -->
                 <div class="choice-card student animate-slide-up delay-400 magnetic" onclick="selectRole('student')">
@@ -117,7 +112,6 @@
                     </div>
                 </div>
 
-                <!-- Enhanced Tutor Card -->
                 <div class="choice-card tutor animate-slide-up delay-500 magnetic" onclick="selectRole('tutor')">
                     <div class="choice-icon glow-teal">
                         <i data-lucide="graduation-cap" class="w-12 h-12 text-white"></i>
@@ -150,7 +144,6 @@
                 </div>
             </div>
 
-            <!-- Enhanced Additional Info -->
             <div class="text-center mt-20 animate-slide-up delay-600">
                 <div class="glass rounded-2xl p-6 max-w-md mx-auto">
                     <p class="text-white/70 text-lg">
@@ -162,6 +155,7 @@
         </div>
     </main>
 
-    <script src="signup.js"></script> <!-- ✅ link to JS -->
+    <script src="signup.js"></script> 
 </body>
 </html>
+
