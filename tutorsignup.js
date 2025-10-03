@@ -1,6 +1,5 @@
  lucide.createIcons();
         
-        // Theme Management
         function toggleTheme() {
             document.body.classList.toggle('dark');
             const isDark = document.body.classList.contains('dark');
@@ -13,8 +12,7 @@
             icon.setAttribute('data-lucide', isDark ? 'moon' : 'sun');
             lucide.createIcons();
         }
-        
-        // Initialize theme
+    
         const savedTheme = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
@@ -27,7 +25,6 @@
             updateThemeIcon(isDark);
         });
         
-        // Progress tracking
         function updateProgress() {
             const form = document.getElementById('tutorForm');
             const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
@@ -38,7 +35,6 @@
             
             inputs.forEach(input => {
                 if (input.type === 'checkbox') {
-                    // Handle agreements separately
                     if (input.checked) completed++;
                 } else if (input.name === 'subjects') {
                     // Skip individual subject checkboxes, we'll count them as one
