@@ -1,0 +1,237 @@
+ @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * { font-family: 'Inter', sans-serif; }
+        
+        body {
+            transition: all 0.3s ease;
+            background: linear-gradient(45deg, #3b82f6 0%, #1e40af 25%, #1d4ed8 50%, #1e3a8a 75%, #312e81 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        body.dark {
+            background: #000000;
+            animation: none;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-strong {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .form-section {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-section:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        
+        .form-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .form-input option {
+            background: white;
+            color: black;
+            padding: 0.5rem;
+        }
+        
+        .form-input select {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: rgba(13, 148, 136, 0.6);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+        }
+        
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .form-label {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+            font-size: 1rem;
+        }
+        
+        .checkbox-item {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .checkbox-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(13, 148, 136, 0.4);
+        }
+        
+        .checkbox-item.selected {
+            background: rgba(13, 148, 136, 0.2);
+            border-color: rgba(13, 148, 136, 0.6);
+        }
+        
+        .upload-area {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(13, 148, 136, 0.5);
+        }
+        
+        .upload-area.dragover {
+            background: rgba(13, 148, 136, 0.1);
+            border-color: rgba(13, 148, 136, 0.6);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            border: none;
+            border-radius: 20px;
+            padding: 1.25rem 3rem;
+            color: white;
+            font-weight: 700;
+            font-size: 1.125rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(13, 148, 136, 0.3);
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(13, 148, 136, 0.4);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .error-message {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .success-message {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #0d9488, #14b8a6);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .theme-toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(25px);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+        
+        .theme-toggle-container:hover {
+            transform: scale(1.1);
+        }
+        
+        .theme-icon {
+            width: 24px;
+            height: 24px;
+            color: #fbbf24;
+            transition: all 0.4s ease;
+        }
+        
+        .dark .theme-toggle-container {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .dark .theme-icon {
+            color: #60a5fa;
+        }
+        
+        @media (max-width: 768px) {
+            .form-section {
+                padding: 1.5rem;
+                border-radius: 20px;
+            }
+            
+            .form-input {
+                padding: 0.875rem 1rem;
+                border-radius: 12px;
+            }
+        }

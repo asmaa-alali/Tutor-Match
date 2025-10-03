@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Registration - Tutor Match</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="tutorsignup.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-r from-teal-500 to-teal-600 flex items-center justify-center">
+                        <i data-lucide="graduation-cap" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <span class="text-2xl font-black text-white">Tutor Match</span>
+                </a>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="theme-toggle-container" onclick="toggleTheme()">
+                        <i data-lucide="sun" class="theme-icon" id="themeIcon"></i>
+                    </div>
+                    <a href="signup.html" class="text-white/80 hover:text-white transition-colors">
+                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <main class="min-h-screen pt-24 pb-12 px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <div class="w-20 h-20 rounded-full bg-gradient-to-r from-teal-400 to-teal-600 flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="graduation-cap" class="w-10 h-10 text-white"></i>
+                </div>
+                <h1 class="text-4xl lg:text-5xl font-black text-white mb-4">Become a Tutor</h1>
+                <p class="text-xl text-white/80 max-w-2xl mx-auto">Share your knowledge and help students succeed while earning great income</p>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <form id="tutorForm" class="space-y-8">
+                <div class="form-section">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        <i data-lucide="user" class="w-6 h-6 mr-3 text-teal-400"></i>
+                        Personal Information
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="form-label">First Name *</label>
+                            <input type="text" id="firstName" class="form-input" placeholder="Enter your first name" required>
+                            <div class="error-message" id="firstNameError"></div>
+                        </div>
+                        <div>
+                            <label class="form-label">Last Name *</label>
+                            <input type="text" id="lastName" class="form-input" placeholder="Enter your last name" required>
+                            <div class="error-message" id="lastNameError"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div>
+                            <label class="form-label">Email *</label>
+                            <input type="email" id="email" class="form-input" placeholder="your.email@example.com" required>
+                            <div class="error-message" id="emailError"></div>
+                        </div>
+                        <div>
+                            <label class="form-label">Phone Number *</label>
+                            <input type="tel" id="phone" class="form-input" placeholder="+1 (555) 123-4567" required>
+                            <div class="error-message" id="phoneError"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div>
+                            <label class="form-label">Password *</label>
+                            <input type="password" id="password" class="form-input" placeholder="Create a strong password" required>
+                            <div class="error-message" id="passwordError"></div>
+                            <div class="text-sm text-white/60 mt-2">Must be 8+ characters with uppercase, lowercase, number, and special character</div>
+                        </div>
+                        <div>
+                            <label class="form-label">Confirm Password *</label>
+                            <input type="password" id="confirmPassword" class="form-input" placeholder="Confirm your password" required>
+                            <div class="error-message" id="confirmPasswordError"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <label class="form-label">Birthdate *</label>
+                        <input type="date" id="birthdate" class="form-input" required>
+                        <div class="error-message" id="birthdateError"></div>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        <i data-lucide="book-open" class="w-6 h-6 mr-3 text-teal-400"></i>
+                        Academic Information
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="form-label">Major / Specialization *</label>
+                            <input type="text" id="major" class="form-input" placeholder="e.g., Computer Science, Mathematics" required>
+                            <div class="error-message" id="majorError"></div>
+                        </div>
+                        <div>
+                            <label class="form-label">Degree(s) *</label>
+                            <select id="degree" class="form-input" required>
+                                <option value="">Select your highest degree</option>
+                                <option value="bachelor">Bachelor's Degree</option>
+                                <option value="master">Master's Degree</option>
+                                <option value="phd">PhD</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <div class="error-message" id="degreeError"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <label class="form-label">Current GPA (if applicable)</label>
+                        <input type="number" id="gpa" class="form-input" placeholder="e.g., 3.8" min="0" max="4" step="0.1">
+                        <div class="error-message" id="gpaError"></div>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        <i data-lucide="upload" class="w-6 h-6 mr-3 text-teal-400"></i>
+                        Required Uploads
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="form-label">Passport Photo * (JPG/PNG, < 2MB)</label>
+                            <div class="upload-area" onclick="document.getElementById('passportPhoto').click()">
+                                <i data-lucide="camera" class="w-8 h-8 text-white/60 mx-auto mb-2"></i>
+                                <p class="text-white/80 mb-1">Click to upload passport photo</p>
+                                <p class="text-white/60 text-sm">JPG or PNG, max 2MB</p>
+                            </div>
+                            <input type="file" id="passportPhoto" accept=".jpg,.jpeg,.png" style="display: none;" required>
+                            <div class="error-message" id="passportPhotoError"></div>
+                            <div id="passportPhotoPreview" class="mt-2"></div>
+                        </div>
+                        
+                        <div>
+                            <label class="form-label">Bachelor Certificate * (JPG/PNG, < 5MB)</label>
+                            <div class="upload-area" onclick="document.getElementById('certificate').click()">
+                                <i data-lucide="file-text" class="w-8 h-8 text-white/60 mx-auto mb-2"></i>
+                                <p class="text-white/80 mb-1">Click to upload certificate</p>
+                                <p class="text-white/60 text-sm">JPG or PNG, max 5MB</p>
+                            </div>
+                            <input type="file" id="certificate" accept=".jpg,.jpeg,.png" style="display: none;" required>
+                            <div class="error-message" id="certificateError"></div>
+                            <div id="certificatePreview" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        <i data-lucide="users" class="w-6 h-6 mr-3 text-teal-400"></i>
+                        Tutoring Information
+                    </h2>
+                    
+                    <div class="mb-6">
+                        <label class="form-label">Subjects you want to tutor * (Select all that apply)</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
+                            <div class="checkbox-item" data-subject="mathematics">
+                                <input type="checkbox" id="math" name="subjects" value="mathematics" class="mr-3">
+                                <label for="math" class="text-white cursor-pointer">Mathematics</label>
+                            </div>
+                            <div class="checkbox-item" data-subject="physics">
+                                <input type="checkbox" id="physics" name="subjects" value="physics" class="mr-3">
+                                <label for="physics" class="text-white cursor-pointer">Physics</label>
+                            </div>
+                            <div class="checkbox-item" data-subject="chemistry">
+                                <input type="checkbox" id="chemistry" name="subjects" value="chemistry" class="mr-3">
+                                <label for="chemistry" class="text-white cursor-pointer">Chemistry</label>
+                            </div>
+                            <div class="checkbox-item" data-subject="biology">
+                                <input type="checkbox" id="biology" name="subjects" value="biology" class="mr-3">
+                                <label for="biology" class="text-white cursor-pointer">Biology</label>
+                            </div>
+                            <div class="checkbox-item" data-subject="english">
+                                <input type="checkbox" id="english" name="subjects" value="english" class="mr-3">
+                                <label for="english" class="text-white cursor-pointer">English</label>
+                            </div>
+                            <div class="checkbox-item" data-subject="history">
+                                <input type="checkbox" id="history" name="subjects" value="history" class="mr-3">
+                                <label for="history" class="text-white cursor-pointer">History</label>
+                            </div>
+                            <div class="checkbox-item" data-subject="computer-science">
+                                <input type="checkbox" id="cs" name="subjects" value="computer-science" class="mr-3">
+                                <label for="cs" class="text-white cursor-pointer">Computer Science</label>
+                            </div>
+                            <div class="checkbox-item" data-subject="economics">
+                                <input type="checkbox" id="economics" name="subjects" value="economics" class="mr-3">
+                                <label for="economics" class="text-white cursor-pointer">Economics</label>
+                            </div>
+                            <div class="checkbox-item" data-subject="languages">
+                                <input type="checkbox" id="languages" name="subjects" value="languages" class="mr-3">
+                                <label for="languages" class="text-white cursor-pointer">Languages</label>
+                            </div>
+                        </div>
+                        <div class="error-message" id="subjectsError"></div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="form-label">Previous Tutoring Experience</label>
+                        <textarea id="experience" class="form-input" rows="4" placeholder="Describe your tutoring experience, teaching methods, or relevant background..."></textarea>
+                        <div class="error-message" id="experienceError"></div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="form-label">Why do you want to become a tutor? *</label>
+                        <textarea id="motivation" class="form-input" rows="4" placeholder="Share your motivation and passion for teaching..." required></textarea>
+                        <div class="error-message" id="motivationError"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="form-label">Preferred Tutoring Format *</label>
+                            <select id="format" class="form-input" required>
+                                <option value="">Select format</option>
+                                <option value="online">Online only</option>
+                                <option value="in-person">In-person only</option>
+                                <option value="both">Both</option>
+                            </select>
+                            <div class="error-message" id="formatError"></div>
+                        </div>
+                        <div>
+                            <label class="form-label">Availability (hours per week) *</label>
+                            <select id="availability" class="form-input" required>
+                                <option value="">Select hours</option>
+                                <option value="1-5">1-5 hours</option>
+                                <option value="6-10">6-10 hours</option>
+                                <option value="11-20">11-20 hours</option>
+                                <option value="21-30">21-30 hours</option>
+                                <option value="30+">30+ hours</option>
+                            </select>
+                            <div class="error-message" id="availabilityError"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        <i data-lucide="shield-check" class="w-6 h-6 mr-3 text-teal-400"></i>
+                        Agreements
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="accurateInfo" required class="mr-3">
+                            <label for="accurateInfo" class="text-white cursor-pointer">I confirm that all information provided is accurate and truthful *</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="terms" required class="mr-3">
+                            <label for="terms" class="text-white cursor-pointer">I agree with the <a href="#" class="text-teal-300 underline">Terms & Conditions</a> *</label>
+                        </div>
+                    </div>
+                    <div class="error-message" id="agreementsError"></div>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <i data-lucide="user-plus" class="w-5 h-5 mr-2 inline"></i>
+                        Create Tutor Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+    <script src="tutorsignup.js"></script>
+</body>
+</html>
