@@ -1,6 +1,5 @@
 lucide.createIcons();
 
-// Theme Management
         function toggleTheme() {
             document.body.classList.toggle('dark');
             const isDark = document.body.classList.contains('dark');
@@ -19,7 +18,6 @@ lucide.createIcons();
             lucide.createIcons();
         }
         
-        // Initialize theme
         const savedTheme = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
@@ -28,12 +26,10 @@ lucide.createIcons();
             document.body.classList.add('dark');
         }
         
-        // Set initial icons after page load
         document.addEventListener('DOMContentLoaded', () => {
             updateThemeIcons(isDark);
         });
         
-        // Navbar scroll effect
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
             if (window.scrollY > 50) {
@@ -43,7 +39,6 @@ lucide.createIcons();
             }
         });
         
-        // Particles system
         function createParticle() {
             const particle = document.createElement('div');
             particle.className = 'particle';
@@ -56,7 +51,6 @@ lucide.createIcons();
         
         setInterval(createParticle, 800);
         
-        // Magnetic effect
         document.querySelectorAll('.magnetic').forEach(element => {
             element.addEventListener('mousemove', (e) => {
                 const rect = element.getBoundingClientRect();
@@ -71,11 +65,9 @@ lucide.createIcons();
             });
         });
         
-        // Form Validation
         const form = document.getElementById('registrationForm');
         const inputs = form.querySelectorAll('input, select');
         
-        // Real-time validation
         inputs.forEach(input => {
             input.addEventListener('blur', () => validateField(input));
             input.addEventListener('input', () => {
@@ -89,7 +81,6 @@ lucide.createIcons();
             });
         });
         
-        // Email validation
         function validateEmail() {
             const email = document.getElementById('email');
             const emailError = document.getElementById('emailError');
@@ -117,7 +108,6 @@ lucide.createIcons();
             }
         }
         
-        // Password strength validation
         function updatePasswordStrength() {
             const password = document.getElementById('password').value;
             const strengthFill = document.getElementById('strengthFill');
@@ -126,22 +116,17 @@ lucide.createIcons();
             let strength = 0;
             let feedback = [];
             
-            // Check length
             if (password.length >= 8) strength++;
             else feedback.push('at least 8 characters');
             
-            // Check for capital letter
             if (/[A-Z]/.test(password)) strength++;
             else feedback.push('1 capital letter');
             
-            // Check for number
             if (/[0-9]/.test(password)) strength++;
             else feedback.push('1 number');
             
-            // Check for special character (bonus)
             if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++;
             
-            // Update visual feedback
             strengthFill.className = 'strength-fill';
             if (strength === 0) {
                 strengthFill.classList.add('strength-weak');
@@ -168,7 +153,6 @@ lucide.createIcons();
             return strength >= 3;
         }
         
-        // Password match validation
         function validatePasswordMatch() {
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword');
@@ -195,7 +179,6 @@ lucide.createIcons();
             }
         }
         
-        // Generic field validation
         function validateField(field) {
             const errorElement = document.getElementById(field.id + 'Error');
             
@@ -210,23 +193,19 @@ lucide.createIcons();
             }
         }
         
-        // Form submission
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             
             let isValid = true;
             
-            // Validate all fields
             inputs.forEach(input => {
                 if (!validateField(input)) isValid = false;
             });
             
-            // Special validations
             if (!validateEmail()) isValid = false;
             if (!updatePasswordStrength()) isValid = false;
             if (!validatePasswordMatch()) isValid = false;
             
-            // Validate checkboxes
             const confirmInfo = document.getElementById('confirmInfo');
             const agreeTerms = document.getElementById('agreeTerms');
             
@@ -244,7 +223,6 @@ lucide.createIcons();
                 document.getElementById('agreeTermsError').style.display = 'none';
             }
             
-            // Validate GPA range
             const gpa = document.getElementById('gpa');
             if (gpa.value && (parseFloat(gpa.value) < 0 || parseFloat(gpa.value) > 4)) {
                 gpa.classList.add('error');
@@ -253,7 +231,6 @@ lucide.createIcons();
             }
             
             if (isValid) {
-                // Show success modal
                 const firstName = document.getElementById('firstName').value;
                 document.getElementById('welcomeMessage').textContent = 
                     `🎉 Welcome ${firstName}, your Student account has been created successfully. You can now start finding tutors!`;
@@ -267,7 +244,6 @@ lucide.createIcons();
             }
         });
         
-        // Navigation functions
         function goToHome() {
             window.location.href = 'index.html';
         }
@@ -280,7 +256,6 @@ lucide.createIcons();
             document.getElementById('comingSoonModal').style.display = 'none';
         }
         
-        // Close modals on outside click
         document.getElementById('successModal').addEventListener('click', (e) => {
             if (e.target === document.getElementById('successModal')) {
                 goToHome();
@@ -293,7 +268,6 @@ lucide.createIcons();
             }
         });
         
-        // Initialize animations on page load
         document.addEventListener('DOMContentLoaded', () => {
             const animatedElements = document.querySelectorAll('.animate-slide-up, .animate-slide-left, .animate-scale-in');
             animatedElements.forEach((element, index) => {
@@ -307,4 +281,5 @@ lucide.createIcons();
                     element.style.transform = 'translateY(0) translateX(0) scale(1)';
                 }, index * 100);
             });
+
         });
