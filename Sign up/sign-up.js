@@ -92,7 +92,7 @@ lucide.createIcons();
                     if (role === 'student') {
                         window.location.href = 'student-account.html';
                     } else if (role === 'tutor') {
-                        window.location.href = 'tutor-account.html';
+                        window.location.href = 'tutorsignup.html';
                     }
                 }, 200);
             }, 150);
