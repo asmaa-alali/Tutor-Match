@@ -1,1 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutor Profile - Sarah Johnson</title>
+
+  <!-- Tailwind & Lucide -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <!-- Link to your CSS -->
+  <link rel="stylesheet" href="tutor-profile.css" />
+</head>
+<body>
+
+  <!-- Notification -->
+    <div id="notification" class="notification">
+        <div class="flex items-center gap-2">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            <span id="notificationText">Profile updated successfully!</span>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="min-h-screen py-8 px-4 lg:px-8">
+        <!-- Welcome Header -->
+        <div class="max-w-6xl mx-auto mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold text-white mb-2">Welcome to Your Profile</h1>
+                    <p class="text-white/80 text-lg">Manage your tutoring profile and connect with students</p>
+                </div>
+                <div class="theme-toggle" onclick="toggleTheme()">
+                    <i data-lucide="sun" class="w-5 h-5 text-white" id="themeIcon"></i>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="card p-8 mb-8">
+                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                        <!-- Profile Picture -->
+                        <div class="relative">
+                            <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face"
+                                 alt="Profile Picture"
+                                 class="profile-image"
+                                 id="profileImage">
+                            <div class="upload-overlay" id="uploadOverlay" style="display: none;">
+                                <i data-lucide="camera" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <input type="file" id="profileImageInput" accept="image/*" style="display: none;">
+                        </div>
+                       
+                        <!-- Basic Info -->
+                        <div>
+                            <div class="flex items-center gap-3 mb-2">
+                                <div>
+                                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white" id="displayName">Sarah Johnson</h1>
+                                    <input type="text" id="nameEdit" class="input-field text-3xl font-bold" style="display: none;" value="Sarah Johnson">
+                                </div>
+                                <div class="rating-stars">
+                                    <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                                    <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                                    <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                                    <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                                    <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                                    <span class="text-gray-600 dark:text-white ml-2 font-semibold">4.9 (127 reviews)</span>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <p class="text-lg text-gray-600 dark:text-white" id="titleDisplay">Mathematics & Physics Tutor</p>
+                                <input type="text" id="titleEdit" class="input-field text-lg" style="display: none;" value="Mathematics & Physics Tutor">
+                            </div>
+                            <div class="space-y-2">
+                                <div id="infoDisplay" class="text-gray-500 dark:text-white">📍 New York, NY • 🎓 PhD in Mathematics • 5+ years experience</div>
+                                <div id="infoEdit" style="display: none;" class="space-y-3">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                        <input type="text" id="cityEdit" class="input-field text-sm" placeholder="📍 City, State" value="📍 New York, NY">
+                                        <input type="text" id="degreeEdit" class="input-field text-sm" placeholder="🎓 Degree" value="🎓 PhD in Mathematics">
+                                        <input type="text" id="experienceEdit" class="input-field text-sm" placeholder="Experience" value="5+ years experience">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                   
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3">
+                        <button class="btn-primary" id="editBtn" onclick="toggleEditMode()">
+                            <i data-lucide="edit-3" class="w-4 h-4 mr-2"></i>
+                            Edit Profile
+                        </button>
+                        <div id="editActions" style="display: none;" class="flex gap-3">
+                            <button class="btn-primary" onclick="saveProfile()">
+                                <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                                Save Changes
+                            </button>
+                            <button class="btn-secondary" onclick="cancelEdit()">
+                                <i data-lucide="x" class="w-4 h-4 mr-2"></i>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Left Column -->
+                <div class="lg:col-span-2 space-y-8">
+                    <!-- About Me Section -->
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                            <i data-lucide="user" class="w-6 h-6 mr-3 text-blue-500"></i>
+                            About Me
+                        </h2>
+                       
+                        <div id="bioDisplay" class="text-gray-700 dark:text-white leading-relaxed">
+                            <p class="mb-4 text-gray-700 dark:text-white">
+                                I'm a passionate mathematics and physics tutor with over 5 years of experience helping students achieve their academic goals. I hold a PhD in Mathematics from MIT and have worked with students from middle school to graduate level.
+                            </p>
+                            <p class="mb-4 text-gray-700 dark:text-white">
+                                My teaching philosophy centers on making complex concepts accessible and engaging. I believe every student can excel in mathematics and physics with the right guidance and approach.
+                            </p>
+                            <p class="text-gray-700 dark:text-white">
+                                When I'm not teaching, I enjoy hiking, reading scientific journals, and working on mathematical research projects. I'm also fluent in English, Spanish, and French.
+                            </p>
+                        </div>
+                       
+                        <div id="bioEdit" style="display: none;">
+                            <textarea id="bioTextarea" class="input-field" rows="8" placeholder="Tell students about yourself, your teaching experience, and what makes you unique..."></textarea>
+                            <div class="text-sm text-gray-500 dark:text-white mt-2">
+                                <span id="bioCharCount">0</span>/1000 characters
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Expertise Section -->
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                            <i data-lucide="brain" class="w-6 h-6 mr-3 text-blue-500"></i>
+                            Expertise & Skills
+                        </h2>
+                       
+                        <div id="skillsDisplay" class="flex flex-wrap gap-2">
+                            <span class="skill-tag">Advanced Mathematics</span>
+                            <span class="skill-tag">Calculus</span>
+                            <span class="skill-tag">Linear Algebra</span>
+                            <span class="skill-tag">Physics</span>
+                            <span class="skill-tag">Statistics</span>
+                            <span class="skill-tag">SAT/ACT Prep</span>
+                            <span class="skill-tag">AP Mathematics</span>
+                            <span class="skill-tag">Differential Equations</span>
+                        </div>
+                       
+                        <div id="skillsEdit" style="display: none;">
+                            <div class="mb-4">
+                                <input type="text" id="skillInput" class="input-field" placeholder="Add a skill and press Enter">
+                                <div class="text-sm text-gray-500 dark:text-white mt-2">
+                                    Press Enter to add skills. Click on skills below to remove them.
+                                </div>
+                            </div>
+                            <div id="editableSkills" class="flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Courses Section -->
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                            <i data-lucide="book-open" class="w-6 h-6 mr-3 text-blue-500"></i>
+                            Courses & Subjects
+                        </h2>
+                       
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-xl">
+                                <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Advanced Calculus</h3>
+                                <p class="text-gray-600 dark:text-white text-sm mb-3">Complete calculus course from limits to multivariable</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-blue-600 dark:text-blue-400 font-semibold">$45/hour</span>
+                                    <span class="text-sm text-gray-500 dark:text-white">23 students</span>
+                                </div>
+                            </div>
+                           
+                            <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-xl">
+                                <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Physics Fundamentals</h3>
+                                <p class="text-gray-600 dark:text-white text-sm mb-3">Classical mechanics, thermodynamics, and electromagnetism</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-green-600 dark:text-green-400 font-semibold">$40/hour</span>
+                                    <span class="text-sm text-gray-500 dark:text-white">18 students</span>
+                                </div>
+                            </div>
+                           
+                            <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-6 rounded-xl">
+                                <h3 class="font-semibold text-gray-900 dark:text-white mb-2">SAT Math Prep</h3>
+                                <p class="text-gray-600 dark:text-white text-sm mb-3">Comprehensive SAT mathematics preparation</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-purple-600 dark:text-purple-400 font-semibold">$50/hour</span>
+                                    <span class="text-sm text-gray-500 dark:text-white">31 students</span>
+                                </div>
+                            </div>
+                           
+                            <div class="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 p-6 rounded-xl">
+                                <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Statistics & Probability</h3>
+                                <p class="text-gray-600 dark:text-white text-sm mb-3">From basic statistics to advanced probability theory</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-orange-600 dark:text-orange-400 font-semibold">$42/hour</span>
+                                    <span class="text-sm text-gray-500 dark:text-white">15 students</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-8">
+                    <!-- Contact Information -->
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                            <i data-lucide="contact" class="w-6 h-6 mr-3 text-blue-500"></i>
+                            Contact Information
+                        </h2>
+                       
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="mail" class="w-5 h-5 text-gray-400"></i>
+                                <div class="flex-1">
+                                    <span id="emailDisplay" class="text-gray-700 dark:text-white">sarah.johnson@email.com</span>
+                                    <input type="email" id="emailEdit" class="input-field" style="display: none;" value="sarah.johnson@email.com">
+                                </div>
+                            </div>
+                           
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="phone" class="w-5 h-5 text-gray-400"></i>
+                                <div class="flex-1">
+                                    <span id="phoneDisplay" class="text-gray-700 dark:text-white">+1 (555) 123-4567</span>
+                                    <input type="tel" id="phoneEdit" class="input-field" style="display: none;" value="+1 (555) 123-4567">
+                                </div>
+                            </div>
+                           
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="map-pin" class="w-5 h-5 text-gray-400"></i>
+                                <div class="flex-1">
+                                    <span id="locationDisplay" class="text-gray-700 dark:text-white">New York, NY</span>
+                                    <input type="text" id="locationEdit" class="input-field" style="display: none;" value="New York, NY">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Social Links -->
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                            <i data-lucide="link" class="w-6 h-6 mr-3 text-blue-500"></i>
+                            Social Links
+                        </h2>
+                       
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="linkedin" class="w-5 h-5 text-blue-600"></i>
+                                <div class="flex-1">
+                                    <span id="linkedinDisplay" class="text-gray-700 dark:text-white">linkedin.com/in/sarahjohnson</span>
+                                    <input type="url" id="linkedinEdit" class="input-field" style="display: none;" value="linkedin.com/in/sarahjohnson">
+                                </div>
+                            </div>
+                           
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="twitter" class="w-5 h-5 text-blue-400"></i>
+                                <div class="flex-1">
+                                    <span id="twitterDisplay" class="text-gray-700 dark:text-white">@sarahjohnsonmath</span>
+                                    <input type="text" id="twitterEdit" class="input-field" style="display: none;" value="@sarahjohnsonmath">
+                                </div>
+                            </div>
+                           
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="globe" class="w-5 h-5 text-green-600"></i>
+                                <div class="flex-1">
+                                    <span id="websiteDisplay" class="text-gray-700 dark:text-white">sarahjohnsonmath.com</span>
+                                    <input type="url" id="websiteEdit" class="input-field" style="display: none;" value="sarahjohnsonmath.com">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="card p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                            <i data-lucide="trending-up" class="w-6 h-6 mr-3 text-blue-500"></i>
+                            Quick Stats
+                        </h2>
+                       
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-white">Total Students</span>
+                                <div class="flex-1 text-right">
+                                    <span id="totalStudentsDisplay" class="font-semibold text-gray-900 dark:text-white">87</span>
+                                    <input type="number" id="totalStudentsEdit" class="input-field text-right font-semibold" style="display: none;" value="87" min="0">
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-white">Hours Taught</span>
+                                <div class="flex-1 text-right">
+                                    <span id="hoursTaughtDisplay" class="font-semibold text-gray-900 dark:text-white">1,247</span>
+                                    <input type="number" id="hoursTaughtEdit" class="input-field text-right font-semibold" style="display: none;" value="1247" min="0">
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-white">Response Rate</span>
+                                <div class="flex-1 text-right">
+                                    <span id="responseRateDisplay" class="font-semibold text-green-600">98%</span>
+                                    <input type="number" id="responseRateEdit" class="input-field text-right font-semibold" style="display: none;" value="98" min="0" max="100">
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-white">Member Since</span>
+                                <div class="flex-1 text-right">
+                                    <span id="memberSinceDisplay" class="font-semibold text-gray-900 dark:text-white">Jan 2019</span>
+                                    <input type="text" id="memberSinceEdit" class="input-field text-right font-semibold" style="display: none;" value="Jan 2019">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  <script src="tutor-profile.js"></script>
+</body>
+</html>
+
 
