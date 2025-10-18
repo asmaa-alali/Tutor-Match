@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Tutors - Tutor Match</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Premium Gradient Backgrounds */
+        .gradient-mesh {
+            background: linear-gradient(45deg, #3b82f6 0%, #1e40af 25%, #1d4ed8 50%, #1e3a8a 75%, #312e81 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+        
+        .dark .gradient-mesh {
+            background: linear-gradient(45deg, #000000 0%, #0a0a0a 25%, #111111 50%, #1a1a1a 75%, #222222 100%) !important;
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            25% { background-position: 100% 50%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
+        }
+        
+        /* Glassmorphism Effects */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Magnetic Effect */
+        .magnetic {
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        /* Liquid Morphing */
+        .liquid-morph {
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            animation: liquidMorph 8s ease-in-out infinite;
+        }
+        
+        @keyframes liquidMorph {
+            0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+            25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+            50% { border-radius: 50% 60% 30% 60% / 30% 60% 70% 40%; }
+            75% { border-radius: 60% 40% 60% 30% / 70% 30% 60% 40%; }
+        }
+        
+        /* Advanced Animations */
+        .float-up {
+            opacity: 0;
+            transform: translateY(60px);
+            animation: floatUp 1s ease-out forwards;
+        }
+        
+        @keyframes floatUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .slide-reveal {
+            opacity: 0;
+            transform: translateX(-100px);
+            animation: slideReveal 1s ease-out forwards;
+        }
+        
+        @keyframes slideReveal {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .scale-bounce {
+            opacity: 0;
+            transform: scale(0.5);
+            animation: scaleBounce 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        
+        @keyframes scaleBounce {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* Word Animations */
+        .word-animate {
+            display: inline-block;
+            opacity: 0;
+            animation-fill-mode: forwards;
+            animation-duration: 1s;
+        }
+        
+        .bounce-in {
+            animation-name: bounceIn;
+        }
+        
+        .slide-in-left {
+            animation-name: slideInLeft;
+        }
+        
+        .zoom-in {
+            animation-name: zoomIn;
+        }
+        
+        .flip-in {
+            animation-name: flipIn;
+        }
+        
+        .rotate-in {
+            animation-name: rotateIn;
+        }
+        
+        .pulse-glow {
+            animation-name: pulseGlow;
+            animation-duration: 1.5s;
+        }
+        
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3) translateY(-100px);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.1) translateY(0);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes slideInLeft {
+            0% {
+                opacity: 0;
+                transform: translateX(-100px) rotate(-10deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) rotate(0deg);
+            }
+        }
+        
+        @keyframes zoomIn {
+            0% {
+                opacity: 0;
+                transform: scale(0) rotate(180deg);
+            }
+            50% {
+                transform: scale(1.2) rotate(90deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
+        
+        @keyframes flipIn {
+            0% {
+                opacity: 0;
+                transform: perspective(400px) rotateY(90deg) scale(0.5);
+            }
+            40% {
+                transform: perspective(400px) rotateY(-10deg) scale(1.1);
+            }
+            70% {
+                transform: perspective(400px) rotateY(10deg) scale(1);
+            }
+            100% {
+                opacity: 1;
+                transform: perspective(400px) rotateY(0deg) scale(1);
+            }
+        }
+        
+        @keyframes rotateIn {
+            0% {
+                opacity: 0;
+                transform: rotate(-360deg) scale(0);
+            }
+            100% {
+                opacity: 1;
+                transform: rotate(0deg) scale(1);
+            }
+        }
+        
+        @keyframes pulseGlow {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+                text-shadow: 0 0 0 rgba(59, 130, 246, 0);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+                text-shadow: 0 0 30px rgba(59, 130, 246, 0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+                text-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+            }
+        }
+        
+        /* Stagger Delays */
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        .delay-500 { animation-delay: 0.5s; }
+        .delay-600 { animation-delay: 0.6s; }
+        .delay-700 { animation-delay: 0.7s; }
+        .delay-800 { animation-delay: 0.8s; }
+        .delay-900 { animation-delay: 0.9s; }
+        .delay-1000 { animation-delay: 1.0s; }
+        .delay-1100 { animation-delay: 1.1s; }
+        .delay-1200 { animation-delay: 1.2s; }
+        .delay-1300 { animation-delay: 1.3s; }
+        
+        /* Flying Word Animation */
+        .flying-word {
+            animation-name: flyingWord;
+            animation-duration: 1.5s;
+        }
+        
+        @keyframes flyingWord {
+            0% {
+                opacity: 0;
+                transform: translateY(100px) rotateX(90deg) scale(0.5);
+            }
+            30% {
+                opacity: 0.3;
+                transform: translateY(50px) rotateX(45deg) scale(0.7);
+            }
+            60% {
+                opacity: 0.7;
+                transform: translateY(-10px) rotateX(-10deg) scale(1.1);
+            }
+            80% {
+                opacity: 0.9;
+                transform: translateY(5px) rotateX(5deg) scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) rotateX(0deg) scale(1);
+            }
+        }
+        
+        /* Premium Button Styles */
+        .btn-premium {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-premium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-premium:hover::before {
+            left: 100%;
+        }
+        
+        .btn-premium:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        /* Theme Transition */
+        .theme-transition {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Flying Card Animations */
+        .flying-card {
+            opacity: 0;
+            transform: translateY(100px) rotateX(45deg) scale(0.8);
+            animation: flyIn 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        
+        @keyframes flyIn {
+            0% {
+                opacity: 0;
+                transform: translateY(100px) rotateX(45deg) scale(0.8);
+            }
+            50% {
+                opacity: 0.7;
+                transform: translateY(-20px) rotateX(10deg) scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) rotateX(0deg) scale(1);
+            }
+        }
+        
+        /* Floating Elements */
+        .floating-element {
+            animation: floatGentle 6s ease-in-out infinite;
+        }
+        
+        @keyframes floatGentle {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-10px) rotate(1deg);
+            }
+            50% {
+                transform: translateY(-5px) rotate(0deg);
+            }
+            75% {
+                transform: translateY(-15px) rotate(-1deg);
+            }
+        }
+        
+        /* Icon Bounce Animation */
+        .icon-bounce {
+            animation: iconBounce 2s ease-in-out infinite;
+        }
+        
+        @keyframes iconBounce {
+            0%, 100% {
+                transform: translateY(0px) scale(1);
+            }
+            25% {
+                transform: translateY(-5px) scale(1.1);
+            }
+            50% {
+                transform: translateY(0px) scale(1);
+            }
+            75% {
+                transform: translateY(-3px) scale(1.05);
+            }
+        }
+        
+        /* Glow Effects */
+        .glow-blue {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+            animation: glowPulse 2s ease-in-out infinite alternate;
+        }
+        
+        .glow-purple {
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.5);
+            animation: glowPulse 2s ease-in-out infinite alternate;
+        }
+        
+        .glow-green {
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+            animation: glowPulse 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glowPulse {
+            from { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+            to { box-shadow: 0 0 30px rgba(59, 130, 246, 0.8); }
+        }
+        
+        /* Search and Filter Styles */
+        .search-input {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(59, 130, 246, 0.6);
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Tutor Card Styles */
+        .tutor-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tutor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.6s;
+        }
+        
+        .tutor-card:hover::before {
+            left: 100%;
+        }
+        
+        .tutor-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+        
+        /* Rating Stars */
+        .star-rating {
+            color: #fbbf24;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        }
+        
+        /* Subject Tags */
+        .subject-tag {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .subject-tag:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.4), rgba(147, 51, 234, 0.4));
+            transform: scale(1.05);
+        }
+        
+        /* Filter Buttons */
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        /* Particle Animation */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 1; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 0.5; }
+        }
+        
+        /* Loading Animation */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="theme-transition overflow-x-hidden">
+    <!-- Particle Background -->
+    <div id="particles" class="fixed inset-0 pointer-events-none z-0"></div>
+    
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-500">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="flex items-center space-x-4 magnetic cursor-pointer">
+                    <div class="w-12 h-12 liquid-morph bg-gradient-to-r from-blue-500 to-blue-800 flex items-center justify-center shadow-2xl">
+                        <i data-lucide="graduation-cap" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <span class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                        Tutor Match
+                    </span>
+                </a>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/Homepage/index.html" class="magnetic text-white hover:text-blue-300 font-medium transition-all duration-300">Home</a>
+                    <a href="find-tutor.html" class="magnetic text-blue-300 font-medium transition-all duration-300 border-b-2 border-blue-300">Find Tutors</a>
+                    <a href="/About/about.html" class="magnetic text-white hover:text-green-300 font-medium transition-all duration-300">About</a>
+                    <a href="/Contact/contact.html" class="magnetic text-white hover:text-pink-300 font-medium transition-all duration-300">Contact</a>
+                    
+                    <!-- Auth Buttons -->
+                    <div class="flex items-center space-x-4">
+                        <a href="/Sign In/sign_in.html" 
+                          class="magnetic text-white hover:text-blue-300 font-medium px-4 py-2 rounded-xl glass dark:glass-dark transition-all duration-300 hover:scale-105">
+                          <i data-lucide="log-in" class="w-4 h-4 inline mr-2"></i>
+                          Sign In
+                         </a>
+                        
+                        <a href="/Sign Up/sign-up.html" 
+                          class="magnetic bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-semibold px-6 py-2 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
+                          <i data-lucide="user-plus" class="w-4 h-4 inline mr-2"></i>
+                          Sign Up
+                        </a>
+                    </div>
+                    
+                    <button id="theme-toggle" class="magnetic glass dark:glass-dark p-3 rounded-2xl">
+                        <i data-lucide="sun" class="w-5 h-5 text-white dark:hidden"></i>
+                        <i data-lucide="moon" class="w-5 h-5 text-white hidden dark:block"></i>
+                    </button>
+                </div>
+                
+                <div class="md:hidden">
+                    <button class="magnetic glass dark:glass-dark p-3 rounded-2xl">
+                        <i data-lucide="menu" class="w-6 h-6 text-white"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center justify-center relative overflow-hidden gradient-mesh pt-20">
+        <div class="absolute inset-0 bg-black/10 dark:bg-black/30"></div>
+        
+        <!-- Floating Elements -->
+        <div class="absolute top-20 left-10 w-20 h-20 bg-white/20 rounded-full blur-xl animate-pulse"></div>
+        <div class="absolute top-40 right-20 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl animate-pulse delay-300"></div>
+        <div class="absolute bottom-20 left-1/4 w-24 h-24 bg-purple-500/20 rounded-full blur-xl animate-pulse delay-700"></div>
+        
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center relative z-10">
+            <div class="space-y-8">
+                <h1 class="text-6xl md:text-8xl font-black text-white mb-8">
+                    <span class="word-animate bounce-in delay-100">Find</span>
+                    <span class="word-animate slide-in-left delay-200">Your</span>
+                    <br>
+                    <span class="word-animate zoom-in delay-300 bg-gradient-to-r from-blue-300 to-blue-500 bg-clip-text text-transparent">Perfect</span>
+                    <span class="word-animate flip-in delay-400">Tutor</span>
+                </h1>
+                
+                <p class="text-xl md:text-2xl text-white/90 max-w-4xl mx-auto leading-relaxed slide-reveal delay-500">
+                    Connect with AUB's top-rated tutors. Get personalized help from verified students 
+                    who excel in your subjects and understand your academic challenges.
+                </p>
+                
+                <!-- Search Bar -->
+                <div class="max-w-2xl mx-auto scale-bounce delay-700">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="hero-search"
+                            placeholder="Search by subject, course code, or tutor name..." 
+                            class="search-input w-full px-8 py-6 text-white placeholder-white/60 text-lg pr-16"
+                        >
+                        <button class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-blue-500 to-blue-700 p-3 rounded-full hover:scale-110 transition-all duration-300">
+                            <i data-lucide="search" class="w-6 h-6 text-white"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12 float-up delay-900">
+                    <div class="glass dark:glass-dark rounded-2xl p-6 floating-element">
+                        <div class="text-4xl mb-3 icon-bounce">🎓</div>
+                        <div class="text-3xl font-bold text-white mb-2">500+</div>
+                        <div class="text-white/70">Verified Tutors</div>
+                    </div>
+                    <div class="glass dark:glass-dark rounded-2xl p-6 floating-element" style="animation-delay: 0.2s;">
+                        <div class="text-4xl mb-3 icon-bounce" style="animation-delay: 0.2s;">⭐</div>
+                        <div class="text-3xl font-bold text-white mb-2">4.9/5</div>
+                        <div class="text-white/70">Average Rating</div>
+                    </div>
+                    <div class="glass dark:glass-dark rounded-2xl p-6 floating-element" style="animation-delay: 0.4s;">
+                        <div class="text-4xl mb-3 icon-bounce" style="animation-delay: 0.4s;">📚</div>
+                        <div class="text-3xl font-bold text-white mb-2">50+</div>
+                        <div class="text-white/70">Subjects Available</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search & Filter Section -->
+    <section class="py-20 px-6 lg:px-8 gradient-mesh relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/10 dark:bg-black/30"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <!-- Advanced Search -->
+            <div class="glass dark:glass-dark rounded-3xl p-8 mb-12">
+                <h2 class="text-3xl font-bold text-white mb-8 text-center">Find Your Perfect Match</h2>
+                
+                <div class="grid md:grid-cols-4 gap-6">
+                    <!-- Subject Filter -->
+                    <div>
+                        <label class="block text-white font-medium mb-3">Subject</label>
+                        <select id="subject-filter" class="search-input w-full px-4 py-3 text-white">
+                            <option value="">All Subjects</option>
+                            <option value="computer-science">Computer Science</option>
+                            <option value="mathematics">Mathematics</option>
+                            <option value="physics">Physics</option>
+                            <option value="chemistry">Chemistry</option>
+                            <option value="statistics">Statistics</option>
+                            <option value="economics">Economics</option>
+                            <option value="business">Business</option>
+                            <option value="engineering">Engineering</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Price Range -->
+                    <div>
+                        <label class="block text-white font-medium mb-3">Price Range</label>
+                        <select id="price-filter" class="search-input w-full px-4 py-3 text-white">
+                            <option value="">Any Price</option>
+                            <option value="25-35">$25-35/hour</option>
+                            <option value="35-45">$35-45/hour</option>
+                            <option value="45-50">$45-50/hour</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Rating -->
+                    <div>
+                        <label class="block text-white font-medium mb-3">Minimum Rating</label>
+                        <select id="rating-filter" class="search-input w-full px-4 py-3 text-white">
+                            <option value="">Any Rating</option>
+                            <option value="4.5">4.5+ Stars</option>
+                            <option value="4.7">4.7+ Stars</option>
+                            <option value="4.9">4.9+ Stars</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Availability -->
+                    <div>
+                        <label class="block text-white font-medium mb-3">Availability</label>
+                        <select id="availability-filter" class="search-input w-full px-4 py-3 text-white">
+                            <option value="">Any Time</option>
+                            <option value="morning">Morning</option>
+                            <option value="afternoon">Afternoon</option>
+                            <option value="evening">Evening</option>
+                            <option value="weekend">Weekend</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Format Filters -->
+                <div class="mt-8">
+                    <label class="block text-white font-medium mb-4">Tutoring Format</label>
+                    <div class="flex flex-wrap gap-4">
+                        <button class="filter-btn active" data-format="all">All Formats</button>
+                        <button class="filter-btn" data-format="online">Online Only</button>
+                        <button class="filter-btn" data-format="in-person">In-Person</button>
+                        <button class="filter-btn" data-format="both">Both</button>
+                    </div>
+                </div>
+            </div>
+            
+
+    <!-- Featured Tutors Section -->
+    <section class="py-20 px-6 lg:px-8 gradient-mesh relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/10 dark:bg-black/30"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl md:text-6xl font-bold text-white mb-6">
+                    Featured Tutors
+                </h2>
+                <p class="text-xl text-white/90 max-w-3xl mx-auto">
+                    Meet our top-rated tutors who consistently deliver exceptional results
+                </p>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="loading-tutors" class="text-center py-20">
+                <div class="loading-spinner mx-auto mb-4"></div>
+                <p class="text-white/70">Finding the best tutors for you...</p>
+            </div>
+            
+            <!-- Tutors Grid -->
+            <div id="tutors-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 hidden">
+                <!-- Tutor Card 1 -->
+                <div class="tutor-card p-8 flying-card magnetic" style="animation-delay: 0.2s;">
+                    <div class="text-center mb-6">
+                        <div class="w-24 h-24 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl liquid-morph">
+                            👩‍💻
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Sarah M.</h3>
+                        <div class="text-blue-300 text-sm mb-2">Computer Science Senior</div>
+                        <div class="star-rating text-lg mb-4">⭐⭐⭐⭐⭐ 4.9</div>
+                    </div>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="flex justify-between text-white/80">
+                            <span>Rate:</span>
+                            <span class="text-green-400 font-bold">$45/hour</span>
+                        </div>
+                        <div class="flex justify-between text-white/80">
+                            <span>Students:</span>
+                            <span class="text-blue-400 font-bold">45+ helped</span>
+                        </div>
+                        <div class="flex justify-between text-white/80">
+                            <span>Response:</span>
+                            <span class="text-purple-400 font-bold">< 1 hour</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="text-white font-medium mb-3">Specializes in:</div>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="subject-tag text-xs">CMPS 200</span>
+                            <span class="subject-tag text-xs">CMPS 201</span>
+                            <span class="subject-tag text-xs">CMPS 202</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6 p-4 bg-white/5 rounded-xl">
+                        <p class="text-white/90 text-sm italic">
+                            "I love helping students understand complex programming concepts through practical examples and patient guidance."
+                        </p>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <a href="/View Profile/view_profile.html" class="btn-premium flex-1 text-sm py-3 magnetic">
+                            <i data-lucide="calendar" class="w-4 h-4 inline mr-2"></i>
+                                View Profile
+                              </a>
+
+                        <button class="glass dark:glass-dark text-white px-4 py-3 rounded-xl hover:scale-105 transition-all duration-300">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Tutor Card 2 -->
+                <div class="tutor-card p-8 flying-card magnetic" style="animation-delay: 0.4s;">
+                    <div class="text-center mb-6">
+                        <div class="w-24 h-24 bg-gradient-to-r from-green-500 to-green-700 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl liquid-morph">
+                            👨‍🎓
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Ahmad K.</h3>
+                        <div class="text-green-300 text-sm mb-2">Mathematics Graduate</div>
+                        <div class="star-rating text-lg mb-4">⭐⭐⭐⭐⭐ 4.8</div>
+                    </div>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="flex justify-between text-white/80">
+                            <span>Rate:</span>
+                            <span class="text-green-400 font-bold">$40/hour</span>
+                        </div>
+                        <div class="flex justify-between text-white/80">
+                            <span>Students:</span>
+                            <span class="text-blue-400 font-bold">32+ helped</span>
+                        </div>
+                        <div class="flex justify-between text-white/80">
+                            <span>Response:</span>
+                            <span class="text-purple-400 font-bold">< 2 hours</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="text-white font-medium mb-3">Specializes in:</div>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="subject-tag text-xs">MATH 201</span>
+                            <span class="subject-tag text-xs">MATH 202</span>
+                            <span class="subject-tag text-xs">STAT 230</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6 p-4 bg-white/5 rounded-xl">
+                        <p class="text-white/90 text-sm italic">
+                            "Mathematics becomes easy when you understand the underlying patterns. I make complex concepts simple and intuitive."
+                        </p>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <a href="book-session.html" 
+                           class="btn-premium flex-1 text-sm py-3 magnetic">
+                           <i data-lucide="calendar" class="w-4 h-4 inline mr-2"></i>
+                          View Profile
+                           </a>
+
+                        <button class="glass dark:glass-dark text-white px-4 py-3 rounded-xl hover:scale-105 transition-all duration-300">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Tutor Card 3 -->
+                <div class="tutor-card p-8 flying-card magnetic" style="animation-delay: 0.6s;">
+                    <div class="text-center mb-6">
+                        <div class="w-24 h-24 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl liquid-morph">
+                            👩‍🏫
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Lara S.</h3>
+                        <div class="text-purple-300 text-sm mb-2">Physics TA</div>
+                        <div class="star-rating text-lg mb-4">⭐⭐⭐⭐⭐ 5.0</div>
+                    </div>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="flex justify-between text-white/80">
+                            <span>Rate:</span>
+                            <span class="text-green-400 font-bold">$50/hour</span>
+                        </div>
+                        <div class="flex justify-between text-white/80">
+                            <span>Students:</span>
+                            <span class="text-blue-400 font-bold">38+ helped</span>
+                        </div>
+                        <div class="flex justify-between text-white/80">
+                            <span>Response:</span>
+                            <span class="text-purple-400 font-bold">< 30 min</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="text-white font-medium mb-3">Specializes in:</div>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="subject-tag text-xs">PHYS 201</span>
+                            <span class="subject-tag text-xs">PHYS 202</span>
+                            <span class="subject-tag text-xs">ENGR 200</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6 p-4 bg-white/5 rounded-xl">
+                        <p class="text-white/90 text-sm italic">
+                            "Physics is about understanding how the world works. I help students see the beauty and logic behind every equation."
+                        </p>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <a href="book-session.html" class="btn-premium flex-1 text-sm py-3 magnetic">
+                           <i data-lucide="calendar" class="w-4 h-4 inline mr-2"></i>
+                                View Profile
+                             </a>
+
+                        <button class="glass dark:glass-dark text-white px-4 py-3 rounded-xl hover:scale-105 transition-all duration-300">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Tutor Card 4 -->
+                <div class="tutor-card p-8 flying-card magnetic" style="animation-delay: 0.8s;">
+                    <div class="text-center mb-6">
+                        <div class="w-24 h-24 bg-gradient-to-r from-orange-500 to-orange-700 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl liquid-morph">
+                            👨‍🔬
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Omar R.</h3>
+                        <div class="text-orange-300 text-sm mb-2">Chemistry Senior</div>
+                        <div class="star-rating text-lg mb-4">⭐⭐⭐⭐⭐ 4.7</div>
+                    </div>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="flex justify-between text-white/80">
+                            <span>Rate:</span>
+                            <span class="text-green-400 font-bold">$35/hour</span>
+                        </div>
+                        <div class="flex justify-between text-white/80">
+                            <span>Students:</span>
+                            <span class="text-blue-400 font-bold">28+ helped</span>
+                        </div>
+                        <div class="flex justify-between text-white/80">
+                            <span>Response:</span>
+                            <span class="text-purple-400 font-bold">< 3 hours</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="text-white font-medium mb-3">Specializes in:</div>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="subject-tag text-xs">CHEM 201</span>
+                            <span class="subject-tag text-xs">CHEM 202</span>
+                            <span class="subject-tag text-xs">CHEM 301</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6 p-4 bg-white/5 rounded-xl">
+                        <p class="text-white/90 text-sm italic">
+                            "Chemistry is like cooking - once you understand the recipe and reactions, everything makes perfect sense!"
+                        </p>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <a href="book-session.html" class="btn-premium flex-1 text-sm py-3 magnetic">
+                         <i data-lucide="calendar" class="w-4 h-4 inline mr-2"></i>
+                           View Profile
+                          </a>
+
+                        <button class="glass dark:glass-dark text-white px-4 py-3 rounded-xl hover:scale-105 transition-all duration-300">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Tutor Card 5 -->
+                <div class="tutor-card p-8 flying-card magnetic" style="animation-delay: 1.0s;">
+                    <div class="text-center mb-6">
+                        <div class="w-24 h-24 bg-gradient-to-r from-pink-500 to-pink-700 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl liquid-morph">
+                            👩‍💼
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Maya H.</h3>
+                        <div class="text-pink-300 text-sm mb-2">Business Graduate</div>
+                        <div class="star-rating text-lg mb-4">⭐⭐⭐⭐⭐ 4.9</div>
+                    </div>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="flex justify-between text-white/80">
+                            <span>Rate:</span>
+                            <span class="text-green-400 font-bold">$42/hour</span>
+                        </div>
+                        <div class="flex justify-between text-white/80">
+                            <span>Students:</span>
+                            <span class="text-blue-400 font-bold">41+ helped</span>
+                        </div>
+                        <div class="flex justify-between text-white/80">
+                            <span>Response:</span>
+                            <span class="text-purple-400 font-bold">< 1 hour</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="text-white font-medium mb-3">Specializes in:</div>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="subject-tag text-xs">BUS 200</span>
+                            <span class="subject-tag text-xs">ECON 201</span>
+                            <span class="subject-tag text-xs">STAT 230</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6 p-4 bg-white/5 rounded-xl">
+                        <p class="text-white/90 text-sm italic">
+                            "Business concepts become clear when you connect them to real-world examples. I make learning practical and engaging."
+                        </p>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <a href="book-session.html" class="btn-premium flex-1 text-sm py-3 magnetic">
+                           <i data-lucide="calendar" class="w-4 h-4 inline mr-2"></i>
+                           View Profile
+                         </a>
+
+                        <button class="glass dark:glass-dark text-white px-4 py-3 rounded-xl hover:scale-105 transition-all duration-300">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Tutor Card 6 -->
+                <div class="tutor-card p-8 flying-card magnetic" style="animation-delay: 1.2s;">
+                    <div class="text-center mb-6">
+                        <div class="w-24 h-24 bg-gradient-to-r from-teal-500 to-teal-700 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl liquid-morph">
+                            👨‍⚕️
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Karim A.</h3>
+                        <div class="text-teal-300 text-sm mb-2">Pre-Med Senior</div>
+                        <div class="star-rating text-lg mb-4">⭐⭐⭐⭐⭐ 4.8</div>
+                    </div>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div class="flex justify-between text-white/80">
+                            <span>Rate:</span>
+                            <span class="text-green-400 font-bold">$38/hour</span>
+                        </div>
+                        <div class="flex justify-between text-white/80">
+                            <span>Students:</span>
+                            <span class="text-blue-400 font-bold">35+ helped</span>
+                        </div>
+                        <div class="flex justify-between text-white/80">
+                            <span>Response:</span>
+                            <span class="text-purple-400 font-bold">< 2 hours</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="text-white font-medium mb-3">Specializes in:</div>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="subject-tag text-xs">BIOL 201</span>
+                            <span class="subject-tag text-xs">CHEM 201</span>
+                            <span class="subject-tag text-xs">PHYS 201</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6 p-4 bg-white/5 rounded-xl">
+                        <p class="text-white/90 text-sm italic">
+                            "Science subjects require both understanding and memorization. I help students master both through effective study strategies."
+                        </p>
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <a href="book-session.html" class="btn-premium flex-1 text-sm py-3 magnetic">
+                           <i data-lucide="calendar" class="w-4 h-4 inline mr-2"></i>
+                           View Profile
+                         </a>
+                        <button class="glass dark:glass-dark text-white px-4 py-3 rounded-xl hover:scale-105 transition-all duration-300">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Load More Button -->
+            <div class="text-center mt-12">
+                <button id="load-more" class="btn-premium magnetic text-lg px-12 py-4">
+                    <i data-lucide="plus-circle" class="w-6 h-6 inline mr-3"></i>
+                    Load More Tutors
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="py-32 px-6 lg:px-8 gradient-mesh relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/10 dark:bg-black/30"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-20">
+                <h2 class="text-5xl md:text-6xl font-bold text-white mb-6">
+                    How It Works
+                </h2>
+                <p class="text-xl text-white/90 max-w-3xl mx-auto">
+                    Getting help from our expert tutors is simple and straightforward
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-4 gap-8">
+                <!-- Step 1 -->
+                <div class="flying-card text-center" style="animation-delay: 0.2s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-8 h-full floating-element">
+                        <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6 icon-bounce">
+                            <i data-lucide="search" class="w-10 h-10 text-white"></i>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">1</div>
+                        <h3 class="text-2xl font-bold text-white mb-4">Search & Browse</h3>
+                        <p class="text-white/80 leading-relaxed">
+                            Use our advanced filters to find tutors by subject, price, rating, and availability. Browse profiles and read reviews.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="flying-card text-center" style="animation-delay: 0.4s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-8 h-full floating-element">
+                        <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-green-700 rounded-full flex items-center justify-center mx-auto mb-6 icon-bounce" style="animation-delay: 0.2s;">
+                            <i data-lucide="calendar" class="w-10 h-10 text-white"></i>
+                        </div>
+                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">2</div>
+                        <h3 class="text-2xl font-bold text-white mb-4">View Profile</h3>
+                        <p class="text-white/80 leading-relaxed">
+                            Choose your preferred time slot and book a session. Send a message to discuss your specific needs and goals.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="flying-card text-center" style="animation-delay: 0.6s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-8 h-full floating-element">
+                        <div class="w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center mx-auto mb-6 icon-bounce" style="animation-delay: 0.4s;">
+                            <i data-lucide="video" class="w-10 h-10 text-white"></i>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">3</div>
+                        <h3 class="text-2xl font-bold text-white mb-4">Learn Together</h3>
+                        <p class="text-white/80 leading-relaxed">
+                            Meet online or in-person for your tutoring session. Get personalized help and clear explanations tailored to your learning style.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Step 4 -->
+                <div class="flying-card text-center" style="animation-delay: 0.8s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-8 h-full floating-element">
+                        <div class="w-20 h-20 bg-gradient-to-r from-orange-500 to-orange-700 rounded-full flex items-center justify-center mx-auto mb-6 icon-bounce" style="animation-delay: 0.6s;">
+                            <i data-lucide="star" class="w-10 h-10 text-white"></i>
+                        </div>
+                        <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold text-xl">4</div>
+                        <h3 class="text-2xl font-bold text-white mb-4">Rate & Review</h3>
+                        <p class="text-white/80 leading-relaxed">
+                            After your session, rate your experience and leave a review to help other students find the best tutors.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Success Stories Section -->
+    <section class="py-32 px-6 lg:px-8 gradient-mesh relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/10 dark:bg-black/30"></div>
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-20">
+                <h2 class="text-5xl md:text-6xl font-bold text-white mb-6">
+                    Student Success Stories
+                </h2>
+                <p class="text-xl text-white/90 max-w-3xl mx-auto">
+                    See how our tutoring platform has helped AUB students achieve their academic goals
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Success Story 1 -->
+                <div class="flying-card" style="animation-delay: 0.2s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-8 h-full floating-element">
+                        <div class="text-center mb-6">
+                            <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                                🎓
+                            </div>
+                            <h3 class="text-xl font-bold text-white">Rami K.</h3>
+                            <div class="text-blue-300 text-sm">Engineering Student</div>
+                        </div>
+                        
+                        <div class="mb-6 p-4 bg-white/5 rounded-xl">
+                            <p class="text-white/90 italic text-sm leading-relaxed">
+                                "I was struggling with MATH 201 until I found Ahmad through this platform. His teaching style clicked with me immediately, and I went from a C to an A- in just 6 weeks!"
+                            </p>
+                        </div>
+                        
+                        <div class="space-y-2 text-sm text-white/70">
+                            <div class="flex justify-between">
+                                <span>Subject:</span>
+                                <span class="text-blue-400">MATH 201</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Grade Improvement:</span>
+                                <span class="text-green-400">C → A-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Sessions:</span>
+                                <span class="text-purple-400">12 sessions</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Success Story 2 -->
+                <div class="flying-card" style="animation-delay: 0.4s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-8 h-full floating-element">
+                        <div class="text-center mb-6">
+                            <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-green-700 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                                💻
+                            </div>
+                            <h3 class="text-xl font-bold text-white">Nour S.</h3>
+                            <div class="text-green-300 text-sm">Business Student</div>
+                        </div>
+                        
+                        <div class="mb-6 p-4 bg-white/5 rounded-xl">
+                            <p class="text-white/90 italic text-sm leading-relaxed">
+                                "Sarah made programming so much easier to understand. Her practical examples and patient explanations helped me ace CMPS 200. Highly recommend!"
+                            </p>
+                        </div>
+                        
+                        <div class="space-y-2 text-sm text-white/70">
+                            <div class="flex justify-between">
+                                <span>Subject:</span>
+                                <span class="text-blue-400">CMPS 200</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Grade Improvement:</span>
+                                <span class="text-green-400">D+ → A</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Sessions:</span>
+                                <span class="text-purple-400">8 sessions</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Success Story 3 -->
+                <div class="flying-card" style="animation-delay: 0.6s;">
+                    <div class="glass dark:glass-dark rounded-3xl p-8 h-full floating-element">
+                        <div class="text-center mb-6">
+                            <div class="w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                                🔬
+                            </div>
+                            <h3 class="text-xl font-bold text-white">Jana M.</h3>
+                            <div class="text-purple-300 text-sm">Pre-Med Student</div>
+                        </div>
+                        
+                        <div class="mb-6 p-4 bg-white/5 rounded-xl">
+                            <p class="text-white/90 italic text-sm leading-relaxed">
+                                "Lara's physics tutoring was a game-changer. She explained complex concepts so clearly that I finally understood what I was studying. Got my first A+ in physics!"
+                            </p>
+                        </div>
+                        
+                        <div class="space-y-2 text-sm text-white/70">
+                            <div class="flex justify-between">
+                                <span>Subject:</span>
+                                <span class="text-blue-400">PHYS 201</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Grade Improvement:</span>
+                                <span class="text-green-400">B- → A+</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Sessions:</span>
+                                <span class="text-purple-400">10 sessions</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Overall Stats -->
+            <div class="mt-16">
+                <div class="glass dark:glass-dark rounded-3xl p-8 text-center">
+                    <h3 class="text-2xl font-bold text-white mb-8">Platform Impact</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                        <div>
+                            <div class="text-3xl font-bold text-green-400 mb-2">95%</div>
+                            <div class="text-white/70 text-sm">Grade Improvement</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-blue-400 mb-2">4.9/5</div>
+                            <div class="text-white/70 text-sm">Average Rating</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-purple-400 mb-2">2,500+</div>
+                            <div class="text-white/70 text-sm">Students Helped</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-yellow-400 mb-2">10,000+</div>
+                            <div class="text-white/70 text-sm">Sessions Completed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-32 px-6 lg:px-8 gradient-mesh relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/20 dark:bg-black/40"></div>
+        
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <h2 class="text-5xl md:text-6xl font-bold text-white mb-8">
+                Ready to Excel?
+            </h2>
+            <p class="text-xl text-white/90 mb-12 max-w-2xl mx-auto">
+                Join thousands of AUB students who have improved their grades with our expert tutors. 
+                Start your academic success journey today.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                <button class="btn-premium magnetic glow-blue text-lg px-12 py-5">
+                    <i data-lucide="search" class="w-6 h-6 inline mr-3"></i>
+                    Find Your Tutor
+                </button>
+                
+                <button class="glass dark:glass-dark text-white px-12 py-5 rounded-full font-semibold text-lg magnetic hover:scale-105 transition-all duration-300">
+                    <i data-lucide="play-circle" class="w-6 h-6 inline mr-3"></i>
+                    Watch Demo
+                </button>
+            </div>
+            
+            <div class="mt-12 text-white/70">
+                <p>Questions? Email us at <span class="text-blue-300">help@aubhub.com</span> or call <span class="text-blue-300">+961 1 XXX XXX</span></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 dark:bg-black text-white py-20 px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-4 gap-12 mb-12">
+                <div class="col-span-2">
+                    <div class="flex items-center space-x-4 mb-8">
+                        <div class="w-14 h-14 liquid-morph bg-gradient-to-r from-blue-500 to-blue-800 flex items-center justify-center shadow-2xl">
+                            <i data-lucide="graduation-cap" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <span class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                            Tutor Match
+                        </span>
+                    </div>
+                    <p class="text-gray-400 mb-8 leading-relaxed text-lg">
+                        Connecting AUB students with expert tutors for academic excellence. Find your perfect tutor today.
+                    </p>
+                    <div class="text-sm text-gray-500">
+                        Powered by <span class="text-blue-400 font-semibold">GapGuide Technologies</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-6 text-xl text-white">For Students</h4>
+                    <ul class="space-y-4 text-gray-400">
+                        <li><a href="find-tutor.html" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Find Tutors</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">How It Works</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Success Stories</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Pricing</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-6 text-xl text-white">Support</h4>
+                    <ul class="space-y-4 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Help Center</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">FAQ</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Guidelines</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 Tutor Match. Empowering academic excellence through expert tutoring.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Theme Management
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            html.classList.add('dark');
+        }
+        
+        // Set initial icon visibility
+        setTimeout(() => {
+            const sunIcon = themeToggle.querySelector('[data-lucide="sun"]');
+            const moonIcon = themeToggle.querySelector('[data-lucide="moon"]');
+            
+            if (html.classList.contains('dark')) {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+        }, 100);
+        
+        // Theme toggle function
+        function toggleTheme() {
+            const isDark = html.classList.contains('dark');
+            const sunIcon = themeToggle.querySelector('[data-lucide="sun"]');
+            const moonIcon = themeToggle.querySelector('[data-lucide="moon"]');
+            
+            document.body.classList.add('theme-transition');
+            
+            if (isDark) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+            
+            setTimeout(() => {
+                lucide.createIcons();
+                document.body.classList.remove('theme-transition');
+            }, 500);
+        }
+        
+        themeToggle.addEventListener('click', toggleTheme);
+        
+        // Navbar Scroll Effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('glass', 'dark:glass-dark', 'shadow-2xl');
+                navbar.style.background = 'rgba(255, 255, 255, 0.1)';
+            } else {
+                navbar.classList.remove('glass', 'dark:glass-dark', 'shadow-2xl');
+                navbar.style.background = 'transparent';
+            }
+        });
+        
+        // Magnetic Effect
+        document.querySelectorAll('.magnetic').forEach(element => {
+            element.addEventListener('mousemove', (e) => {
+                const rect = element.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                
+                const moveX = x * 0.1;
+                const moveY = y * 0.1;
+                
+                element.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            });
+            
+            element.addEventListener('mouseleave', () => {
+                element.style.transform = 'translate(0, 0)';
+            });
+        });
+        
+        // Particle System
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        createParticles();
+        
+        // Search Functionality
+        const heroSearch = document.getElementById('hero-search');
+        const subjectFilter = document.getElementById('subject-filter');
+        const priceFilter = document.getElementById('price-filter');
+        const ratingFilter = document.getElementById('rating-filter');
+        const availabilityFilter = document.getElementById('availability-filter');
+        
+        // Filter Buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const format = btn.dataset.format;
+                filterTutors({ format });
+            });
+        });
+        
+        // Subject Tags
+        document.querySelectorAll('.subject-tag').forEach(tag => {
+            tag.addEventListener('click', () => {
+                const subject = tag.dataset.subject;
+                heroSearch.value = subject.replace('-', ' ').toUpperCase();
+                filterTutors({ subject });
+            });
+        });
+        
+        // Filter Function
+        function filterTutors(filters = {}) {
+            const tutorCards = document.querySelectorAll('.tutor-card');
+            let visibleCount = 0;
+            
+            tutorCards.forEach(card => {
+                let shouldShow = true;
+                
+                // Get tutor data from card
+                const tutorName = card.querySelector('h3').textContent.toLowerCase();
+                const tutorSubjects = Array.from(card.querySelectorAll('.subject-tag')).map(tag => tag.textContent.toLowerCase());
+                const tutorRate = parseInt(card.querySelector('.text-green-400').textContent.replace('$', '').replace('/hour', ''));
+                const tutorRating = parseFloat(card.querySelector('.star-rating').textContent.split(' ')[1]);
+                
+                // Apply search filter
+                if (filters.search && filters.search.trim()) {
+                    const searchTerm = filters.search.toLowerCase();
+                    const matchesName = tutorName.includes(searchTerm);
+                    const matchesSubject = tutorSubjects.some(subject => subject.includes(searchTerm));
+                    
+                    if (!matchesName && !matchesSubject) {
+                        shouldShow = false;
+                    }
+                }
+                
+                // Apply subject filter
+                if (filters.subject && filters.subject !== '') {
+                    const subjectMap = {
+                        'computer-science': ['cmps'],
+                        'mathematics': ['math'],
+                        'physics': ['phys'],
+                        'chemistry': ['chem'],
+                        'statistics': ['stat'],
+                        'economics': ['econ'],
+                        'business': ['bus'],
+                        'engineering': ['engr']
+                    };
+                    
+                    const requiredSubjects = subjectMap[filters.subject] || [filters.subject];
+                    const hasSubject = requiredSubjects.some(req => 
+                        tutorSubjects.some(subject => subject.includes(req))
+                    );
+                    
+                    if (!hasSubject) {
+                        shouldShow = false;
+                    }
+                }
+                
+                // Apply price filter
+                if (filters.price && filters.price !== '') {
+                    const [minPrice, maxPrice] = filters.price.split('-').map(p => parseInt(p));
+                    if (tutorRate < minPrice || tutorRate > maxPrice) {
+                        shouldShow = false;
+                    }
+                }
+                
+                // Apply rating filter
+                if (filters.rating && filters.rating !== '') {
+                    const minRating = parseFloat(filters.rating);
+                    if (tutorRating < minRating) {
+                        shouldShow = false;
+                    }
+                }
+                
+                // Apply availability filter (demo - all tutors available for now)
+                if (filters.availability && filters.availability !== '') {
+                    // In a real app, this would check actual availability
+                    // For demo, we'll randomly hide some tutors
+                    if (Math.random() < 0.2) {
+                        shouldShow = false;
+                    }
+                }
+                
+                // Apply format filter
+                if (filters.format && filters.format !== 'all') {
+                    // For demo, assume all tutors offer all formats
+                    // In real app, this would check tutor preferences
+                }
+                
+                // Show/hide card with animation
+                if (shouldShow) {
+                    card.style.display = 'block';
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    
+                    setTimeout(() => {
+                        card.style.transition = 'all 0.5s ease';
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, visibleCount * 100);
+                    
+                    visibleCount++;
+                } else {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(-20px)';
+                    
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 300);
+                }
+            });
+            
+            // Show search results message
+            setTimeout(() => {
+                showSearchResults(filters, visibleCount);
+            }, 400);
+        }
+        
+        function showSearchResults(filters, visibleCount) {
+            // Create or update results message
+            let resultsMessage = document.getElementById('search-results');
+            if (!resultsMessage) {
+                resultsMessage = document.createElement('div');
+                resultsMessage.id = 'search-results';
+                resultsMessage.className = 'text-center text-white/80 mb-8 glass dark:glass-dark rounded-2xl p-6';
+                document.getElementById('tutors-grid').parentNode.insertBefore(resultsMessage, document.getElementById('tutors-grid'));
+            }
+            
+            // Build filter summary
+            let filterSummary = [];
+            if (filters.search) filterSummary.push(`"${filters.search}"`);
+            if (filters.subject) filterSummary.push(filters.subject.replace('-', ' '));
+            if (filters.price) filterSummary.push(`$${filters.price}/hour`);
+            if (filters.rating) filterSummary.push(`${filters.rating}+ stars`);
+            if (filters.availability) filterSummary.push(filters.availability);
+            
+            const hasFilters = filterSummary.length > 0;
+            const summaryText = hasFilters ? ` for ${filterSummary.join(', ')}` : '';
+            
+            resultsMessage.innerHTML = `
+                <div class="flex items-center justify-center space-x-4">
+                    <i data-lucide="search" class="w-6 h-6 text-blue-400"></i>
+                    <div>
+                        <p class="text-xl font-semibold text-white">
+                            Found ${visibleCount} tutor${visibleCount !== 1 ? 's' : ''}${summaryText}
+                        </p>
+                        ${hasFilters ? `
+                            <button onclick="clearAllFilters()" class="text-blue-400 hover:text-blue-300 text-sm mt-2 underline">
+                                Clear all filters
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+                ${visibleCount === 0 ? `
+                    <div class="mt-6 p-4 bg-yellow-500/20 rounded-xl">
+                        <p class="text-yellow-200 mb-3">
+                            <i data-lucide="info" class="w-5 h-5 inline mr-2"></i>
+                            No tutors match your current filters
+                        </p>
+                        <div class="text-sm text-yellow-100/80">
+                            Try adjusting your search criteria or 
+                            <button onclick="clearAllFilters()" class="text-yellow-200 underline hover:text-yellow-100">
+                                clear all filters
+                            </button>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+            
+            lucide.createIcons();
+        }
+        
+        // Search Input Handler
+        heroSearch.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            filterTutors({ search: searchTerm });
+        });
+        
+        // Filter Change Handlers
+        [subjectFilter, priceFilter, ratingFilter, availabilityFilter].forEach(filter => {
+            filter.addEventListener('change', () => {
+                const filters = {
+                    subject: subjectFilter.value,
+                    price: priceFilter.value,
+                    rating: ratingFilter.value,
+                    availability: availabilityFilter.value
+                };
+                filterTutors(filters);
+            });
+        });
+        
+        // Load Tutors Animation
+        setTimeout(() => {
+            document.getElementById('loading-tutors').classList.add('hidden');
+            document.getElementById('tutors-grid').classList.remove('hidden');
+        }, 2000);
+        
+        // Load More Functionality
+        document.getElementById('load-more').addEventListener('click', () => {
+            const button = document.getElementById('load-more');
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '<div class="loading-spinner inline-block w-6 h-6 mr-3"></div>Loading...';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                
+                // Show success message
+                alert('🎉 More tutors loaded! Scroll up to see the new additions.');
+            }, 2000);
+        });
+        
+        // View Profile Handlers
+        document.querySelectorAll('button').forEach(button => {
+            if (button.textContent.includes('View Profile')) {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tutorCard = button.closest('.tutor-card');
+                    const tutorName = tutorCard.querySelector('h3').textContent;
+                    
+                    alert(`📅 Booking session with ${tutorName}...\n\n✅ Redirecting to booking calendar\n⏰ Choose your preferred time slot\n💬 Add session details and goals`);
+                });
+            } else if (button.textContent.includes('Find Your Tutor')) {
+                button.addEventListener('click', () => {
+                    document.getElementById('tutors-grid').scrollIntoView({ behavior: 'smooth' });
+                });
+            } else if (button.textContent.includes('Watch Demo')) {
+                button.addEventListener('click', () => {
+                    alert('🎥 Loading platform demo video...\n\n📹 See how easy it is to find and book tutors\n⭐ Watch student success stories\n🎯 Learn about our matching algorithm');
+                });
+            }
+        });
+        
+        // Message Button Handlers
+        document.querySelectorAll('button').forEach(button => {
+            const icon = button.querySelector('[data-lucide="message-circle"]');
+            if (icon) {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tutorCard = button.closest('.tutor-card');
+                    const tutorName = tutorCard.querySelector('h3').textContent;
+                    
+                    alert(`💬 Opening chat with ${tutorName}...\n\n✅ Send a message to introduce yourself\n📚 Discuss your learning goals\n⏰ Ask about availability\n💡 Get study tips and advice`);
+                });
+            }
+        });
+        
+        // Enhanced Button Interactions
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mouseenter', () => {
+                if (!button.disabled) {
+                    button.style.transform = 'translateY(-3px) scale(1.05)';
+                }
+            });
+            
+            button.addEventListener('mouseleave', () => {
+                if (!button.disabled) {
+                    button.style.transform = 'translateY(0) scale(1)';
+                }
+            });
+        });
+        
+        // Scroll Animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                    entry.target.classList.add('animate-in');
+                }
+            });
+        }, observerOptions);
+        
+        // Observe animated elements
+        document.querySelectorAll('.float-up, .slide-reveal, .scale-bounce, .flying-card').forEach(el => {
+            observer.observe(el);
+        });
+        
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Clear All Filters Function
+        function clearAllFilters() {
+            // Reset all form inputs
+            heroSearch.value = '';
+            subjectFilter.value = '';
+            priceFilter.value = '';
+            ratingFilter.value = '';
+            availabilityFilter.value = '';
+            
+            // Reset format buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.format === 'all') {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Show all tutors
+            filterTutors({});
+            
+            // Show success message
+            const resultsMessage = document.getElementById('search-results');
+            if (resultsMessage) {
+                resultsMessage.style.background = 'rgba(34, 197, 94, 0.2)';
+                resultsMessage.style.borderColor = 'rgba(34, 197, 94, 0.4)';
+                
+                setTimeout(() => {
+                    resultsMessage.style.background = '';
+                    resultsMessage.style.borderColor = '';
+                }, 1000);
+            }
+        }
+        
+        // Auto-search on page load
+        setTimeout(() => {
+            showSearchResults({}, 6);
+        }, 2500);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97b4a2c32572e30e',t:'MTc1NzIzMTY0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
