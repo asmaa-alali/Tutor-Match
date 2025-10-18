@@ -1,18 +1,22 @@
- lucide.createIcons();
+import { supabase } from "../DataBase/supabaseClient.js";
+await supabase.auth.signOut();
+
+lucide.createIcons();
+
+function toggleTheme() {
+  document.body.classList.toggle("dark");
+  const isDark = document.body.classList.contains("dark");
+  localStorage.setItem("theme", isDark ? "dark" : "light");
+  updateThemeIcon(isDark);
+}
+window.toggleTheme = toggleTheme; 
+
+function updateThemeIcon(isDark) {
+  const icon = document.getElementById("themeIcon");
+  icon.setAttribute("data-lucide", isDark ? "moon" : "sun");
+  lucide.createIcons();
+}
         
-        function toggleTheme() {
-            document.body.classList.toggle('dark');
-            const isDark = document.body.classList.contains('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            updateThemeIcon(isDark);
-        }
-        
-        function updateThemeIcon(isDark) {
-            const icon = document.getElementById('themeIcon');
-            icon.setAttribute('data-lucide', isDark ? 'moon' : 'sun');
-            lucide.createIcons();
-        }
-    
         const savedTheme = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
@@ -37,24 +41,21 @@
                 if (input.type === 'checkbox') {
                     if (input.checked) completed++;
                 } else if (input.name === 'subjects') {
-                    // Skip individual subject checkboxes, we'll count them as one
                     total--;
                 } else if (input.value.trim() !== '') {
                     completed++;
                 }
             });
             
-            // Add subjects as one requirement
             if (checkboxes.length > 0) {
                 completed++;
             }
-            total++; // Add subjects requirement to total
+            total++; 
             
             const progress = (completed / total) * 100;
             document.getElementById('progressFill').style.width = progress + '%';
         }
         
-        // File upload handling
         function setupFileUpload(inputId, previewId, maxSize) {
             const input = document.getElementById(inputId);
             const preview = document.getElementById(previewId);
@@ -64,7 +65,6 @@
                 const errorElement = document.getElementById(inputId + 'Error');
                 
                 if (file) {
-                    // Validate file size
                     if (file.size > maxSize) {
                         errorElement.textContent = `File size must be less than ${maxSize / (1024 * 1024)}MB`;
                         errorElement.style.display = 'block';
@@ -72,7 +72,6 @@
                         return;
                     }
                     
-                    // Validate file type
                     if (!file.type.match(/^image\/(jpeg|jpg|png)$/)) {
                         errorElement.textContent = 'Only JPG and PNG files are allowed';
                         errorElement.style.display = 'block';
@@ -82,7 +81,6 @@
                     
                     errorElement.style.display = 'none';
                     
-                    // Show preview
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         preview.innerHTML = `
@@ -108,11 +106,9 @@
             updateProgress();
         }
         
-        // Setup file uploads
         setupFileUpload('passportPhoto', 'passportPhotoPreview', 2 * 1024 * 1024); // 2MB
         setupFileUpload('certificate', 'certificatePreview', 5 * 1024 * 1024); // 5MB
         
-        // Subject checkbox handling
         document.querySelectorAll('.checkbox-item[data-subject]').forEach(item => {
             item.addEventListener('click', function(e) {
                 if (e.target.type !== 'checkbox') {
@@ -129,7 +125,6 @@
             });
         });
         
-        // Password validation
         function validatePassword(password) {
             const minLength = password.length >= 8;
             const hasUpper = /[A-Z]/.test(password);
@@ -140,13 +135,11 @@
             return minLength && hasUpper && hasLower && hasNumber && hasSpecial;
         }
         
-        // Email validation
         function validateEmail(email) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             return emailRegex.test(email);
         }
         
-        // Real-time validation
         document.getElementById('password').addEventListener('input', function() {
             const password = this.value;
             const errorElement = document.getElementById('passwordError');
@@ -187,13 +180,11 @@
             updateProgress();
         });
         
-        // Add event listeners for progress tracking
         document.querySelectorAll('input, select, textarea').forEach(element => {
             element.addEventListener('input', updateProgress);
             element.addEventListener('change', updateProgress);
         });
         
-        // Form submission
         document.getElementById('tutorForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -201,7 +192,6 @@
             let isValid = true;
             const errors = [];
             
-            // Check required fields
             const requiredFields = [
                 'firstName', 'lastName', 'email', 'phone', 'password', 'confirmPassword', 
                 'birthdate', 'major', 'degree', 'motivation', 'format', 'availability'
@@ -220,7 +210,6 @@
                 }
             });
             
-            // Validate password
             const password = document.getElementById('password').value;
             if (!validatePassword(password)) {
                 document.getElementById('passwordError').textContent = 'Password must meet all requirements';
@@ -228,7 +217,6 @@
                 isValid = false;
             }
             
-            // Validate password confirmation
             const confirmPassword = document.getElementById('confirmPassword').value;
             if (password !== confirmPassword) {
                 document.getElementById('confirmPasswordError').textContent = 'Passwords do not match';
@@ -236,7 +224,6 @@
                 isValid = false;
             }
             
-            // Validate email
             const email = document.getElementById('email').value;
             if (!validateEmail(email)) {
                 document.getElementById('emailError').textContent = 'Please enter a valid email address';
@@ -244,7 +231,6 @@
                 isValid = false;
             }
             
-            // Validate subjects
             const selectedSubjects = document.querySelectorAll('input[name="subjects"]:checked');
             if (selectedSubjects.length === 0) {
                 document.getElementById('subjectsError').textContent = 'Please select at least one subject';
@@ -254,7 +240,6 @@
                 document.getElementById('subjectsError').style.display = 'none';
             }
             
-            // Validate file uploads
             const passportPhoto = document.getElementById('passportPhoto').files[0];
             const certificate = document.getElementById('certificate').files[0];
             
@@ -270,7 +255,6 @@
                 isValid = false;
             }
             
-            // Validate agreements
             const accurateInfo = document.getElementById('accurateInfo').checked;
             const terms = document.getElementById('terms').checked;
             
@@ -283,31 +267,126 @@
             }
             
             if (isValid) {
-                // Simulate form submission
                 const submitBtn = document.getElementById('submitBtn');
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i data-lucide="loader" class="w-5 h-5 mr-2 inline animate-spin"></i>Creating Account...';
                 lucide.createIcons();
                 
-                setTimeout(() => {
-                    // Store success message in localStorage
-                    localStorage.setItem('registrationSuccess', '🎉 Welcome, your Tutor account has been created.');
-                    localStorage.setItem('userType', 'tutor');
-                    localStorage.setItem('userName', document.getElementById('firstName').value);
-                    
-                    // Redirect to homepage
-                    window.location.href = 'index.html';
-                }, 2000);
-            } else {
-                // Scroll to first error
-                const firstError = document.querySelector('.error-message[style*="block"]');
-                if (firstError) {
-                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }
-        });
-        
-        // Initialize progress
-        updateProgress();
-   
-(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98029528931de309',t:'MTc1ODA0ODk3NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();
+                (async () => {
+    try {
+      const subjects = Array.from(
+        document.querySelectorAll('input[name="subjects"]:checked')
+      )
+        .map((cb) => cb.value)
+        .join(", ");
+      const experience = document.getElementById("experience")?.value || "";
+      const motivation = document.getElementById("motivation").value.trim();
+      const format = document.getElementById("format").value.trim();
+      const availability = document.getElementById("availability").value.trim();
+
+      const passportPhoto = document.getElementById("passportPhoto").files[0];
+      const certificate = document.getElementById("certificate").files[0];
+
+      let passport_photo = null;
+      let certificate_url = null;
+
+      if (passportPhoto) {
+        const { data: passData, error: passError } = await supabase.storage
+          .from("tutor_uploads")
+          .upload(`passports/${Date.now()}_${passportPhoto.name}`, passportPhoto, {
+            cacheControl: "3600",
+            upsert: true,
+          });
+        if (passError) throw passError;
+        passport_photo = supabase.storage
+          .from("tutor_uploads")
+          .getPublicUrl(passData.path).data.publicUrl;
+      }
+
+      if (certificate) {
+        const { data: certData, error: certError } = await supabase.storage
+          .from("tutor_uploads")
+          .upload(`certificates/${Date.now()}_${certificate.name}`, certificate, {
+            cacheControl: "3600",
+            upsert: true,
+          });
+        if (certError) throw certError;
+        certificate_url = supabase.storage
+          .from("tutor_uploads")
+          .getPublicUrl(certData.path).data.publicUrl;
+      }
+
+const emailValue = document.getElementById("email").value.trim();
+
+const { data: existingTutor, error: checkError } = await supabase
+  .from("tutor_profiles")
+  .select("email")
+  .eq("email", emailValue)
+  .maybeSingle();
+
+if (checkError) {
+  console.error("Error checking existing email:", checkError);
+  alert("Something went wrong while checking your email. Please try again.");
+  submitBtn.disabled = false;
+  submitBtn.innerHTML = "Create Account";
+  return;
+}
+
+if (existingTutor) {
+  alert("⚠️ This email is already registered. Please use a different email.");
+  submitBtn.disabled = false;
+  submitBtn.innerHTML = "Create Account";
+  return;
+}
+
+const { data, error } = await supabase.from("tutor_profiles").insert([
+  {
+    first_name: document.getElementById("firstName").value.trim(),
+    last_name: document.getElementById("lastName").value.trim(),
+    email: emailValue,
+    password: document.getElementById("password").value.trim(),
+    phone: document.getElementById("phone").value.trim(),
+    birthdate: document.getElementById("birthdate").value,
+    major: document.getElementById("major").value.trim(),
+    degree: document.getElementById("degree").value.trim(),
+    gpa: document.getElementById("gpa").value.trim(),
+    subjects,
+    experience,
+    motivation,
+    format,
+    availability,
+    passport_photo,
+    certificate_url,
+  },
+]);
+
+
+      if (error) throw error;
+
+console.log("✅ Tutor profile saved:", data);
+
+const firstName = document.getElementById("firstName").value.trim();
+document.getElementById("welcomeMessage").textContent =
+  `🎉 Welcome ${firstName}, your Tutor account has been created successfully! You can now start connecting with students.`;
+
+const modal = document.getElementById("successModal");
+modal.style.display = "flex"; // show modal
+
+setTimeout(() => goToHome(), 3000);
+
+    } catch (error) {
+      console.error("❌ Supabase error:", error.message);
+      alert("Error creating tutor profile: " + error.message);
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = "Create Account";
+    }
+  })();
+}        });
+
+function goToHome() {
+  window.location.href = "../Homepage/home.html";
+}
+
+document.getElementById("successModal").addEventListener("click", (e) => {
+  if (e.target === document.getElementById("successModal")) goToHome();
+});
