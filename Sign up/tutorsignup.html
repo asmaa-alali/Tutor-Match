@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tutor Registration - Tutor Match</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <link rel="stylesheet" href="tutorsignup.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutor Registration - Tutor Match</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <link rel="stylesheet" href="tutorsignup.css" />
 </head>
+
 <body>
-    <!-- Navigation -->
-    <nav class="fixed top-0 w-full z-50 glass">
+<nav class="fixed top-0 w-full z-50 glass">
         <div class="max-w-7xl mx-auto px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
-                <a href="index.html" class="flex items-center space-x-3">
+                <a href="/Homepage/index.html" class="flex items-center space-x-3">
                     <div class="w-12 h-12 rounded-2xl bg-gradient-to-r from-teal-500 to-teal-600 flex items-center justify-center">
                         <i data-lucide="graduation-cap" class="w-7 h-7 text-white"></i>
                     </div>
@@ -24,15 +26,17 @@
                     <div class="theme-toggle-container" onclick="toggleTheme()">
                         <i data-lucide="sun" class="theme-icon" id="themeIcon"></i>
                     </div>
-                    <a href="signup.html" class="text-white/80 hover:text-white transition-colors">
-                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                    <a href="sign-up.html" class="magnetic text-white/70 hover:text-white font-medium transition-all duration-300">
+                        <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>Back
                     </a>
                 </div>
             </div>
         </div>
     </nav>
+
     <main class="min-h-screen pt-24 pb-12 px-6 lg:px-8">
         <div class="max-w-4xl mx-auto">
+            <!-- Header -->
             <div class="text-center mb-12">
                 <div class="w-20 h-20 rounded-full bg-gradient-to-r from-teal-400 to-teal-600 flex items-center justify-center mx-auto mb-6">
                     <i data-lucide="graduation-cap" class="w-10 h-10 text-white"></i>
@@ -40,10 +44,13 @@
                 <h1 class="text-4xl lg:text-5xl font-black text-white mb-4">Become a Tutor</h1>
                 <p class="text-xl text-white/80 max-w-2xl mx-auto">Share your knowledge and help students succeed while earning great income</p>
             </div>
+
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
+
             <form id="tutorForm" class="space-y-8">
+                <!-- Personal Information -->
                 <div class="form-section">
                     <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
                         <i data-lucide="user" class="w-6 h-6 mr-3 text-teal-400"></i>
@@ -96,6 +103,7 @@
                         <div class="error-message" id="birthdateError"></div>
                     </div>
                 </div>
+
                 <div class="form-section">
                     <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
                         <i data-lucide="book-open" class="w-6 h-6 mr-3 text-teal-400"></i>
@@ -127,6 +135,7 @@
                         <div class="error-message" id="gpaError"></div>
                     </div>
                 </div>
+
                 <div class="form-section">
                     <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
                         <i data-lucide="upload" class="w-6 h-6 mr-3 text-teal-400"></i>
@@ -159,6 +168,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="form-section">
                     <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
                         <i data-lucide="users" class="w-6 h-6 mr-3 text-teal-400"></i>
@@ -245,6 +255,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="form-section">
                     <h2 class="text-2xl font-bold text-white mb-6 flex items-center">
                         <i data-lucide="shield-check" class="w-6 h-6 mr-3 text-teal-400"></i>
@@ -263,6 +274,7 @@
                     </div>
                     <div class="error-message" id="agreementsError"></div>
                 </div>
+
                 <div class="text-center">
                     <button type="submit" class="submit-btn" id="submitBtn">
                         <i data-lucide="user-plus" class="w-5 h-5 mr-2 inline"></i>
@@ -272,6 +284,26 @@
             </form>
         </div>
     </main>
-    <script src="tutorsignup.js"></script>
+
+<div id="successModal" class="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-md z-50 hidden">
+  <div class="glass-strong p-8 rounded-3xl text-center text-white w-[90%] max-w-md shadow-2xl animate-scale-in border border-white/10">
+    <div class="flex justify-center mb-5">
+      <div class="bg-emerald-500 rounded-full p-4 flex items-center justify-center shadow-lg">
+        <i data-lucide="check" class="w-8 h-8 text-white"></i>
+      </div>
+    </div>
+    <h2 class="text-3xl font-bold mb-3">Welcome!</h2>
+    <p id="welcomeMessage" class="text-gray-300 text-lg leading-relaxed mb-8"></p>
+    <button onclick="goToHome()" class="transition-all w-full py-3 rounded-full font-semibold text-white text-lg bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-400 hover:to-cyan-300 shadow-lg hover:shadow-cyan-400/30 transform hover:scale-[1.03] duration-300">
+      <i data-lucide="home" class="inline w-5 h-5 mr-2 align-text-bottom"></i>
+      Go to Homepage
+    </button>
+  </div>
+</div>
+
+
+
+      <!-- External JS -->
+<script type="module" src="./tutorsignup.js"></script>
 </body>
 </html>
