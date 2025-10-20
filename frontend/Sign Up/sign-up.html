@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Tutor Match</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="sign-up.css"> 
+</head>
+<body>
+  
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="text-center">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <p class="text-white text-lg font-semibold">Loading Tutor Match...</p>
+        </div>
+    </div>
+
+    <div id="particles" class="fixed inset-0 pointer-events-none z-0"></div>
+
+    <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-500">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex justify-between items-center h-24">
+                <a href="/./Homepage/home.html" class="flex items-center space-x-4 magnetic cursor-pointer">
+                    <div class="w-14 h-14 rounded-3xl bg-gradient-to-r from-sky-500 via-blue-600 to-teal-600 flex items-center justify-center shadow-2xl floating glow-blue">
+                        <i data-lucide="graduation-cap" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <span class="text-3xl font-black bg-gradient-to-r from-sky-200 via-blue-200 to-teal-200 bg-clip-text text-transparent">
+                        Tutor Match
+                    </span>
+                </a>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <!-- Enhanced Theme Toggle -->
+                    <div class="theme-toggle-container magnetic" onclick="toggleTheme()">
+                        <i data-lucide="sun" class="theme-icon" id="themeIcon"></i>
+                    </div>
+                    
+                    <a href="../Homepage/home.html" class="magnetic text-white/80 hover:text-white font-semibold transition-all duration-300 flex items-center space-x-2 px-4 py-2 rounded-full glass">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        <span>Back to Home</span>
+                    </a>
+                </div>
+                
+                <div class="md:hidden flex items-center space-x-4">
+                    <div class="theme-toggle-container magnetic" onclick="toggleTheme()">
+                        <i data-lucide="sun" class="theme-icon" id="themeIconMobile"></i>
+                    </div>
+                    <a href="../Homepage/home.html" class="magnetic text-white/80 hover:text-white p-3 rounded-full glass">
+                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="min-h-screen flex items-center justify-center px-6 lg:px-8 relative z-10 pt-24">
+        <div class="max-w-5xl mx-auto w-full">
+            <!-- Enhanced Header -->
+            <div class="text-center mb-20 animate-slide-up">
+                <div class="w-28 h-28 rounded-full bg-gradient-to-r from-sky-400 via-blue-500 to-teal-500 flex items-center justify-center mx-auto mb-10 floating shadow-2xl glow-blue pulsing">
+                    <i data-lucide="sparkles" class="w-14 h-14 text-white"></i>
+                </div>
+                
+                <h1 class="text-6xl lg:text-7xl font-black main-title mb-8 leading-tight">
+                    Join Tutor Match
+                </h1>
+                
+                <div class="flex items-center justify-center mb-8 animate-slide-up delay-200">
+                    <span class="text-4xl mr-4 animate-bounce">👉</span>
+                    <p class="text-2xl lg:text-4xl subtitle-gradient font-bold">
+                        Are you signing up as a Student or as a Tutor?
+                    </p>
+                </div>
+                
+                <p class="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed animate-slide-up delay-300">
+                    Select your path and unlock personalized learning or teaching opportunities with our premium matching system
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 max-w-5xl mx-auto">
+                <!-- Enhanced Student Card -->
+                <div class="choice-card student animate-slide-up delay-400 magnetic" onclick="selectRole('student')">
+                    <div class="choice-icon glow-blue">
+                        <i data-lucide="book-open" class="w-12 h-12 text-white"></i>
+                    </div>
+                    
+                    <h2 class="text-4xl font-black text-white mb-6">Student</h2>
+                    
+                    <p class="text-white/90 text-xl mb-8 leading-relaxed font-medium">
+                        Connect with top-rated tutors who understand your learning style and help you achieve your academic goals
+                    </p>
+                    
+                    <div class="space-y-4 text-white/80">
+                        <div class="benefit-item flex items-center justify-center space-x-3">
+                            <i data-lucide="search" class="w-6 h-6 text-blue-300"></i>
+                            <span class="text-lg font-medium">Find perfect tutor matches</span>
+                        </div>
+                        <div class="benefit-item flex items-center justify-center space-x-3">
+                            <i data-lucide="calendar" class="w-6 h-6 text-blue-300"></i>
+                            <span class="text-lg font-medium">Book sessions instantly</span>
+                        </div>
+                        <div class="benefit-item flex items-center justify-center space-x-3">
+                            <i data-lucide="trending-up" class="w-6 h-6 text-blue-300"></i>
+                            <span class="text-lg font-medium">See real grade improvements</span>
+                        </div>
+                        <div class="benefit-item flex items-center justify-center space-x-3">
+                            <i data-lucide="shield-check" class="w-6 h-6 text-blue-300"></i>
+                            <span class="text-lg font-medium">Verified tutor profiles</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="choice-card tutor animate-slide-up delay-500 magnetic" onclick="selectRole('tutor')">
+                    <div class="choice-icon glow-teal">
+                        <i data-lucide="graduation-cap" class="w-12 h-12 text-white"></i>
+                    </div>
+                    
+                    <h2 class="text-4xl font-black text-white mb-6">Tutor</h2>
+                    
+                    <p class="text-white/90 text-xl mb-8 leading-relaxed font-medium">
+                        Turn your knowledge into income while empowering students to reach their full potential
+                    </p>
+                    
+                    <div class="space-y-4 text-white/80">
+                        <div class="benefit-item flex items-center justify-center space-x-3">
+                            <i data-lucide="clock" class="w-6 h-6 text-teal-300"></i>
+                            <span class="text-lg font-medium">Complete schedule flexibility</span>
+                        </div>
+                        <div class="benefit-item flex items-center justify-center space-x-3">
+                            <i data-lucide="dollar-sign" class="w-6 h-6 text-teal-300"></i>
+                            <span class="text-lg font-medium">Earn $25-75 per hour</span>
+                        </div>
+                        <div class="benefit-item flex items-center justify-center space-x-3">
+                            <i data-lucide="star" class="w-6 h-6 text-teal-300"></i>
+                            <span class="text-lg font-medium">Build 5-star reputation</span>
+                        </div>
+                        <div class="benefit-item flex items-center justify-center space-x-3">
+                            <i data-lucide="users" class="w-6 h-6 text-teal-300"></i>
+                            <span class="text-lg font-medium">Connect with motivated students</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-20 animate-slide-up delay-600">
+                <div class="glass rounded-2xl p-6 max-w-md mx-auto">
+                    <p class="text-white/70 text-lg">
+                        Already have an account? 
+                        <a href="/Sign In/sign_in.html" class="text-sky-300 hover:text-sky-200 underline font-semibold transition-all duration-300">Log in here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="sign-up.js"></script> 
+</body>
+</html>
+
+
+
