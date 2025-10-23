@@ -1,8 +1,6 @@
-import { supabase } from "../DataBase/supabaseClient.js";
-await supabase.auth.signOut();
 
-lucide.createIcons();
 
+// ====================== THEME MANAGEMENT ======================
 function toggleTheme() {
   document.body.classList.toggle("dark");
   const isDark = document.body.classList.contains("dark");
@@ -19,6 +17,7 @@ function updateThemeIcons(isDark) {
   lucide.createIcons();
 }
 
+// Initialize theme
 const savedTheme = localStorage.getItem("theme");
 const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 const isDark = savedTheme === "dark" || (!savedTheme && prefersDark);
@@ -28,12 +27,14 @@ document.addEventListener("DOMContentLoaded", () => {
   updateThemeIcons(isDark);
 });
 
+// ====================== NAVBAR SCROLL EFFECT ======================
 const navbar = document.getElementById("navbar");
 window.addEventListener("scroll", () => {
   if (window.scrollY > 50) navbar.classList.add("glass", "shadow-2xl");
   else navbar.classList.remove("glass", "shadow-2xl");
 });
 
+// ====================== PARTICLE BACKGROUND ======================
 function createParticle() {
   const particle = document.createElement("div");
   particle.className = "particle";
@@ -45,6 +46,7 @@ function createParticle() {
 }
 setInterval(createParticle, 800);
 
+// ====================== MAGNETIC BUTTON EFFECT ======================
 document.querySelectorAll(".magnetic").forEach((element) => {
   element.addEventListener("mousemove", (e) => {
     const rect = element.getBoundingClientRect();
@@ -57,9 +59,11 @@ document.querySelectorAll(".magnetic").forEach((element) => {
   });
 });
 
+// ====================== FORM VALIDATION ======================
 const form = document.getElementById("registrationForm");
 const inputs = form.querySelectorAll("input, select");
 
+// Real-time validation
 inputs.forEach((input) => {
   input.addEventListener("blur", () => validateField(input));
   input.addEventListener("input", () => {
@@ -69,6 +73,7 @@ inputs.forEach((input) => {
   });
 });
 
+// ---------------------- EMAIL VALIDATION ----------------------
 function validateEmail() {
   const email = document.getElementById("email");
   const emailError = document.getElementById("emailError");
@@ -96,6 +101,7 @@ function validateEmail() {
   }
 }
 
+// ---------------------- PASSWORD STRENGTH ----------------------
 function updatePasswordStrength() {
   const password = document.getElementById("password").value;
   const strengthFill = document.getElementById("strengthFill");
@@ -136,6 +142,7 @@ function updatePasswordStrength() {
   return strength >= 3;
 }
 
+// ---------------------- PASSWORD MATCH ----------------------
 function validatePasswordMatch() {
   const password = document.getElementById("password").value;
   const confirmPassword = document.getElementById("confirmPassword");
@@ -162,6 +169,7 @@ function validatePasswordMatch() {
   }
 }
 
+// ---------------------- GENERIC FIELD VALIDATION ----------------------
 function validateField(field) {
   const errorElement = document.getElementById(field.id + "Error");
 
@@ -176,6 +184,7 @@ function validateField(field) {
   }
 }
 
+// ====================== FORM SUBMISSION ======================
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -212,6 +221,7 @@ form.addEventListener("submit", async (e) => {
     isValid = false;
   }
 
+  // ✅ If everything valid
   if (isValid) {
     const firstName = document.getElementById("firstName").value.trim();
     const lastName = document.getElementById("lastName").value.trim();
@@ -219,6 +229,7 @@ form.addEventListener("submit", async (e) => {
     const password = document.getElementById("password").value.trim();
 
     try {
+      // ✅ Check if email already exists
 const { data: existingUser, error: checkError } = await supabase
   .from("users")
   .select("email")
@@ -236,21 +247,36 @@ if (existingUser) {
   return;
 }
 
+// ✅ Proceed with insertion only if email not found
+const studentId = document.getElementById("studentId").value.trim();
+const currentYear = document.getElementById("currentYear").value.trim();
+const major = document.getElementById("major").value.trim();
+const gpa = document.getElementById("gpa").value.trim();
+
+// ✅ Insert into Supabase table
 const { data, error } = await supabase.from("users").insert([
   {
-    full_name: `${firstName} ${lastName}`,
     email: email,
-    password: password,
     role: "student",
+    student_id: studentId || null,
+    current_year: currentYear || null,
+    major: major || null,
+    gpa: gpa ? parseFloat(gpa) : null,
+    password: password,
+    "first name": firstName,
+    "last name": lastName,
   },
 ]);
+
 
       if (error) throw error;
       console.log("✅ User inserted successfully:", data);
 
+      // 🎉 Success modal
       document.getElementById("welcomeMessage").textContent = `🎉 Welcome ${firstName}, your Student account has been created successfully! You can now start finding tutors.`;
       document.getElementById("successModal").style.display = "flex";
 
+      // Auto redirect to homepage after 3 seconds
       setTimeout(() => goToHome(), 3000);
 
     } catch (err) {
@@ -263,11 +289,13 @@ const { data, error } = await supabase.from("users").insert([
   }
 });
 
+// ====================== NAVIGATION ======================
 function goToHome() {
   window.location.href = "../Homepage/index.html";
 }
 
 
+// ====================== COMING SOON MODAL ======================
 function showComingSoon() {
   document.getElementById("comingSoonModal").style.display = "flex";
 }
@@ -277,6 +305,7 @@ function closeComingSoonModal() {
 window.showComingSoon = showComingSoon;
 window.closeComingSoonModal = closeComingSoonModal;
 
+// ====================== MODAL CLICK BEHAVIOR ======================
 document.getElementById("successModal").addEventListener("click", (e) => {
   if (e.target === document.getElementById("successModal")) goToHome();
 });
@@ -284,6 +313,7 @@ document.getElementById("comingSoonModal").addEventListener("click", (e) => {
   if (e.target === document.getElementById("comingSoonModal")) closeComingSoonModal();
 });
 
+// ====================== ANIMATIONS ======================
 document.addEventListener("DOMContentLoaded", () => {
   const animatedElements = document.querySelectorAll(
     ".animate-slide-up, .animate-slide-left, .animate-scale-in"
@@ -302,4 +332,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }, i * 100);
   });
 });
-

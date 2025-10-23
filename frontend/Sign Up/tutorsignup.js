@@ -1,15 +1,12 @@
-import { supabase } from "../DataBase/supabaseClient.js";
-await supabase.auth.signOut();
 
-lucide.createIcons();
-
+// Theme Management
 function toggleTheme() {
   document.body.classList.toggle("dark");
   const isDark = document.body.classList.contains("dark");
   localStorage.setItem("theme", isDark ? "dark" : "light");
   updateThemeIcon(isDark);
 }
-window.toggleTheme = toggleTheme; 
+window.toggleTheme = toggleTheme; // ✅ makes the button work again
 
 function updateThemeIcon(isDark) {
   const icon = document.getElementById("themeIcon");
@@ -17,6 +14,7 @@ function updateThemeIcon(isDark) {
   lucide.createIcons();
 }
         
+        // Initialize theme
         const savedTheme = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
@@ -29,6 +27,7 @@ function updateThemeIcon(isDark) {
             updateThemeIcon(isDark);
         });
         
+        // Progress tracking
         function updateProgress() {
             const form = document.getElementById('tutorForm');
             const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
@@ -39,23 +38,27 @@ function updateThemeIcon(isDark) {
             
             inputs.forEach(input => {
                 if (input.type === 'checkbox') {
+                    // Handle agreements separately
                     if (input.checked) completed++;
                 } else if (input.name === 'subjects') {
+                    // Skip individual subject checkboxes, we'll count them as one
                     total--;
                 } else if (input.value.trim() !== '') {
                     completed++;
                 }
             });
             
+            // Add subjects as one requirement
             if (checkboxes.length > 0) {
                 completed++;
             }
-            total++; 
+            total++; // Add subjects requirement to total
             
             const progress = (completed / total) * 100;
             document.getElementById('progressFill').style.width = progress + '%';
         }
         
+        // File upload handling
         function setupFileUpload(inputId, previewId, maxSize) {
             const input = document.getElementById(inputId);
             const preview = document.getElementById(previewId);
@@ -65,6 +68,7 @@ function updateThemeIcon(isDark) {
                 const errorElement = document.getElementById(inputId + 'Error');
                 
                 if (file) {
+                    // Validate file size
                     if (file.size > maxSize) {
                         errorElement.textContent = `File size must be less than ${maxSize / (1024 * 1024)}MB`;
                         errorElement.style.display = 'block';
@@ -72,6 +76,7 @@ function updateThemeIcon(isDark) {
                         return;
                     }
                     
+                    // Validate file type
                     if (!file.type.match(/^image\/(jpeg|jpg|png)$/)) {
                         errorElement.textContent = 'Only JPG and PNG files are allowed';
                         errorElement.style.display = 'block';
@@ -81,6 +86,7 @@ function updateThemeIcon(isDark) {
                     
                     errorElement.style.display = 'none';
                     
+                    // Show preview
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         preview.innerHTML = `
@@ -106,9 +112,11 @@ function updateThemeIcon(isDark) {
             updateProgress();
         }
         
+        // Setup file uploads
         setupFileUpload('passportPhoto', 'passportPhotoPreview', 2 * 1024 * 1024); // 2MB
         setupFileUpload('certificate', 'certificatePreview', 5 * 1024 * 1024); // 5MB
         
+        // Subject checkbox handling
         document.querySelectorAll('.checkbox-item[data-subject]').forEach(item => {
             item.addEventListener('click', function(e) {
                 if (e.target.type !== 'checkbox') {
@@ -125,6 +133,7 @@ function updateThemeIcon(isDark) {
             });
         });
         
+        // Password validation
         function validatePassword(password) {
             const minLength = password.length >= 8;
             const hasUpper = /[A-Z]/.test(password);
@@ -135,11 +144,13 @@ function updateThemeIcon(isDark) {
             return minLength && hasUpper && hasLower && hasNumber && hasSpecial;
         }
         
+        // Email validation
         function validateEmail(email) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             return emailRegex.test(email);
         }
         
+        // Real-time validation
         document.getElementById('password').addEventListener('input', function() {
             const password = this.value;
             const errorElement = document.getElementById('passwordError');
@@ -180,11 +191,13 @@ function updateThemeIcon(isDark) {
             updateProgress();
         });
         
+        // Add event listeners for progress tracking
         document.querySelectorAll('input, select, textarea').forEach(element => {
             element.addEventListener('input', updateProgress);
             element.addEventListener('change', updateProgress);
         });
         
+        // Form submission
         document.getElementById('tutorForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -192,6 +205,7 @@ function updateThemeIcon(isDark) {
             let isValid = true;
             const errors = [];
             
+            // Check required fields
             const requiredFields = [
                 'firstName', 'lastName', 'email', 'phone', 'password', 'confirmPassword', 
                 'birthdate', 'major', 'degree', 'motivation', 'format', 'availability'
@@ -210,6 +224,7 @@ function updateThemeIcon(isDark) {
                 }
             });
             
+            // Validate password
             const password = document.getElementById('password').value;
             if (!validatePassword(password)) {
                 document.getElementById('passwordError').textContent = 'Password must meet all requirements';
@@ -217,6 +232,7 @@ function updateThemeIcon(isDark) {
                 isValid = false;
             }
             
+            // Validate password confirmation
             const confirmPassword = document.getElementById('confirmPassword').value;
             if (password !== confirmPassword) {
                 document.getElementById('confirmPasswordError').textContent = 'Passwords do not match';
@@ -224,6 +240,7 @@ function updateThemeIcon(isDark) {
                 isValid = false;
             }
             
+            // Validate email
             const email = document.getElementById('email').value;
             if (!validateEmail(email)) {
                 document.getElementById('emailError').textContent = 'Please enter a valid email address';
@@ -231,6 +248,7 @@ function updateThemeIcon(isDark) {
                 isValid = false;
             }
             
+            // Validate subjects
             const selectedSubjects = document.querySelectorAll('input[name="subjects"]:checked');
             if (selectedSubjects.length === 0) {
                 document.getElementById('subjectsError').textContent = 'Please select at least one subject';
@@ -240,6 +258,7 @@ function updateThemeIcon(isDark) {
                 document.getElementById('subjectsError').style.display = 'none';
             }
             
+            // Validate file uploads
             const passportPhoto = document.getElementById('passportPhoto').files[0];
             const certificate = document.getElementById('certificate').files[0];
             
@@ -255,6 +274,7 @@ function updateThemeIcon(isDark) {
                 isValid = false;
             }
             
+            // Validate agreements
             const accurateInfo = document.getElementById('accurateInfo').checked;
             const terms = document.getElementById('terms').checked;
             
@@ -267,6 +287,7 @@ function updateThemeIcon(isDark) {
             }
             
             if (isValid) {
+                // Simulate form submission
                 const submitBtn = document.getElementById('submitBtn');
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i data-lucide="loader" class="w-5 h-5 mr-2 inline animate-spin"></i>Creating Account...';
@@ -274,6 +295,7 @@ function updateThemeIcon(isDark) {
                 
                 (async () => {
     try {
+      // Collect tutor data
       const subjects = Array.from(
         document.querySelectorAll('input[name="subjects"]:checked')
       )
@@ -284,9 +306,11 @@ function updateThemeIcon(isDark) {
       const format = document.getElementById("format").value.trim();
       const availability = document.getElementById("availability").value.trim();
 
+      // Get file inputs
       const passportPhoto = document.getElementById("passportPhoto").files[0];
       const certificate = document.getElementById("certificate").files[0];
 
+      // Upload files to Supabase Storage (bucket name: tutor_uploads)
       let passport_photo = null;
       let certificate_url = null;
 
@@ -316,6 +340,7 @@ function updateThemeIcon(isDark) {
           .getPublicUrl(certData.path).data.publicUrl;
       }
 
+      // ✅ Check if the email already exists
 const emailValue = document.getElementById("email").value.trim();
 
 const { data: existingTutor, error: checkError } = await supabase
@@ -339,6 +364,7 @@ if (existingTutor) {
   return;
 }
 
+// ✅ If not found, continue to insert
 const { data, error } = await supabase.from("tutor_profiles").insert([
   {
     first_name: document.getElementById("firstName").value.trim(),
@@ -365,6 +391,7 @@ const { data, error } = await supabase.from("tutor_profiles").insert([
 
 console.log("✅ Tutor profile saved:", data);
 
+// 🎉 Show success modal (like student version)
 const firstName = document.getElementById("firstName").value.trim();
 document.getElementById("welcomeMessage").textContent =
   `🎉 Welcome ${firstName}, your Tutor account has been created successfully! You can now start connecting with students.`;
@@ -372,6 +399,7 @@ document.getElementById("welcomeMessage").textContent =
 const modal = document.getElementById("successModal");
 modal.style.display = "flex"; // show modal
 
+// Auto redirect after 3 seconds
 setTimeout(() => goToHome(), 3000);
 
     } catch (error) {
@@ -383,10 +411,12 @@ setTimeout(() => goToHome(), 3000);
   })();
 }        });
 
+// ====================== SUCCESS MODAL & REDIRECT ======================
 function goToHome() {
-  window.location.href = "../Homepage/home.html";
+  window.location.href = "../Homepage/index.html";
 }
 
+// Close modal on outside click
 document.getElementById("successModal").addEventListener("click", (e) => {
   if (e.target === document.getElementById("successModal")) goToHome();
 });
