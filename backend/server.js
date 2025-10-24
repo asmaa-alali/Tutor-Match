@@ -4,6 +4,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
 import dotenv from "dotenv";
+import { createClient } from "@supabase/supabase-js";
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -12,32 +14,248 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(express.json());
-app.use(cors());
-
-// Serve each frontend folder as static
-// Serve entire frontend at root so relative links to CSS/JS work
-app.use('/', express.static(path.join(__dirname, '../frontend'), { maxAge: 0 }));
-
-// keep legacy /static alias
-app.use('/static', express.static(path.join(__dirname, '../frontend'), { maxAge: 0 }));
-
-// HTML routes
-app.get("/", (req, res) => res.sendFile(path.join(__dirname, '../frontend/Homepage/home.html')));
-app.get("/Homepage/home.html", (req, res) => 
-  res.sendFile(path.join(__dirname, '../frontend/Homepage/home.html')));
-app.get("/signin", (req, res) => res.sendFile(path.join(__dirname, '../frontend/Sign in/signin.html')));
-app.get("/forgot-password", (req, res) => res.sendFile(path.join(__dirname, '../frontend/Sign in/forgot-password.html')));
-app.get("/sign-up", (req, res) => res.sendFile(path.join(__dirname, '../frontend/Sign Up/sign-up.html')));
-app.get("/student-account", (req, res) => res.sendFile(path.join(__dirname, '../frontend/Sign Up/student-account.html')));
-app.get("/tutor-signup", (req, res) => res.sendFile(path.join(__dirname, '../frontend/Sign Up/tutorsignup.html')));
-app.get("/FindTutor", (req, res) => res.sendFile(path.join(__dirname, '../frontend/FindTutor/find-tutor.html')));
-app.get("/Contact", (req, res) => res.sendFile(path.join(__dirname, "../frontend/Contact/contact.html"))
+// -------------------- SUPABASE --------------------
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY // ✅ IMPORTANT: Use service_role key (not anon)
 );
 
+app.use(express.json());
+app.use(cors());
+app.use("/", express.static(path.join(__dirname, "../frontend")));
 
-// Add more routes as needed...
+// -------------------- ROUTES --------------------
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../frontend/Homepage/home.html")));
+app.get("/verified", (req, res) => res.sendFile(path.join(__dirname, "../frontend/verified.html")));
 
-// Start server
+// -------------------- STUDENT SIGNUP --------------------
+app.post("/api/signup/student", async (req, res) => {
+  try {
+    const { email, password, firstName, lastName, birthdate, phone, studentId, currentYear, major, gpa } = req.body;
+
+    // 1️⃣ Create Auth user
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { role: "student", firstName, lastName, birthdate, phone, studentId, currentYear, major, gpa },
+        emailRedirectTo: "http://localhost:3000/verified",
+      },
+    });
+
+    if (authError) return res.status(400).json({ error: authError.message });
+
+    const userId = authData.user?.id;
+    if (!userId) return res.status(500).json({ error: "User ID not returned from Supabase Auth" });
+
+    // 2️⃣ Insert into users table
+    const { error: userError } = await supabase.from("users").insert([
+      { id: userId, email, role: "student", firstName, lastName, birthdate, phone },
+    ]);
+    if (userError) console.error("❌ Error inserting into users table:", userError);
+
+    // 3️⃣ Insert into students table
+    const { error: studentError } = await supabase.from("students").insert([
+      { id: userId, studentId, currentYear, major, gpa, firstName, lastName, birthdate, phone },
+    ]);
+    if (studentError) console.error("❌ Error inserting into students table:", studentError);
+
+    res.status(200).json({ message: "Student account created. Check your email to verify.", data: authData });
+  } catch (err) {
+    console.error("Signup error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
+// -------------------- TUTOR SIGNUP --------------------
+app.post("/api/signup/tutor", async (req, res) => {
+  try {
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      birthdate,
+      phone,
+      major,
+      degree,
+      gpa,
+      subjects,
+      experience,
+      motivation,
+      format,
+      availability,
+    } = req.body;
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          role: "tutor",
+          firstName,
+          lastName,
+          birthdate,
+          phone,
+          major,
+          degree,
+          gpa,
+          subjects,
+          experience,
+          motivation,
+          format,
+          availability,
+        },
+        emailRedirectTo: "http://localhost:3000/verified",
+      },
+    });
+
+    if (error) return res.status(400).json({ error: error.message });
+
+    res.status(200).json({ message: "Tutor account created. Check your email to verify.", data });
+  } catch (err) {
+    console.error("Signup error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// -------------------- LOGIN --------------------
+app.post("/api/login/student", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return res.status(400).json({ error: error.message });
+
+    const user = data.user;
+    if (!user.email_confirmed_at) {
+      return res.status(403).json({ error: "Please verify your email first." });
+    }
+
+    res.status(200).json({ message: "Login successful!", user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// -------------------- EMAIL VERIFIED WEBHOOK --------------------
+app.post("/api/webhook/auth", async (req, res) => {
+  try {
+    const event = req.body;
+    console.log("Webhook received:", event);
+
+    if (event.type === "USER_UPDATED" && event.user?.email_confirmed_at) {
+      const user = event.user;
+      const meta = user.user_metadata;
+      const role = meta.role;
+
+      // Insert into users table
+      const { error: userError } = await supabase.from("users").upsert([
+        {
+          id: user.id,
+          email: user.email,
+          role,
+          firstName: meta.firstName,
+          lastName: meta.lastName,
+          birthdate: meta.birthdate,
+          phone: meta.phone,
+        },
+      ]);
+      if (userError) console.error("❌ Error inserting into users:", userError);
+
+      // Role-specific inserts
+      const commonData = {
+        id: user.id,
+        firstName: meta.firstName,
+        lastName: meta.lastName,
+        birthdate: meta.birthdate,
+        phone: meta.phone,
+      };
+
+      if (role === "student") {
+        const { error } = await supabase.from("students").upsert([
+          {
+            ...commonData,
+            studentId: meta.studentId,
+            currentYear: meta.currentYear,
+            major: meta.major,
+            gpa: meta.gpa,
+          },
+        ]);
+        if (error) console.error("❌ Error inserting student:", error);
+      }
+
+      if (role === "tutor") {
+        const { error } = await supabase.from("tutors").upsert([
+          {
+            ...commonData,
+            major: meta.major,
+            degree: meta.degree,
+            gpa: meta.gpa,
+            subjects: meta.subjects,
+            experience: meta.experience,
+            motivation: meta.motivation,
+            format: meta.format,
+            availability: meta.availability,
+          },
+        ]);
+        if (error) console.error("❌ Error inserting tutor:", error);
+      }
+    }
+
+    res.status(200).json({ message: "Webhook processed successfully" });
+  } catch (err) {
+    console.error("Webhook error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
+import cron from "node-cron";
+
+// -------------------- CLEANUP UNVERIFIED USERS --------------------
+async function deleteUnverifiedUsers() {
+  try {
+    // Fetch all users via admin API
+    const { data: allUsers, error } = await supabase.auth.admin.listUsers();
+    if (error) {
+      console.error("Error fetching users:", error);
+      return;
+    }
+
+    // Filter unverified users older than 1 minute (for testing)
+    const unverifiedUsers = allUsers.users.filter(
+      user =>
+        !user.email_confirmed_at &&
+        new Date(user.created_at) < new Date(Date.now() - 1 * 60 * 1000)
+    );
+
+    console.log("Unverified users to delete:", unverifiedUsers);
+
+    for (const user of unverifiedUsers) {
+      const role = user.user_metadata?.role;
+
+      // Delete role-specific table rows
+      if (role === "student") await supabase.from("students").delete().eq("id", user.id);
+      if (role === "tutor") await supabase.from("tutors").delete().eq("id", user.id);
+
+      // Delete from users table
+      await supabase.from("users").delete().eq("id", user.id);
+
+      // Delete from Supabase Auth
+      const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
+      if (deleteError) console.error("Error deleting user from auth:", deleteError);
+      else console.log("Deleted user from auth:", user.email);
+    }
+  } catch (err) {
+    console.error("Error deleting unverified users:", err);
+  }
+}
+
+// Schedule to run every minute (for testing)
+cron.schedule("* * * * *", () => {
+  console.log("Running cleanup job for unverified users...");
+  deleteUnverifiedUsers();
+});
