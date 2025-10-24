@@ -1,5 +1,3 @@
-
-
 // ====================== THEME MANAGEMENT ======================
 function toggleTheme() {
   document.body.classList.toggle("dark");
@@ -63,7 +61,6 @@ document.querySelectorAll(".magnetic").forEach((element) => {
 const form = document.getElementById("registrationForm");
 const inputs = form.querySelectorAll("input, select");
 
-// Real-time validation
 inputs.forEach((input) => {
   input.addEventListener("blur", () => validateField(input));
   input.addEventListener("input", () => {
@@ -184,7 +181,7 @@ function validateField(field) {
   }
 }
 
-// ====================== FORM SUBMISSION ======================
+// ====================== FORM SUBMISSION WITH EMAIL VERIFICATION ======================
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -221,79 +218,52 @@ form.addEventListener("submit", async (e) => {
     isValid = false;
   }
 
-  // ✅ If everything valid
-  if (isValid) {
-    const firstName = document.getElementById("firstName").value.trim();
-    const lastName = document.getElementById("lastName").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-
-    try {
-      // ✅ Check if email already exists
-const { data: existingUser, error: checkError } = await supabase
-  .from("users")
-  .select("email")
-  .eq("email", email)
-  .maybeSingle();
-
-if (checkError) {
-  console.error("Error checking email:", checkError);
-  alert("Something went wrong while checking your email. Please try again.");
-  return;
-}
-
-if (existingUser) {
-  alert("⚠️ This email is already registered. Please use a different one.");
-  return;
-}
-
-// ✅ Proceed with insertion only if email not found
-const studentId = document.getElementById("studentId").value.trim();
-const currentYear = document.getElementById("currentYear").value.trim();
-const major = document.getElementById("major").value.trim();
-const gpa = document.getElementById("gpa").value.trim();
-
-// ✅ Insert into Supabase table
-const { data, error } = await supabase.from("users").insert([
-  {
-    email: email,
-    role: "student",
-    student_id: studentId || null,
-    current_year: currentYear || null,
-    major: major || null,
-    gpa: gpa ? parseFloat(gpa) : null,
-    password: password,
-    "first name": firstName,
-    "last name": lastName,
-  },
-]);
-
-
-      if (error) throw error;
-      console.log("✅ User inserted successfully:", data);
-
-      // 🎉 Success modal
-      document.getElementById("welcomeMessage").textContent = `🎉 Welcome ${firstName}, your Student account has been created successfully! You can now start finding tutors.`;
-      document.getElementById("successModal").style.display = "flex";
-
-      // Auto redirect to homepage after 3 seconds
-      setTimeout(() => goToHome(), 3000);
-
-    } catch (err) {
-      console.error("❌ Supabase Error:", err.message);
-      alert("Error: " + err.message);
-    }
-  } else {
+  if (!isValid) {
     const firstError = form.querySelector(".error");
     if (firstError) firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  // Gather form data
+  const formData = {
+    firstName: document.getElementById("firstName").value.trim(),
+    lastName: document.getElementById("lastName").value.trim(),
+    email: document.getElementById("email").value.trim(),
+    password: document.getElementById("password").value.trim(),
+    birthdate: document.getElementById("birthdate").value.trim(),
+    phone: document.getElementById("phone").value.trim(),
+    studentId: document.getElementById("studentId").value.trim(),
+    currentYear: document.getElementById("currentYear").value.trim(),
+    major: document.getElementById("major").value.trim(),
+    gpa: parseFloat(document.getElementById("gpa").value.trim()),
+  };
+
+  try {
+    const res = await fetch("http://localhost:3000/api/signup/student", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      // Show verification message instead of immediate login
+      document.getElementById("welcomeMessage").textContent =
+        `🎉 Welcome ${formData.firstName}! Your account has been created. Please check your email to verify your account before logging in.`;
+      document.getElementById("successModal").style.display = "flex";
+    } else {
+      alert("Error: " + data.error);
+    }
+  } catch (err) {
+    console.error("Server error:", err);
+    alert("Server error. Try again later.");
   }
 });
 
 // ====================== NAVIGATION ======================
 function goToHome() {
-  window.location.href = "../Homepage/index.html";
+  window.location.href = "/Homepage/home.html";
 }
-
 
 // ====================== COMING SOON MODAL ======================
 function showComingSoon() {

@@ -212,7 +212,9 @@ app.post("/api/webhook/auth", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`)); 
+
+
 import cron from "node-cron";
 
 // -------------------- CLEANUP UNVERIFIED USERS --------------------

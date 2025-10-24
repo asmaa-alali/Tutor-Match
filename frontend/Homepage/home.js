@@ -1,15 +1,21 @@
-
+// Initialize Lucide icons
 lucide.createIcons();
+
+// Theme Management
 const themeToggle = document.getElementById('theme-toggle');
 const html = document.documentElement;
+
+// Load saved theme and set initial icon visibility
 const savedTheme = localStorage.getItem('theme') || 'light';
 if (savedTheme === 'dark') {
   html.classList.add('dark');
 }
+
+// Set initial icon visibility after page load
         setTimeout(() => {
             const sunIcon = themeToggle.querySelector('[data-lucide="sun"]');
             const moonIcon = themeToggle.querySelector('[data-lucide="moon"]');
-           
+            
             if (html.classList.contains('dark')) {
                 sunIcon.classList.add('hidden');
                 moonIcon.classList.remove('hidden');
@@ -18,32 +24,40 @@ if (savedTheme === 'dark') {
                 moonIcon.classList.add('hidden');
             }
         }, 100);
-       
+        
+        // Enhanced theme toggle with smooth transition
         function toggleTheme() {
             const isDark = html.classList.contains('dark');
             const sunIcon = themeToggle.querySelector('[data-lucide="sun"]');
             const moonIcon = themeToggle.querySelector('[data-lucide="moon"]');
+            
+            // Add transition class
             document.body.classList.add('theme-transition');
-           
+            
             if (isDark) {
                 html.classList.remove('dark');
                 localStorage.setItem('theme', 'light');
+                // Show sun icon, hide moon icon
                 sunIcon.classList.remove('hidden');
                 moonIcon.classList.add('hidden');
             } else {
                 html.classList.add('dark');
                 localStorage.setItem('theme', 'dark');
+                // Show moon icon, hide sun icon
                 sunIcon.classList.add('hidden');
                 moonIcon.classList.remove('hidden');
             }
-           
+            
+            // Re-initialize icons and remove transition
             setTimeout(() => {
                 lucide.createIcons();
                 document.body.classList.remove('theme-transition');
             }, 500);
         }
-       
+        
         themeToggle.addEventListener('click', toggleTheme);
+        
+        // Enhanced Navbar Scroll Effect
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
             if (window.scrollY > 50) {
@@ -54,28 +68,30 @@ if (savedTheme === 'dark') {
                 navbar.style.background = 'transparent';
             }
         });
-       
+        
+        // Magnetic Effect for Interactive Elements
         document.querySelectorAll('.magnetic').forEach(element => {
             element.addEventListener('mousemove', (e) => {
                 const rect = element.getBoundingClientRect();
                 const x = e.clientX - rect.left - rect.width / 2;
                 const y = e.clientY - rect.top - rect.height / 2;
-               
+                
                 const moveX = x * 0.1;
                 const moveY = y * 0.1;
-               
+                
                 element.style.transform = `translate(${moveX}px, ${moveY}px)`;
             });
-           
+            
             element.addEventListener('mouseleave', () => {
                 element.style.transform = 'translate(0, 0)';
             });
         });
-       
+        
+        // Particle System
         function createParticles() {
             const particlesContainer = document.getElementById('particles');
             const particleCount = 50;
-           
+            
             for (let i = 0; i < particleCount; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'particle';
@@ -86,13 +102,15 @@ if (savedTheme === 'dark') {
                 particlesContainer.appendChild(particle);
             }
         }
-       
+        
         createParticles();
+        
+        // Scroll Animations
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
         };
-       
+        
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -101,31 +119,38 @@ if (savedTheme === 'dark') {
                 }
             });
         }, observerOptions);
+        
+        // Observe all animated elements
         document.querySelectorAll('.float-up, .slide-reveal, .scale-bounce, .rotate-reveal').forEach(el => {
             observer.observe(el);
         });
+        
+        // Enhanced Button Interactions
         document.querySelectorAll('button').forEach(button => {
             button.addEventListener('mouseenter', () => {
                 button.style.transform = 'translateY(-3px) scale(1.05)';
             });
-           
+            
             button.addEventListener('mouseleave', () => {
                 button.style.transform = 'translateY(0) scale(1)';
             });
-           
+            
             button.addEventListener('mousedown', () => {
                 button.style.transform = 'translateY(0) scale(0.98)';
             });
-           
+            
             button.addEventListener('mouseup', () => {
                 button.style.transform = 'translateY(-3px) scale(1.05)';
             });
         });
+        
+        // Button Click Handlers
         document.querySelectorAll('button').forEach(button => {
-            if (button.textContent.includes('Start Learning') ||
-                button.textContent.includes('Search') ||
+            if (button.textContent.includes('Start Learning') || 
+                button.textContent.includes('Search') || 
                 button.textContent.includes('Start Your Journey')) {
                 button.addEventListener('click', () => {
+                    // Create ripple effect
                     const ripple = document.createElement('div');
                     ripple.style.position = 'absolute';
                     ripple.style.borderRadius = '50%';
@@ -135,7 +160,7 @@ if (savedTheme === 'dark') {
                     ripple.style.left = '50%';
                     ripple.style.top = '50%';
                     button.appendChild(ripple);
-                   
+                    
                     setTimeout(() => {
                         alert('🚀 Redirecting to tutor search...');
                         ripple.remove();
@@ -160,34 +185,39 @@ if (savedTheme === 'dark') {
             } else if (button.textContent.includes('Submit Feedback')) {
                 button.addEventListener('click', (e) => {
                     e.preventDefault();
-                
+                    
+                    // Get form data
                     const rating = document.querySelector('.star-rating.text-yellow-400')?.dataset.rating || 0;
                     const categories = Array.from(document.querySelectorAll('.feedback-category input:checked')).map(cb => cb.value);
                     const feedback = document.querySelector('textarea').value;
                     const name = document.querySelector('input[placeholder="Your name"]').value;
                     const email = document.querySelector('input[type="email"]').value;
-                   
+                    
                     if (rating === 0) {
                         alert('⭐ Please select a rating before submitting!');
                         return;
                     }
-                   
+                    
                     if (!feedback.trim()) {
                         alert('📝 Please share your feedback before submitting!');
                         return;
                     }
+                    
+                    // Create success message
                     const successMessage = `
                         ✅ Thank you for your feedback!
-                       
+                        
                         Rating: ${rating} star${rating > 1 ? 's' : ''}
                         Categories: ${categories.length > 0 ? categories.join(', ') : 'General'}
                         ${name ? `Name: ${name}` : ''}
                         ${email ? `Email: ${email}` : ''}
-                       
+                        
                         Your feedback has been submitted successfully and will help us improve AUB Tutor Hub!
                     `;
-                   
+                    
                     alert(successMessage);
+                    
+                    // Reset form
                     document.querySelector('form').reset();
                     document.querySelectorAll('.star-rating').forEach(star => {
                         star.classList.remove('text-yellow-400');
@@ -201,6 +231,8 @@ if (savedTheme === 'dark') {
                 });
             }
         });
+        
+        // Star Rating System
         const starRatings = document.querySelectorAll('.star-rating');
         const ratingText = document.getElementById('rating-text');
         const ratingMessages = {
@@ -210,25 +242,31 @@ if (savedTheme === 'dark') {
             4: 'Very Good - We\'re glad you enjoyed it',
             5: 'Excellent - Thank you for the amazing review!'
         };
-       
+        
         starRatings.forEach((star, index) => {
             star.addEventListener('click', () => {
                 const rating = parseInt(star.dataset.rating);
+                
+                // Reset all stars
                 starRatings.forEach(s => {
                     s.classList.remove('text-yellow-400');
                     s.classList.add('text-gray-300');
                 });
+                
+                // Fill stars up to selected rating
                 for (let i = 0; i < rating; i++) {
                     starRatings[i].classList.remove('text-gray-300');
                     starRatings[i].classList.add('text-yellow-400');
                 }
-               
+                
+                // Update rating text
                 ratingText.textContent = ratingMessages[rating];
-                ratingText.className = rating <= 2 ? 'text-red-500 dark:text-red-400 font-medium' :
+                ratingText.className = rating <= 2 ? 'text-red-500 dark:text-red-400 font-medium' : 
                                      rating === 3 ? 'text-yellow-500 dark:text-yellow-400 font-medium' :
                                      'text-green-500 dark:text-green-400 font-medium';
             });
-           
+            
+            // Hover effect
             star.addEventListener('mouseenter', () => {
                 const rating = parseInt(star.dataset.rating);
                 starRatings.forEach((s, i) => {
@@ -237,20 +275,22 @@ if (savedTheme === 'dark') {
                     }
                 });
             });
-           
+            
             star.addEventListener('mouseleave', () => {
                 starRatings.forEach(s => {
                     s.classList.remove('text-yellow-300');
                 });
             });
         });
+        
+        // Feedback Category Selection
         document.querySelectorAll('.feedback-category').forEach(category => {
             category.addEventListener('click', () => {
                 const checkbox = category.querySelector('input[type="checkbox"]');
                 const div = category.querySelector('div');
-               
+                
                 checkbox.checked = !checkbox.checked;
-               
+                
                 if (checkbox.checked) {
                     div.classList.remove('border-transparent');
                     div.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
@@ -260,12 +300,16 @@ if (savedTheme === 'dark') {
                 }
             });
         });
+        
+        // Tutor Card Interactions
         document.querySelectorAll('.flip-card').forEach(card => {
             card.addEventListener('click', () => {
                 const tutorName = card.querySelector('h3').textContent;
                 console.log(`Clicked on ${tutorName}'s card`);
             });
         });
+        
+        // Add CSS for ripple animation
         const style = document.createElement('style');
         style.textContent = `
             @keyframes ripple {
@@ -276,6 +320,8 @@ if (savedTheme === 'dark') {
             }
         `;
         document.head.appendChild(style);
+        
+        // Smooth scrolling for navigation
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -288,12 +334,15 @@ if (savedTheme === 'dark') {
                 }
             });
         });
+        
+        // Performance optimization: Throttle scroll events
         let ticking = false;
-       
+        
         function updateScrollEffects() {
+            // Update parallax and other scroll-based effects here
             ticking = false;
         }
-       
+        
         window.addEventListener('scroll', () => {
             if (!ticking) {
                 requestAnimationFrame(updateScrollEffects);
