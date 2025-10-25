@@ -257,7 +257,7 @@ async function deleteUnverifiedUsers() {
 }
 
 // Schedule to run every minute (for testing)
-cron.schedule("* * * * *", () => {
+cron.schedule("0 * * * *", () => {
   console.log("Running cleanup job for unverified users...");
   deleteUnverifiedUsers();
 });
