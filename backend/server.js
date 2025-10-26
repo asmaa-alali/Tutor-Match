@@ -88,6 +88,7 @@ app.post("/api/signup/tutor", async (req, res) => {
       availability,
     } = req.body;
 
+    // 1️⃣ Create Auth user
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -112,6 +113,43 @@ app.post("/api/signup/tutor", async (req, res) => {
     });
 
     if (error) return res.status(400).json({ error: error.message });
+
+    const userId = data.user?.id;
+    if (!userId) return res.status(500).json({ error: "User ID not returned from Supabase Auth" });
+
+    // 2️⃣ Insert into users table
+    const { error: userError } = await supabase.from("users").insert([
+      {
+        id: userId,
+        email,
+        role: "tutor",
+        firstName,
+        lastName,
+        birthdate,
+        phone,
+      },
+    ]);
+    if (userError) console.error("❌ Error inserting into users table:", userError);
+
+    // 3️⃣ Insert into tutors table
+    const { error: tutorError } = await supabase.from("tutors").insert([
+      {
+        id: userId,
+        major,
+        degree,
+        gpa,
+        subjects,
+        experience,
+        motivation,
+        format,
+        availability,
+        firstName,
+        lastName,
+        birthdate,
+        phone,
+      },
+    ]);
+    if (tutorError) console.error("❌ Error inserting into tutors table:", tutorError);
 
     res.status(200).json({ message: "Tutor account created. Check your email to verify.", data });
   } catch (err) {
@@ -191,6 +229,7 @@ app.post("/api/webhook/auth", async (req, res) => {
         const { error } = await supabase.from("tutors").upsert([
           {
             ...commonData,
+            email: user.email,
             major: meta.major,
             degree: meta.degree,
             gpa: meta.gpa,
