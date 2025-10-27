@@ -135,6 +135,7 @@ app.post("/api/signup/tutor", async (req, res) => {
     const { error: tutorError } = await supabase.from("tutors").insert([
       {
         id: userId,
+        email,
         major,
         degree,
         gpa,
