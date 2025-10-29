@@ -1,4 +1,6 @@
 // backend/server.js
+import multer from "multer";
+import fs from "fs";
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -22,7 +24,33 @@ const supabase = createClient(
 
 app.use(express.json());
 app.use(cors());
+const upload = multer({ dest: "uploads/" });
 app.use("/", express.static(path.join(__dirname, "../frontend")));
+// Upload a local temp file (multer) to Supabase Storage and return a public URL
+async function uploadToSupabaseStorage(file, folder) {
+  const buffer = fs.readFileSync(file.path);
+  const uniqueName = `${folder}/${Date.now()}_${file.originalname}`;
+
+  const { data, error } = await supabase
+    .storage
+    .from("tutor_uploads")          // <-- make sure this bucket exists
+    .upload(uniqueName, buffer, {
+      contentType: file.mimetype,
+      upsert: false,
+    });
+
+  // remove temp file regardless of upload success
+  try { fs.unlinkSync(file.path); } catch (e) {}
+
+  if (error) throw error;
+
+  const { data: publicUrl } = supabase
+    .storage
+    .from("tutor_uploads")
+    .getPublicUrl(uniqueName);
+
+  return publicUrl.publicUrl; // string
+}
 
 // -------------------- ROUTES --------------------
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../frontend/Homepage/home.html")));
@@ -69,95 +97,133 @@ app.post("/api/signup/student", async (req, res) => {
 
 
 // -------------------- TUTOR SIGNUP --------------------
-app.post("/api/signup/tutor", async (req, res) => {
-  try {
-    const {
-      email,
-      password,
-      firstName,
-      lastName,
-      birthdate,
-      phone,
-      major,
-      degree,
-      gpa,
-      subjects,
-      experience,
-      motivation,
-      format,
-      availability,
-    } = req.body;
+app.post(
+  "/api/signup/tutor",
+  upload.fields([{ name: "passportPhoto" }, { name: "certificate" }]),
+  async (req, res) => {
+    try {
+      // ✅ Text fields (multipart -> strings)
+      const {
+        email,
+        password,
+        firstName,
+        lastName,
+        birthdate,
+        phone,
+        major,
+        degree,
+        gpa,
+        experience,
+        motivation,
+        format,
+        availability,
+      } = req.body;
 
-    // 1️⃣ Create Auth user
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
+      // ✅ Parse subjects from JSON string
+      let subjects = [];
+      try {
+        subjects = JSON.parse(req.body.subjects || "[]");
+      } catch {}
+
+      // ✅ Handle uploaded files
+      const passportFile = req.files?.passportPhoto?.[0];
+      const certificateFile = req.files?.certificate?.[0];
+
+      if (!passportFile || !certificateFile) {
+        return res.status(400).json({ error: "Passport and certificate are required." });
+      }
+
+      // ✅ 1️⃣ Create Auth user in Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            role: "tutor",
+            firstName,
+            lastName,
+            birthdate,
+            phone,
+            major,
+            degree,
+            gpa,
+            subjects,
+            experience,
+            motivation,
+            format,
+            availability,
+          },
+          emailRedirectTo: "http://localhost:3000/verified",
+        },
+      });
+
+      if (error) return res.status(400).json({ error: error.message });
+
+      const userId = data.user?.id;
+      if (!userId)
+        return res.status(500).json({ error: "User ID not returned from Supabase Auth" });
+
+      // ✅ 2️⃣ Upload files to Supabase Storage
+      let passportUrl = null;
+      let certificateUrl = null;
+
+      try {
+        passportUrl = await uploadToSupabaseStorage(passportFile, "passport");
+        certificateUrl = await uploadToSupabaseStorage(certificateFile, "certificate");
+      } catch (uploadErr) {
+        console.error("Upload error:", uploadErr);
+        return res.status(500).json({ error: "File upload failed." });
+      }
+
+      // ✅ 3️⃣ Insert into users table
+      const { error: userError } = await supabase.from("users").insert([
+        {
+          id: userId,
+          email,
           role: "tutor",
           firstName,
           lastName,
           birthdate,
           phone,
+        },
+      ]);
+      if (userError) console.error("❌ Error inserting into users table:", userError);
+
+      // ✅ 4️⃣ Insert into tutors table with file URLs
+      const { error: tutorError } = await supabase.from("tutors").insert([
+        {
+          id: userId,
+          email,
           major,
           degree,
-          gpa,
+          gpa: gpa || null,
           subjects,
-          experience,
+          experience: experience || null,
           motivation,
           format,
           availability,
+          firstName,
+          lastName,
+          birthdate,
+          phone,
+          passportPhoto: passportUrl,  // ✅ Save URLs
+          certificate: certificateUrl, // ✅ Save URLs
         },
-        emailRedirectTo: "http://localhost:3000/verified",
-      },
-    });
+      ]);
+      if (tutorError) console.error("❌ Error inserting into tutors table:", tutorError);
 
-    if (error) return res.status(400).json({ error: error.message });
-
-    const userId = data.user?.id;
-    if (!userId) return res.status(500).json({ error: "User ID not returned from Supabase Auth" });
-
-    // 2️⃣ Insert into users table
-    const { error: userError } = await supabase.from("users").insert([
-      {
-        id: userId,
-        email,
-        role: "tutor",
-        firstName,
-        lastName,
-        birthdate,
-        phone,
-      },
-    ]);
-    if (userError) console.error("❌ Error inserting into users table:", userError);
-
-    // 3️⃣ Insert into tutors table
-    const { error: tutorError } = await supabase.from("tutors").insert([
-      {
-        id: userId,
-        email,
-        major,
-        degree,
-        gpa,
-        subjects,
-        experience,
-        motivation,
-        format,
-        availability,
-        firstName,
-        lastName,
-        birthdate,
-        phone,
-      },
-    ]);
-    if (tutorError) console.error("❌ Error inserting into tutors table:", tutorError);
-
-    res.status(200).json({ message: "Tutor account created. Check your email to verify.", data });
-  } catch (err) {
-    console.error("Signup error:", err);
-    res.status(500).json({ error: "Server error" });
+      // ✅ Success response
+      res.status(200).json({
+        message: "Tutor account created. Check your email to verify.",
+        data,
+      });
+    } catch (err) {
+      console.error("Signup error:", err);
+      res.status(500).json({ error: "Server error" });
+    }
   }
-});
+);
+
 
 // -------------------- LOGIN --------------------
 app.post("/api/login/student", async (req, res) => {
@@ -297,7 +363,7 @@ async function deleteUnverifiedUsers() {
 }
 
 // Schedule to run every minute (for testing)
-cron.schedule("0 * * * *", () => {
+cron.schedule("* * * * *", () => {
   console.log("Running cleanup job for unverified users...");
   deleteUnverifiedUsers();
 });
