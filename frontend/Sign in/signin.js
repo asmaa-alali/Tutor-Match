@@ -2,6 +2,7 @@ lucide.createIcons();
 let loginAttempts = 0;
 const maxLoginAttempts = 5;
 let lockUntil = null;
+let lockCount = 0;
 
 // Theme Management
 function toggleTheme() {
@@ -82,14 +83,30 @@ document.getElementById("signInForm").addEventListener("submit", async function 
       loginAttempts++;
       const remaining = maxLoginAttempts - loginAttempts;
 
-      if (loginAttempts >= maxLoginAttempts) {
-        // 🔒 Step 5: Lock user out for 1 minute
-        lockUntil = Date.now() + 60 * 1000;
-        showNotification("Too many failed attempts. Try again in 1 minute.", "error");
-        loginAttempts = 0; // reset after lock
-      } else {
-        showNotification(`Invalid credentials. ${remaining} attempt${remaining === 1 ? "" : "s"} left.`, "error");
-      }
+     if (loginAttempts >= maxLoginAttempts) {
+  // 🔒 Quadratic lockout system
+  lockCount++; // how many times the user has reached max attempts
+
+  const baseMinutes = 1; // first lock is 1 minute
+  const waitMinutes = baseMinutes * (lockCount ** 2); // 1, 4, 9, 16, 25...
+
+  const durationMs = waitMinutes * 60 * 1000;
+  lockUntil = Date.now() + durationMs;
+
+  showNotification(
+    `Too many failed attempts. Locked for ${waitMinutes} minute${waitMinutes > 1 ? "s" : ""}.`,
+    "error"
+  );
+
+  // Reset attempts after lock
+  loginAttempts = 0;
+} else {
+  showNotification(
+    `Invalid credentials. ${remaining} attempt${remaining === 1 ? "" : "s"} left.`,
+    "error"
+  );
+}
+
 
       submitButton.textContent = originalText;
       submitButton.disabled = false;
