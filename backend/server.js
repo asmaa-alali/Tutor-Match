@@ -1,3 +1,9 @@
+
+import dotenv from "dotenv";
+dotenv.config();
+
+
+
 // backend/server.js
 import multer from "multer";
 import fs from "fs";
@@ -5,13 +11,14 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
-import dotenv from "dotenv";
-import { createClient } from "@supabase/supabase-js";
 
-dotenv.config();
+import { createClient } from "@supabase/supabase-js";
+import cron from "node-cron";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,8 +26,7 @@ const PORT = process.env.PORT || 3000;
 // -------------------- SUPABASE --------------------
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY // ✅ IMPORTANT: Use service_role key (not anon)
-);
+  process.env.SUPABASE_SERVICE_ROLE_KEY )
 
 app.use(express.json());
 app.use(cors());
@@ -388,7 +394,7 @@ app.post("/api/webhook/auth", async (req, res) => {
 app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`)); 
 
 
-import cron from "node-cron";
+
 
 // -------------------- CLEANUP UNVERIFIED USERS --------------------
 async function deleteUnverifiedUsers() {
