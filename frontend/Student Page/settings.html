@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - TutorMatch</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * { 
+            font-family: 'Inter', sans-serif; 
+        }
+        
+        body {
+            box-sizing: border-box;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%);
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.2);
+        }
+
+        .glass-card-danger:hover {
+            border-color: rgba(239, 68, 68, 0.4);
+            box-shadow: 0 12px 40px rgba(239, 68, 68, 0.2);
+        }
+
+        .glass-btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+        }
+
+        .glass-btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            box-shadow: 0 6px 24px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .glass-btn-large {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
+        }
+
+        .glass-btn-large:hover {
+            background: linear-gradient(135deg, #2563eb, #7c3aed, #db2777);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.5);
+            transform: translateY(-3px);
+        }
+
+        .glass-btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+        }
+
+        .glass-btn-danger:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            box-shadow: 0 6px 24px rgba(239, 68, 68, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #f1f5f9;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            background: rgba(30, 41, 59, 0.8);
+        }
+
+        .form-select {
+            width: 100%;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #f1f5f9;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            background: rgba(30, 41, 59, 0.8);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(71, 85, 105, 0.8);
+            transition: 0.3s;
+            border-radius: 24px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .section-title {
+            color: #f1f5f9;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-title {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .setting-label {
+            color: #f1f5f9;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .setting-description {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .icon-gradient {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Dark mode overrides */
+        .dark html, .dark body { background: #000 !important; }
+        .dark body { min-height: 100vh; }
+        /* Force main wrapper to use solid black (override gradient utility classes) */
+        .dark .min-h-screen { background: #000 !important; background-image: none !important; }
+        .dark .bg-gradient-to-br { background: #000 !important; background-image: none !important; }
+        .dark .glass-card {
+            background: rgba(10, 10, 10, 0.85) !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+        }
+        .dark .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7) !important;
+        }
+        .dark .form-input,
+        .dark .form-select {
+            background: rgba(18, 18, 18, 0.7) !important;
+            border-color: rgba(255, 255, 255, 0.12) !important;
+            color: #f8fafc !important;
+        }
+        .dark .form-input:focus,
+        .dark .form-select:focus {
+            border-color: #60a5fa !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+            background: rgba(18, 18, 18, 0.9) !important;
+        }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+ </head>
+ <body>
+  <!-- Top-right controls: Back + Dark Mode -->
+  <div class="fixed top-4 right-4 z-50 flex items-center gap-3">
+    <button id="theme-toggle" aria-label="Toggle dark mode" class="inline-flex items-center justify-center w-12 h-12 rounded-2xl border border-white/20 bg-transparent hover:bg-white/10 transition">
+      <i data-lucide="moon" class="w-6 h-6 text-blue-300"></i>
+    </button>
+    <a href="findtutor.html" class="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-white/20 bg-transparent hover:bg-white/10 text-white transition">
+      <i data-lucide="arrow-left" class="w-5 h-5"></i>
+      <span>return back</span>
+    </a>
+  </div>
+  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 py-8">
+   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h1 class="page-title"><i data-lucide="settings" class="w-8 h-8 icon-gradient"></i> Settings</h1>
+    <div class="space-y-8">
+     <section>
+      <h2 class="section-title"><i data-lucide="user-circle" class="w-5 h-5 text-blue-400"></i> Account Settings</h2>
+      <div class="space-y-4">
+       <div class="glass-card setting-item">
+        <div class="flex-1">
+         <div class="setting-label">
+          Email Address
+         </div>
+         <div class="setting-description">
+          alex.smith@mail.aub.edu
+         </div>
+        </div><button class="glass-btn-primary" onclick="editEmail()"> <i data-lucide="edit" class="w-4 h-4"></i> Edit </button>
+       </div>
+       <div class="glass-card setting-item">
+        <div class="flex-1">
+         <div class="setting-label">
+          Phone Number
+         </div>
+         <div class="setting-description">
+          +961 70 123 456
+         </div>
+        </div><button class="glass-btn-primary" onclick="editPhone()"> <i data-lucide="edit" class="w-4 h-4"></i> Edit </button>
+       </div>
+       <div class="glass-card setting-item">
+        <div class="flex-1">
+         <div class="setting-label">
+          Password
+         </div>
+         <div class="setting-description">
+          Last changed 2 months ago
+         </div>
+        </div><button class="glass-btn-primary" onclick="changePassword()"> <i data-lucide="key" class="w-4 h-4"></i> Change </button>
+       </div>
+      </div>
+     </section>
+     <section>
+      <h2 class="section-title"><i data-lucide="sliders" class="w-5 h-5 text-purple-400"></i> Preferences</h2>
+      <div class="space-y-4">
+       <div class="glass-card setting-item">
+        <div class="flex-1">
+         <div class="setting-label">
+          Dark Mode
+         </div>
+         <div class="setting-description">
+          Use dark theme across the application
+         </div>
+        </div><label class="toggle-switch"> <input type="checkbox" checked onchange="toggleDarkMode(this)"> <span class="toggle-slider"></span> </label>
+       </div>
+       <div class="glass-card setting-item">
+        <div class="flex-1">
+         <div class="setting-label">
+          Language
+         </div>
+         <div class="setting-description">
+          Choose your preferred language
+         </div>
+        </div><select class="form-select w-32" onchange="changeLanguage(this)"> <option value="en">English</option> <option value="ar">العربية</option> <option value="fr">Français</option> <option value="es">Español</option> </select>
+       </div>
+       <div class="glass-card setting-item">
+        <div class="flex-1">
+         <div class="setting-label">
+          Email Notifications
+         </div>
+         <div class="setting-description">
+          Receive updates about your tutoring sessions
+         </div>
+        </div><label class="toggle-switch"> <input type="checkbox" checked onchange="toggleNotifications(this)"> <span class="toggle-slider"></span> </label>
+       </div>
+       <div class="glass-card setting-item">
+        <div class="flex-1">
+         <div class="setting-label">
+          Push Notifications
+         </div>
+         <div class="setting-description">
+          Get instant alerts on your device
+         </div>
+        </div><label class="toggle-switch"> <input type="checkbox" onchange="togglePushNotifications(this)"> <span class="toggle-slider"></span> </label>
+       </div>
+      </div>
+     </section>
+     <section>
+      <h2 class="section-title"><i data-lucide="shield" class="w-5 h-5 text-pink-400"></i> Privacy &amp; Security</h2>
+      <div class="space-y-4">
+       <div class="glass-card setting-item">
+        <div class="flex-1">
+         <div class="setting-label">
+          Two-Factor Authentication
+         </div>
+         <div class="setting-description">
+          Add an extra layer of security to your account
+         </div>
+        </div><button class="glass-btn-primary" onclick="setup2FA()"> <i data-lucide="smartphone" class="w-4 h-4"></i> Setup </button>
+       </div>
+       <div class="glass-card setting-item">
+        <div class="flex-1">
+         <div class="setting-label">
+          Manage Devices
+         </div>
+         <div class="setting-description">
+          View and manage devices that have access to your account
+         </div>
+        </div><button class="glass-btn-primary" onclick="manageDevices()"> <i data-lucide="monitor" class="w-4 h-4"></i> Manage </button>
+       </div>
+       <div class="glass-card glass-card-danger setting-item">
+        <div class="flex-1">
+         <div class="setting-label text-red-400">
+          Delete Account
+         </div>
+         <div class="setting-description">
+          Permanently delete your account and all data
+         </div>
+        </div><button class="glass-btn-danger" onclick="deleteAccount()"> <i data-lucide="trash-2" class="w-4 h-4"></i> Delete </button>
+       </div>
+      </div>
+     </section>
+     <div class="text-center pt-8"><button class="glass-btn-large" onclick="saveChanges()"> <i data-lucide="save" class="w-5 h-5"></i> Save Changes </button>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden z-50 flex items-center justify-center">
+   <div class="glass-card p-6 w-full max-w-md mx-4">
+    <div class="flex justify-between items-center mb-4">
+     <h3 class="text-xl font-bold text-white" id="modalTitle">Edit Setting</h3><button onclick="closeModal()" class="text-gray-400 hover:text-white"> <i data-lucide="x" class="w-5 h-5"></i> </button>
+    </div>
+    <div id="modalContent">
+    </div>
+    <div class="flex gap-3 mt-6"><button class="glass-btn-primary flex-1" onclick="saveModalChanges()"> <i data-lucide="check" class="w-4 h-4"></i> Save </button> <button class="glass-btn-primary bg-gray-600 hover:bg-gray-700 flex-1" onclick="closeModal()"> <i data-lucide="x" class="w-4 h-4"></i> Cancel </button>
+    </div>
+   </div>
+  </div>
+  <script>
+        lucide.createIcons();
+
+        // Simple theme toggle (persists across pages)
+        (function initThemeToggle(){
+            const htmlEl = document.documentElement;
+            const btn = document.getElementById('theme-toggle');
+            const sun = () => btn.querySelector('[data-lucide="sun"]');
+            const moon = () => btn.querySelector('[data-lucide="moon"]');
+
+            const saved = localStorage.getItem('theme');
+            if (saved === 'dark') htmlEl.classList.add('dark');
+            if (saved === 'light') htmlEl.classList.remove('dark');
+
+            function syncIcons(){
+                const isDark = htmlEl.classList.contains('dark');
+                if (isDark){
+                    if (!sun()) btn.innerHTML = '<i data-lucide="sun" class="w-6 h-6 text-yellow-300"></i>';
+                } else {
+                    if (!moon()) btn.innerHTML = '<i data-lucide="moon" class="w-6 h-6 text-blue-300"></i>';
+                }
+                lucide.createIcons();
+            }
+            syncIcons();
+
+            if (btn) btn.addEventListener('click', ()=>{
+                htmlEl.classList.toggle('dark');
+                const isDark = htmlEl.classList.contains('dark');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                syncIcons();
+            });
+        })();
+
+        // Remove specific settings the user does not want to show
+        document.addEventListener('DOMContentLoaded', () => {
+            const toRemove = new Set([
+                'Language',
+                'Email Notifications',
+                'Push Notifications',
+                'Two-Factor Authentication',
+                'Manage Devices'
+            ]);
+            document.querySelectorAll('.setting-item .setting-label').forEach(label => {
+                const text = (label.textContent || '').trim();
+                if (toRemove.has(text)) {
+                    const container = label.closest('.setting-item');
+                    if (container) container.remove();
+                }
+            });
+        });
+
+        let currentEditType = '';
+
+        function editEmail() {
+            currentEditType = 'email';
+            document.getElementById('modalTitle').textContent = 'Edit Email Address';
+            document.getElementById('modalContent').innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Current Email</label>
+                        <input type="email" value="alex.smith@mail.aub.edu" class="form-input" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">New Email</label>
+                        <input type="email" placeholder="Enter new email address" class="form-input" id="newEmail">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+                        <input type="password" placeholder="Enter your password" class="form-input" id="confirmPassword">
+                    </div>
+                </div>
+            `;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function editPhone() {
+            currentEditType = 'phone';
+            document.getElementById('modalTitle').textContent = 'Edit Phone Number';
+            document.getElementById('modalContent').innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Current Phone</label>
+                        <input type="tel" value="+961 70 123 456" class="form-input" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">New Phone Number</label>
+                        <input type="tel" placeholder="Enter new phone number" class="form-input" id="newPhone">
+                    </div>
+                </div>
+            `;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function changePassword() {
+            currentEditType = 'password';
+            document.getElementById('modalTitle').textContent = 'Change Password';
+            document.getElementById('modalContent').innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
+                        <input type="password" placeholder="Enter current password" class="form-input" id="currentPassword">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">New Password</label>
+                        <input type="password" placeholder="Enter new password" class="form-input" id="newPassword">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
+                        <input type="password" placeholder="Confirm new password" class="form-input" id="confirmNewPassword">
+                    </div>
+                </div>
+            `;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').classList.add('hidden');
+            currentEditType = '';
+        }
+
+        function saveModalChanges() {
+            if (currentEditType === 'email') {
+                const newEmail = document.getElementById('newEmail').value;
+                if (newEmail) {
+                    showToast('Email address updated successfully!', 'success');
+                    closeModal();
+                }
+            } else if (currentEditType === 'phone') {
+                const newPhone = document.getElementById('newPhone').value;
+                if (newPhone) {
+                    showToast('Phone number updated successfully!', 'success');
+                    closeModal();
+                }
+            } else if (currentEditType === 'password') {
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmNewPassword').value;
+                if (newPassword && newPassword === confirmPassword) {
+                    showToast('Password changed successfully!', 'success');
+                    closeModal();
+                } else {
+                    showToast('Passwords do not match!', 'error');
+                }
+            }
+        }
+
+        function toggleDarkMode(toggle) {
+            if (toggle.checked) {
+                showToast('Dark mode enabled', 'info');
+            } else {
+                showToast('Dark mode disabled', 'info');
+            }
+        }
+
+        function changeLanguage(select) {
+            const languages = {
+                'en': 'English',
+                'ar': 'Arabic',
+                'fr': 'French',
+                'es': 'Spanish'
+            };
+            showToast(`Language changed to ${languages[select.value]}`, 'info');
+        }
+
+        function toggleNotifications(toggle) {
+            if (toggle.checked) {
+                showToast('Email notifications enabled', 'success');
+            } else {
+                showToast('Email notifications disabled', 'info');
+            }
+        }
+
+        function togglePushNotifications(toggle) {
+            if (toggle.checked) {
+                showToast('Push notifications enabled', 'success');
+            } else {
+                showToast('Push notifications disabled', 'info');
+            }
+        }
+
+        function setup2FA() {
+            showToast('Two-factor authentication setup initiated', 'info');
+        }
+
+        function manageDevices() {
+            showToast('Opening device management...', 'info');
+        }
+
+        function deleteAccount() {
+            const confirmDelete = document.createElement('div');
+            confirmDelete.className = 'fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center';
+            confirmDelete.innerHTML = `
+                <div class="glass-card p-6 w-full max-w-md mx-4 border-red-500">
+                    <div class="text-center">
+                        <i data-lucide="alert-triangle" class="w-12 h-12 text-red-500 mx-auto mb-4"></i>
+                        <h3 class="text-xl font-bold text-white mb-2">Delete Account</h3>
+                        <p class="text-gray-300 mb-6">This action cannot be undone. All your data will be permanently deleted.</p>
+                        <div class="flex gap-3">
+                            <button class="glass-btn-danger flex-1" onclick="confirmDelete()">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                Delete Forever
+                            </button>
+                            <button class="glass-btn-primary bg-gray-600 hover:bg-gray-700 flex-1" onclick="cancelDelete()">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmDelete);
+            lucide.createIcons();
+
+            window.confirmDelete = function() {
+                showToast('Account deletion process started', 'error');
+                document.body.removeChild(confirmDelete);
+            };
+
+            window.cancelDelete = function() {
+                document.body.removeChild(confirmDelete);
+            };
+        }
+
+        function saveChanges() {
+            const button = event.target;
+            button.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            button.innerHTML = '<i data-lucide="check" class="w-5 h-5"></i>Settings Saved!';
+            
+            setTimeout(() => {
+                button.style.background = 'linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)';
+                button.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i>Save Changes';
+                lucide.createIcons();
+            }, 2000);
+
+            showToast('All settings saved successfully!', 'success');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+            
+            toast.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300`;
+            toast.style.transform = 'translateX(100%)';
+            toast.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-4 h-4"></i>
+                    ${message}
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target === document.getElementById('editModal')) {
+                closeModal();
+            }
+        });
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'996d9c452216e309',t:'MTc2MTg1NTU5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
