@@ -256,6 +256,61 @@ app.post("/api/login", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+// -------------------- GENERATE AND SEND LOGIN OTP --------------------
+import crypto from "crypto";
+import nodemailer from "nodemailer";
+
+const otpStore = new Map(); // temp in-memory store (email -> code)
+
+app.post("/api/login-otp", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email required" });
+
+    // Generate random 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore.set(email, code);
+    setTimeout(() => otpStore.delete(email), 5 * 60 * 1000); // expire after 5 min
+
+    // Configure mailer
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: `"Tutor Match" <${process.env.EMAIL_USER}>`,
+      to: email,
+     subject: "Tutor Match Login Verification Code",
+     text: `Hello!\n\nYour login code is ${code}. It expires in 5 minutes.\n\nIf you didn’t request this, please ignore this email.\n\n– Tutor Match Team`,
+
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ message: "Code sent successfully" });
+    console.log(`✅ Code sent to ${email}: ${code}`);
+
+  } catch (err) {
+    console.error("OTP send error:", err);
+    res.status(500).json({ error: "Failed to send code" });
+  }
+});
+
+// -------------------- VERIFY LOGIN OTP --------------------
+app.post("/api/verify-otp", (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) return res.status(400).json({ error: "Missing fields" });
+
+  const stored = otpStore.get(email);
+  if (!stored) return res.status(400).json({ error: "Code expired or not found" });
+  if (stored !== code) return res.status(401).json({ error: "Incorrect code" });
+
+  otpStore.delete(email);
+  res.status(200).json({ message: "OTP verified" });
+});
 
 // -------------------- EMAIL VERIFIED WEBHOOK --------------------
 app.post("/api/webhook/auth", async (req, res) => {
