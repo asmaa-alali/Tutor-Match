@@ -43,29 +43,54 @@ function togglePassword() {
     lucide.createIcons();
 }
 
-// Form Submission
-document.getElementById('signInForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    
-    showNotification('Signing you in...', 'success');
-    
-    const submitButton = document.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = 'Signing in...';
-    submitButton.disabled = true;
-    
+// ✅ Real working login hooked to backend
+document.getElementById("signInForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const submitButton = document.querySelector('button[type="submit"]');
+  const originalText = submitButton.textContent;
+
+  submitButton.textContent = "Signing in...";
+  submitButton.disabled = true;
+
+  try {
+    const res = await fetch("http://localhost:3000/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      // Wrong credentials / not verified / etc.
+      showNotification(data.error || "Invalid email or password", "error");
+      submitButton.textContent = originalText;
+      submitButton.disabled = false;
+      return;
+    }
+
+    // ✅ Success → redirect by role
+    showNotification("Login successful! Redirecting...", "success");
+
     setTimeout(() => {
-        showNotification('Welcome back! Redirecting...', 'success');
-        
-        setTimeout(() => {
-            showNotification('Sign in successful!', 'success');
-            submitButton.textContent = originalText;
-            submitButton.disabled = false;
-        }, 1500);
-    }, 2000);
+      if (data.role === "student") {
+        window.location.href = "/student-dashboard.html";
+      } else if (data.role === "tutor") {
+        window.location.href = "/tutor-dashboard.html";
+      } else {
+        window.location.href = "/Homepage/home.html";
+      }
+    }, 1000);
+  } catch (err) {
+    console.error("Login failed:", err);
+    showNotification("Server error, please try again.", "error");
+  } finally {
+    submitButton.textContent = originalText;
+    submitButton.disabled = false;
+  }
 });
 
 // Social Sign In

@@ -223,24 +223,36 @@ app.post(
     }
   }
 );
-
-
-// -------------------- LOGIN --------------------
-app.post("/api/login/student", async (req, res) => {
+// -------------------- LOGIN (STUDENT + TUTOR) --------------------
+app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // 1) Try to sign in with Supabase Auth
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return res.status(400).json({ error: error.message });
+
+    if (error || !data?.user) {
+      return res.status(401).json({ error: "Invalid email or password." });
+    }
 
     const user = data.user;
+
+    // 2) Block unverified accounts
     if (!user.email_confirmed_at) {
       return res.status(403).json({ error: "Please verify your email first." });
     }
 
-    res.status(200).json({ message: "Login successful!", user });
+    // 3) Read role from metadata
+    const role = user.user_metadata?.role || "unknown";
+
+    // 4) Send role + id for redirect on frontend
+    res.status(200).json({
+      message: "Login successful!",
+      role,
+      userId: user.id,
+    });
   } catch (err) {
-    console.error(err);
+    console.error("Login error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
