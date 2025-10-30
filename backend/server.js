@@ -55,6 +55,10 @@ async function uploadToSupabaseStorage(file, folder) {
 // -------------------- ROUTES --------------------
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../frontend/Homepage/home.html")));
 app.get("/verified", (req, res) => res.sendFile(path.join(__dirname, "../frontend/verified.html")));
+// ✅ RESET PASSWORD PAGE
+app.get("/reset-password", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/reset-password.html"));
+});
 
 // -------------------- STUDENT SIGNUP --------------------
 app.post("/api/signup/student", async (req, res) => {
