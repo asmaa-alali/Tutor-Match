@@ -3,6 +3,7 @@ let loginAttempts = 0;
 const maxLoginAttempts = 5;
 let lockUntil = null;
 let lockCount = 0;
+let otpCanceled = false;
 
 // Theme Management
 function toggleTheme() {
@@ -117,19 +118,25 @@ document.getElementById("signInForm").addEventListener("submit", async function 
     loginAttempts = 0;
     lockUntil = null;
 
-    // ✅ Step 7: Send OTP
-    showNotification("Sending verification code to your email...", "success");
-    const otpRes = await fetch("http://localhost:3000/api/login-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    const otpData = await otpRes.json();
+    // ✅ Step 7: Send OTP (only if not canceled)
+if (otpCanceled) {
+  otpCanceled = false; // reset flag for next real attempt
+  showNotification("Please restart the login process.", "error");
+  return;
+}
 
-    if (!otpRes.ok) {
-      showNotification(otpData.error || "Failed to send code", "error");
-      return;
-    }
+showNotification("Sending verification code to your email...", "success");
+const otpRes = await fetch("http://localhost:3000/api/login-otp", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email }),
+});
+const otpData = await otpRes.json();
+
+if (!otpRes.ok) {
+  showNotification(otpData.error || "Failed to send code", "error");
+  return;
+}
 
     // ✅ Step 8: Open OTP modal
     openOtpModal(email);
@@ -222,7 +229,10 @@ function openOtpModal(email) {
 
 function closeOtpModal() {
   document.getElementById("otpModal").classList.add("hidden");
+  otpCanceled = true; // user canceled OTP process
+  showNotification("OTP process canceled. Please sign in again to continue.", "error");
 }
+
 
 async function submitOtpCode() {
   const code = Array.from(document.querySelectorAll(".otp-input"))
@@ -263,19 +273,36 @@ async function submitOtpCode() {
   }
 }
 
+/* -------------------- RESEND OTP FUNCTION (PERSISTENT LIMIT) -------------------- */
 let resendCount = 0;
 const maxResends = 2;
+const cooldownMinutes = 5; // optional: lock for 5 minutes after limit
 
 async function resendOtp() {
-  if (resendCount >= maxResends) {
-    showNotification("You’ve reached the resend limit. Try signing in again.", "error");
-    document.getElementById("resendOtpBtn").disabled = true;
-    document.getElementById("resendOtpBtn").classList.add("opacity-50", "cursor-not-allowed");
-    return;
+  const key = `otp_limit_${lastLoginEmail}`; // unique per email
+  const saved = JSON.parse(localStorage.getItem(key)) || { count: 0, last: 0 };
+
+  const now = Date.now();
+  const diff = now - saved.last;
+
+  // reset after 10 minutes (optional)
+  if (diff > 10 * 60 * 1000) {
+    saved.count = 0;
+  }
+
+  if (saved.count >= maxResends) {
+    const waitMs = cooldownMinutes * 60 * 1000 - diff;
+    if (waitMs > 0) {
+      const minLeft = Math.ceil(waitMs / 60000);
+      showNotification(`Too many resends. Try again in ${minLeft} min.`, "error");
+      return;
+    } else {
+      saved.count = 0; // cooldown passed → reset counter
+    }
   }
 
   try {
-    const res = await fetch("http://localhost:3000/api/login-otp", { // make sure it's the same endpoint
+    const res = await fetch("http://localhost:3000/api/login-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: lastLoginEmail })
@@ -283,18 +310,19 @@ async function resendOtp() {
     const data = await res.json();
 
     if (!res.ok) {
-      showNotification(data.error || "Couldn’t resend code", "error");
+      showNotification(data.error || "Couldn't resend code", "error");
       return;
     }
 
-    resendCount++;
-    const remaining = maxResends - resendCount;
-    showNotification(`Code resent! You have ${remaining} attempt${remaining === 1 ? "" : "s"} left.`, "success");
+    saved.count++;
+    saved.last = now;
+    localStorage.setItem(key, JSON.stringify(saved));
 
-    // Optional: briefly disable button for 10s to avoid spam
-    const btn = document.getElementById("resendOtpBtn");
-    btn.disabled = true;
-    setTimeout(() => { btn.disabled = false; }, 10000);
+    const remaining = maxResends - saved.count;
+    showNotification(
+      `Code resent! You have ${remaining} attempt${remaining === 1 ? "" : "s"} left.`,
+      "success"
+    );
   } catch (err) {
     console.error("Resend failed:", err);
     showNotification("Server error, try again", "error");
