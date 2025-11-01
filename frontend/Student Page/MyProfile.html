@@ -227,7 +227,7 @@
        </div><button class="glass-btn-primary text-sm" onclick="changePhoto()"> <i data-lucide="camera" class="w-4 h-4"></i> Change Photo </button> <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="handlePhotoChange(event)">
       </div>
       <div class="flex-1 text-center md:text-left">
-       <h1 class="text-4xl font-bold text-white mb-2">Alex Smith</h1>
+       <h1 class="text-4xl font-bold text-white mb-2" id="profileHeaderName">Alex Smith</h1>
        <p class="text-xl text-gray-300 mb-6" id="majorCaption">Computer Science Student</p>
       </div>
       <div class="flex-shrink-0"><button class="glass-btn-primary" onclick="editProfile()"> <i data-lucide="edit" class="w-5 h-5"></i> Edit Profile </button>
@@ -237,14 +237,14 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
      <div class="glass-card p-6">
       <h2 class="section-title">
-       <div class="section-icon personal-icon"><i data-lucide="user" class="w-4 h-4 text-white"></i>
+      <div class="section-icon personal-icon"><i data-lucide="user" class="w-4 h-4 text-white"></i>
        </div> Personal Information</h2>
       <div class="space-y-6">
-       <div class="form-group"><label class="form-label">Full Name</label> <input type="text" value="Alex Smith" class="form-input" id="fullName" readonly>
+       <div class="form-group"><label class="form-label">Full Name</label> <input type="text" value="" class="form-input" id="fullName" placeholder="Enter your full name" readonly>
        </div>
-       <div class="form-group"><label class="form-label">Email Address</label> <input type="email" value="alex.smith@mail.aub.edu" class="form-input" id="email" readonly>
+       <div class="form-group"><label class="form-label">Email Address</label> <input type="email" value="" class="form-input" id="email" placeholder="Enter your email" readonly>
        </div>
-       <div class="form-group"><label class="form-label">Phone Number</label> <input type="tel" value="+961 70 123 456" class="form-input" id="phone" readonly>
+       <div class="form-group"><label class="form-label">Phone Number</label> <input type="tel" value="" class="form-input" id="phone" placeholder="Enter your phone number" readonly>
        </div>
       </div>
      </div>
@@ -253,19 +253,18 @@
        <div class="section-icon academic-icon"><i data-lucide="graduation-cap" class="w-4 h-4 text-white"></i>
        </div> Academic Information</h2>
       <div class="space-y-6">
-       <div class="form-group"><label class="form-label">University</label> <input type="text" value="American University of Beirut" class="form-input" id="university" readonly>
+       <div class="form-group"><label class="form-label">University</label> <input type="text" value="" class="form-input" id="university" placeholder="Enter your university" readonly>
        </div>
-       <div class="form-group"><label class="form-label">Major</label> <input type="text" value="Computer Science" class="form-input" id="major" oninput="updateMajorCaption()" readonly>
+       <div class="form-group"><label class="form-label">Major</label> <input type="text" value="" class="form-input" id="major" oninput="updateMajorCaption()" placeholder="Enter your major" readonly>
        </div>
-       <div class="form-group"><label class="form-label">Year of Study</label> <select class="form-input" id="yearOfStudy" disabled> <option value="freshman">Freshman (1st Year)</option> <option value="sophomore">Sophomore (2nd Year)</option> <option value="junior" selected>Junior (3rd Year)</option> <option value="senior">Senior (4th Year)</option> <option value="graduate">Graduate Student</option> </select>
+       <div class="form-group"><label class="form-label">Year of Study</label> <select class="form-input" id="yearOfStudy" disabled> <option value="" selected disabled>Choose your year</option> <option value="freshman">Freshman (1st Year)</option> <option value="sophomore">Sophomore (2nd Year)</option> <option value="junior">Junior (3rd Year)</option> <option value="senior">Senior (4th Year)</option> <option value="graduate">Graduate Student</option> </select>
        </div>
        <div class="form-group"><label class="form-label">Preferred Subjects</label>
-        <div class="flex flex-wrap gap-2 mt-2" id="subjectTags"><span class="subject-tag"> Programming <button class="ml-2 text-red-400 hover:text-red-300" onclick="removeSubject(this)"> <i data-lucide="x" class="w-3 h-3"></i> </button> </span> <span class="subject-tag"> Data Structures <button class="ml-2 text-red-400 hover:text-red-300" onclick="removeSubject(this)"> <i data-lucide="x" class="w-3 h-3"></i> </button> </span> <span class="subject-tag"> Algorithms <button class="ml-2 text-red-400 hover:text-red-300" onclick="removeSubject(this)"> <i data-lucide="x" class="w-3 h-3"></i> </button> </span> <span class="subject-tag"> Mathematics <button class="ml-2 text-red-400 hover:text-red-300" onclick="removeSubject(this)"> <i data-lucide="x" class="w-3 h-3"></i> </button> </span> <span class="subject-tag"> Physics <button class="ml-2 text-red-400 hover:text-red-300" onclick="removeSubject(this)"> <i data-lucide="x" class="w-3 h-3"></i> </button> </span>
-        </div>
+        <div class="flex flex-wrap gap-2 mt-2" id="subjectTags"></div>
         <div class="mt-3 hidden" id="addSubjectForm">
          <div class="flex gap-2"><input type="text" placeholder="Enter subject name..." class="form-input flex-1" id="newSubjectInput"> <button class="glass-btn-primary text-sm" onclick="confirmAddSubject()"> <i data-lucide="check" class="w-4 h-4"></i> Add </button> <button class="glass-btn-primary text-sm bg-gray-600 hover:bg-gray-700" onclick="cancelAddSubject()"> <i data-lucide="x" class="w-4 h-4"></i> Cancel </button>
          </div>
-        </div><button class="glass-btn-primary mt-3 text-sm" id="addSubjectBtn" onclick="showAddSubjectForm()"> <i data-lucide="plus" class="w-4 h-4"></i> Add Subject </button>
+        </div><button class="glass-btn-primary mt-3 text-sm hidden" id="addSubjectBtn" onclick="showAddSubjectForm()"> <i data-lucide="plus" class="w-4 h-4"></i> Add Subject </button>
        </div>
       </div>
      </div>
@@ -274,6 +273,7 @@
     </div>
    </div>
   </div>
+  <script src="student-session.js"></script>
   <script>
         lucide.createIcons();
 
@@ -307,15 +307,214 @@
             });
         })();
 
-        function editProfile() {
-            const inputs = document.querySelectorAll('.form-input');
-            inputs.forEach(input => {
-                input.removeAttribute('readonly');
-                input.style.background = 'rgba(30, 41, 59, 0.8)';
+        const SESSION_KEY = 'tmUserSession';
+        let activeSession = null;
+        let editingEnabled = false;
+        let currentSubjects = [];
+        let isSavingProfile = false;
+
+        function getStoredSession() {
+            const raw = localStorage.getItem(SESSION_KEY);
+            if (!raw) return null;
+            try {
+                return JSON.parse(raw);
+            } catch (err) {
+                console.warn('Failed to parse session storage:', err);
+                return null;
+            }
+        }
+
+        async function refreshSessionFromServer(storedSession) {
+            if (!storedSession || (storedSession.role && storedSession.role !== 'student')) {
+                return null;
+            }
+
+            const userId = typeof storedSession.userId === 'string' ? storedSession.userId.trim() : '';
+            if (!userId) {
+                return null;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/students/profile/${encodeURIComponent(userId)}`);
+
+                if (!response.ok) {
+                    let message = 'Failed to load profile.';
+                    try {
+                        const errorPayload = await response.json();
+                        if (errorPayload?.error) {
+                            message = errorPayload.error;
+                        }
+                    } catch {}
+                    throw new Error(message);
+                }
+
+                const data = await response.json();
+                const serverProfile = data?.profile || {};
+                const mergedProfile = {
+                    ...(storedSession.profile || {}),
+                    ...serverProfile,
+                };
+
+                if (Array.isArray(serverProfile.subjects)) {
+                    mergedProfile.subjects = serverProfile.subjects;
+                }
+
+                const updatedSession = {
+                    ...storedSession,
+                    userId: data?.userId || storedSession.userId,
+                    email: data?.email || storedSession.email || '',
+                    role: storedSession.role || 'student',
+                    profile: mergedProfile,
+                    passwordUpdatedAt: data?.passwordUpdatedAt ?? storedSession.passwordUpdatedAt ?? null,
+                };
+
+                activeSession = updatedSession;
+                try {
+                    localStorage.setItem(SESSION_KEY, JSON.stringify(updatedSession));
+                } catch (storageErr) {
+                    console.warn('Failed to persist refreshed session:', storageErr);
+                }
+
+                return updatedSession;
+            } catch (err) {
+                console.error('Profile fetch failed:', err);
+                showToast(err.message || 'Unable to load latest profile info. Showing cached data.', 'error');
+                return null;
+            }
+        }
+
+        function updateHeaderFromFullName(fullName) {
+            const header = document.getElementById('profileHeaderName');
+            const avatar = document.getElementById('profileAvatar');
+            const trimmed = (fullName || '').trim();
+
+            if (header) {
+                header.textContent = trimmed || 'Student';
+            }
+
+            if (avatar && !avatar.style.backgroundImage) {
+                const initials = trimmed
+                    ? trimmed.split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase() || '').join('') || 'ST'
+                    : 'ST';
+                avatar.textContent = initials;
+            }
+        }
+
+        function renderSubjects() {
+            const container = document.getElementById('subjectTags');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            if (!currentSubjects.length) {
+                const placeholder = document.createElement('span');
+                placeholder.className = 'text-sm text-slate-400';
+                placeholder.textContent = editingEnabled ? 'Add your first subject.' : 'No subjects added yet.';
+                container.appendChild(placeholder);
+                return;
+            }
+
+            currentSubjects.forEach(subject => {
+                const tag = document.createElement('span');
+                tag.className = 'subject-tag';
+                tag.dataset.subject = subject;
+                tag.innerHTML = `
+                    ${subject}
+                    <button class="ml-2 text-red-400 hover:text-red-300 transition-colors"
+                        data-subject="${subject}" onclick="removeSubject(this)">
+                        <i data-lucide="x" class="w-3 h-3"></i>
+                    </button>
+                `;
+                container.appendChild(tag);
             });
-            // Enable any selects disabled initially
-            document.querySelectorAll('select.form-input').forEach(sel => sel.removeAttribute('disabled'));
-            
+
+            lucide.createIcons();
+        }
+
+        function toggleEditMode(enabled) {
+            editingEnabled = enabled;
+
+            document.querySelectorAll('.form-input').forEach(input => {
+                if (input.tagName === 'SELECT') {
+                    if (enabled) {
+                        input.removeAttribute('disabled');
+                    } else {
+                        input.setAttribute('disabled', 'disabled');
+                    }
+                } else {
+                    if (enabled) {
+                        input.removeAttribute('readonly');
+                    } else {
+                        input.setAttribute('readonly', 'readonly');
+                    }
+                }
+                input.style.background = enabled ? 'rgba(30, 41, 59, 0.8)' : '';
+            });
+
+            const addBtn = document.getElementById('addSubjectBtn');
+            if (addBtn) addBtn.classList.toggle('hidden', !enabled);
+
+            if (!enabled) {
+                cancelAddSubject();
+            }
+
+            renderSubjects();
+        }
+
+        function populateProfileFromSession() {
+            activeSession = getStoredSession();
+            if (!activeSession || activeSession.role !== 'student') {
+                showToast('Please sign in as a student to manage your profile.', 'error');
+                toggleEditMode(false);
+                return;
+            }
+
+            const profile = activeSession.profile || {};
+            const firstName = (profile.firstName || '').trim();
+            const lastName = (profile.lastName || '').trim();
+            const fullName = [firstName, lastName].filter(Boolean).join(' ');
+            const email = (activeSession.email || '').trim();
+            const phone = (profile.phone || '').trim();
+            const university = (profile.university || '').trim();
+            const major = (profile.major || '').trim();
+            const yearOfStudy = (profile.currentYear || '').trim();
+
+            document.getElementById('fullName').value = fullName;
+            document.getElementById('email').value = email;
+            document.getElementById('phone').value = phone;
+            document.getElementById('university').value = university;
+            document.getElementById('major').value = major;
+
+            const yearSelect = document.getElementById('yearOfStudy');
+            if (yearSelect) {
+                if (yearOfStudy && Array.from(yearSelect.options).some(opt => opt.value === yearOfStudy)) {
+                    yearSelect.value = yearOfStudy;
+                } else {
+                    yearSelect.value = '';
+                }
+            }
+
+            updateMajorCaption();
+            updateHeaderFromFullName(fullName);
+
+            currentSubjects = Array.isArray(profile.subjects) ? [...profile.subjects] : [];
+            renderSubjects();
+            toggleEditMode(false);
+        }
+
+        function ensureActiveSession() {
+            if (activeSession && activeSession.userId) return true;
+            showToast('Please sign in to edit your profile.', 'error');
+            return false;
+        }
+
+        function editProfile() {
+            if (!ensureActiveSession()) return;
+            if (editingEnabled) {
+                showToast('You are already editing your profile.', 'info');
+                return;
+            }
+            toggleEditMode(true);
             showToast('Profile editing enabled! Make your changes and click Save.');
         }
 
@@ -340,6 +539,10 @@
         }
 
         function showAddSubjectForm() {
+            if (!editingEnabled) {
+                showToast('Click "Edit Profile" before adding subjects.', 'info');
+                return;
+            }
             const form = document.getElementById('addSubjectForm');
             const button = document.getElementById('addSubjectBtn');
             const input = document.getElementById('newSubjectInput');
@@ -355,30 +558,28 @@
             const input = document.getElementById('newSubjectInput');
             
             form.classList.add('hidden');
-            button.classList.remove('hidden');
-            input.value = '';
+            if (button) button.classList.remove('hidden');
+            if (input) input.value = '';
         }
 
         function confirmAddSubject() {
+            if (!editingEnabled) {
+                showToast('Click "Edit Profile" before adding subjects.', 'info');
+                return;
+            }
             const input = document.getElementById('newSubjectInput');
+            if (!input) return;
             const subjectName = input.value.trim();
             
             if (subjectName) {
-                const subjectTags = document.getElementById('subjectTags');
-                
-                const newTag = document.createElement('span');
-                newTag.className = 'subject-tag';
-                newTag.innerHTML = `
-                    ${subjectName}
-                    <button class="ml-2 text-red-400 hover:text-red-300 transition-colors" onclick="removeSubject(this)">
-                        <i data-lucide="x" class="w-3 h-3"></i>
-                    </button>
-                `;
-                
-                subjectTags.appendChild(newTag);
-                lucide.createIcons();
+                if (currentSubjects.some(subject => subject.toLowerCase() === subjectName.toLowerCase())) {
+                    showToast('Subject already added.', 'error');
+                    return;
+                }
+
+                currentSubjects.push(subjectName);
+                renderSubjects();
                 showToast('Subject added successfully!', 'success');
-                
                 cancelAddSubject();
             } else {
                 showToast('Please enter a subject name', 'error');
@@ -386,17 +587,16 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const input = document.getElementById('newSubjectInput');
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    confirmAddSubject();
-                }
-            });
-        });
-
         function removeSubject(button) {
-            button.closest('.subject-tag').remove();
+            if (!editingEnabled) {
+                showToast('Click "Edit Profile" to modify subjects.', 'info');
+                return;
+            }
+            const subjectName = button?.dataset?.subject || button?.closest('.subject-tag')?.dataset?.subject;
+            if (!subjectName) return;
+
+            currentSubjects = currentSubjects.filter(subject => subject !== subjectName);
+            renderSubjects();
             showToast('Subject removed', 'info');
         }
 
@@ -412,32 +612,44 @@
             }
         }
 
-        function saveChanges(buttonEl) {
-            const fullName = document.getElementById('fullName').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
-            const university = document.getElementById('university').value;
-            const major = document.getElementById('major').value;
-            const yearOfStudy = document.getElementById('yearOfStudy').value;
+        function buildProfilePayload() {
+            const fullNameInput = document.getElementById('fullName');
+            const emailInput = document.getElementById('email');
+            const phoneInput = document.getElementById('phone');
+            const universityInput = document.getElementById('university');
+            const majorInput = document.getElementById('major');
+            const yearSelect = document.getElementById('yearOfStudy');
 
-            if (!fullName || !email || !university || !major) {
-                showToast('Please fill in all required fields', 'error');
-                return;
+            const fullName = (fullNameInput?.value || '').trim();
+            const email = (emailInput?.value || '').trim();
+            const phone = (phoneInput?.value || '').trim();
+            const university = (universityInput?.value || '').trim();
+            const major = (majorInput?.value || '').trim();
+            const currentYear = (yearSelect?.value || '').trim();
+
+            if (!fullName || !email || !major) {
+                showToast('Full name, email, and major are required.', 'error');
+                return null;
             }
 
-            document.querySelector('h1').textContent = fullName;
-            
-            const button = buttonEl;
-            button.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-            button.innerHTML = '<i data-lucide="check" class="w-5 h-5"></i>Changes Saved!';
-            
-            setTimeout(() => {
-                button.style.background = 'linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)';
-                button.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i>Save Changes';
-                lucide.createIcons();
-            }, 2000);
+            const nameParts = fullName.split(/\s+/);
+            const firstName = nameParts.shift() || '';
+            const lastName = nameParts.join(' ');
 
-            showToast('Profile updated successfully!', 'success');
+            const studentId = (activeSession?.profile?.studentId || '').trim();
+
+            return {
+                firstName,
+                lastName,
+                fullName,
+                email,
+                phone,
+                university,
+                major,
+                currentYear,
+                studentId,
+                subjects: [...currentSubjects],
+            };
         }
 
         function showToast(message, type = 'info') {
@@ -466,14 +678,177 @@
             }, 3000);
         }
 
-        document.querySelectorAll('.form-input').forEach(input => {
-            input.addEventListener('focus', function() {
-                this.style.transform = 'scale(1.02)';
+        async function saveChanges(buttonEl) {
+            if (isSavingProfile) return;
+            if (!ensureActiveSession()) return;
+
+            const payload = buildProfilePayload();
+            if (!payload) return;
+
+            const requestBody = {
+                userId: activeSession.userId,
+                email: payload.email,
+                firstName: payload.firstName,
+                lastName: payload.lastName,
+                phone: payload.phone,
+                university: payload.university,
+                major: payload.major,
+                currentYear: payload.currentYear,
+                studentId: payload.studentId,
+                subjects: payload.subjects,
+            };
+
+            const button = buttonEl;
+            const originalHtml = button.innerHTML;
+            const originalBackground = button.style.background;
+            const restoreButton = () => {
+                button.innerHTML = originalHtml;
+                button.style.background = originalBackground;
+                lucide.createIcons();
+            };
+
+            button.disabled = true;
+            button.style.background = 'linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)';
+            button.innerHTML = `
+                <span class="flex items-center gap-2 justify-center">
+                    <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+                    Saving...
+                </span>
+            `;
+            lucide.createIcons();
+
+            isSavingProfile = true;
+            let saveSucceeded = false;
+
+            try {
+                const response = await fetch("http://localhost:3000/api/students/profile", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(requestBody),
+                });
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch (parseErr) {
+                    console.warn("Failed to parse profile update response:", parseErr);
+                    data = null;
+                }
+
+                if (!response.ok) {
+                    throw new Error(data?.error || "Failed to update profile.");
+                }
+
+                saveSucceeded = true;
+
+                const serverProfile = data?.profile || {};
+                const mergedProfile = {
+                    ...(activeSession.profile || {}),
+                    ...serverProfile,
+                };
+
+                mergedProfile.firstName = serverProfile.firstName ?? payload.firstName;
+                mergedProfile.lastName = serverProfile.lastName ?? payload.lastName;
+                mergedProfile.phone = serverProfile.phone ?? payload.phone;
+                mergedProfile.university = serverProfile.university ?? payload.university;
+                mergedProfile.major = serverProfile.major ?? payload.major;
+                mergedProfile.currentYear = serverProfile.currentYear ?? payload.currentYear;
+                mergedProfile.studentId = serverProfile.studentId ?? payload.studentId;
+                mergedProfile.subjects = Array.isArray(serverProfile.subjects) ? serverProfile.subjects : payload.subjects;
+
+                activeSession = {
+                    ...activeSession,
+                    email: data?.email || payload.email,
+                    profile: mergedProfile,
+                };
+
+                try {
+                    localStorage.setItem(SESSION_KEY, JSON.stringify(activeSession));
+                } catch (storageErr) {
+                    console.warn("Failed to persist updated session:", storageErr);
+                }
+
+                currentSubjects = Array.isArray(mergedProfile.subjects) ? [...mergedProfile.subjects] : [];
+
+                document.getElementById('fullName').value = payload.fullName;
+                document.getElementById('email').value = activeSession.email || '';
+                document.getElementById('phone').value = mergedProfile.phone || '';
+                document.getElementById('university').value = mergedProfile.university || '';
+                document.getElementById('major').value = mergedProfile.major || '';
+
+                const yearSelect = document.getElementById('yearOfStudy');
+                if (yearSelect) {
+                    if (mergedProfile.currentYear && Array.from(yearSelect.options).some(opt => opt.value === mergedProfile.currentYear)) {
+                        yearSelect.value = mergedProfile.currentYear;
+                    } else {
+                        yearSelect.value = '';
+                    }
+                }
+
+                updateMajorCaption();
+                updateHeaderFromFullName(payload.fullName);
+                toggleEditMode(false);
+                showToast('Profile updated successfully!', 'success');
+
+                button.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                button.innerHTML = '<i data-lucide="check" class="w-5 h-5"></i>Saved!';
+                lucide.createIcons();
+
+                setTimeout(restoreButton, 1600);
+            } catch (err) {
+                console.error('Profile save failed:', err);
+                showToast(err.message || 'Failed to save profile.', 'error');
+            } finally {
+                button.disabled = false;
+                if (!saveSucceeded) {
+                    restoreButton();
+                }
+                isSavingProfile = false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const storedSession = getStoredSession();
+            activeSession = storedSession;
+
+            if (storedSession?.userId) {
+                await refreshSessionFromServer(storedSession);
+            }
+
+            populateProfileFromSession();
+
+            const input = document.getElementById('newSubjectInput');
+            if (input) {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        confirmAddSubject();
+                    }
+                });
+            }
+
+            const fullNameInput = document.getElementById('fullName');
+            if (fullNameInput) {
+                fullNameInput.addEventListener('input', () => {
+                    updateHeaderFromFullName(fullNameInput.value);
+                });
+            }
+
+            document.querySelectorAll('.form-input').forEach(inputEl => {
+                inputEl.addEventListener('focus', function() {
+                    this.style.transform = 'scale(1.02)';
+                });
+                
+                inputEl.addEventListener('blur', function() {
+                    this.style.transform = 'scale(1)';
+                });
             });
-            
-            input.addEventListener('blur', function() {
-                this.style.transform = 'scale(1)';
-            });
+        });
+
+        window.addEventListener('storage', (event) => {
+            if (event.key === SESSION_KEY) {
+                populateProfileFromSession();
+            }
         });
     </script>
  </body>

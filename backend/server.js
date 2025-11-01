@@ -304,6 +304,23 @@ app.post("/api/login", async (req, res) => {
       message: "Login successful!",
       role,
       userId: user.id,
+      email: user.email,
+      passwordUpdatedAt: user.password_updated_at || null,
+      profile: {
+        firstName: user.user_metadata?.firstName || "",
+        lastName: user.user_metadata?.lastName || "",
+        birthdate: user.user_metadata?.birthdate || "",
+        phone: user.user_metadata?.phone || "",
+        studentId: user.user_metadata?.studentId || "",
+        currentYear: user.user_metadata?.currentYear || "",
+        major: user.user_metadata?.major || "",
+        gpa: user.user_metadata?.gpa || "",
+        degree: user.user_metadata?.degree || "",
+        subjects: user.user_metadata?.subjects || [],
+        motivation: user.user_metadata?.motivation || "",
+        format: user.user_metadata?.format || "",
+        availability: user.user_metadata?.availability || "",
+      },
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -378,6 +395,232 @@ app.get("/api/tutor-exists", async (req, res) => {
 
   if (error || !data) return res.json({ found: false });
   res.json({ found: true });
+});
+
+// -------------------- FETCH STUDENT PROFILE --------------------
+app.get("/api/students/profile/:userId", async (req, res) => {
+  try {
+    const userId = (req.params.userId || "").trim();
+    if (!userId) {
+      return res.status(400).json({ error: "Missing user ID." });
+    }
+
+    const { data: userLookup, error: userLookupError } = await supabase.auth.admin.getUserById(userId);
+    if (userLookupError || !userLookup?.user) {
+      console.error("Failed to fetch auth user for profile lookup:", userLookupError);
+      return res.status(404).json({ error: "Student not found." });
+    }
+
+    const authUser = userLookup.user;
+    const metadata = authUser.user_metadata || {};
+
+    if (metadata.role && metadata.role !== "student") {
+      return res.status(403).json({ error: "Only students can access this profile." });
+    }
+
+    const { data: userRow, error: userRowError } = await supabase
+      .from("users")
+      .select("firstName,lastName,birthdate,phone")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (userRowError) {
+      console.warn("Unable to read users table for profile:", userRowError);
+    }
+
+    const { data: studentRow, error: studentRowError } = await supabase
+      .from("students")
+      .select("studentId,currentYear,major,gpa,phone,firstName,lastName,birthdate")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (studentRowError) {
+      console.warn("Unable to read students table for profile:", studentRowError);
+    }
+
+    const pickFirstString = (...values) => {
+      for (const value of values) {
+        if (typeof value === "string" && value.trim()) {
+          return value.trim();
+        }
+      }
+      return "";
+    };
+
+    const resolveGpa = () => {
+      const candidates = [metadata.gpa, studentRow?.gpa];
+      for (const value of candidates) {
+        if (value === null || value === undefined) continue;
+        if (typeof value === "number") return value;
+        if (typeof value === "string" && value.trim()) {
+          const parsed = Number(value);
+          return Number.isNaN(parsed) ? value.trim() : parsed;
+        }
+      }
+      return "";
+    };
+
+    const normalizeSubjects = Array.isArray(metadata.subjects)
+      ? metadata.subjects
+          .map((subject) => (typeof subject === "string" ? subject.trim() : ""))
+          .filter(Boolean)
+      : [];
+
+    const profile = {
+      firstName: pickFirstString(metadata.firstName, studentRow?.firstName, userRow?.firstName),
+      lastName: pickFirstString(metadata.lastName, studentRow?.lastName, userRow?.lastName),
+      birthdate: pickFirstString(metadata.birthdate, studentRow?.birthdate, userRow?.birthdate),
+      phone: pickFirstString(metadata.phone, studentRow?.phone, userRow?.phone),
+      studentId: pickFirstString(metadata.studentId, studentRow?.studentId),
+      currentYear: pickFirstString(metadata.currentYear, studentRow?.currentYear),
+      major: pickFirstString(metadata.major, studentRow?.major),
+      university: pickFirstString(metadata.university),
+      gpa: resolveGpa(),
+      subjects: normalizeSubjects,
+    };
+
+    return res.status(200).json({
+      userId,
+      email: authUser.email,
+      passwordUpdatedAt: authUser.password_updated_at || null,
+      profile,
+    });
+  } catch (err) {
+    console.error("Unexpected error fetching student profile:", err);
+    res.status(500).json({ error: "Failed to load student profile." });
+  }
+});
+
+// -------------------- UPDATE STUDENT PROFILE --------------------
+app.put("/api/students/profile", async (req, res) => {
+  try {
+    const {
+      userId,
+      email,
+      firstName,
+      lastName,
+      phone,
+      university,
+      major,
+      currentYear,
+      studentId,
+      subjects,
+    } = req.body || {};
+
+    if (!userId) {
+      return res.status(401).json({ error: "Missing user ID." });
+    }
+
+    const trimmedEmail = typeof email === "string" ? email.trim() : "";
+    if (!trimmedEmail) {
+      return res.status(400).json({ error: "Email is required." });
+    }
+
+    const resolvedFirst = typeof firstName === "string" ? firstName.trim() : "";
+    const resolvedLast = typeof lastName === "string" ? lastName.trim() : "";
+    if (!resolvedFirst) {
+      return res.status(400).json({ error: "First name is required." });
+    }
+
+    const { data: existingUser, error: fetchError } = await supabase.auth.admin.getUserById(userId);
+    if (fetchError || !existingUser?.user) {
+      console.error("Unable to fetch user before update:", fetchError);
+      return res.status(404).json({ error: "Student not found." });
+    }
+
+    const currentMetadata = existingUser.user.user_metadata || {};
+    if (currentMetadata.role && currentMetadata.role !== "student") {
+      return res.status(403).json({ error: "Only students can update this profile." });
+    }
+
+    const normalizedSubjects = Array.isArray(subjects)
+      ? Array.from(
+          new Set(
+            subjects
+              .map((subj) => (typeof subj === "string" ? subj.trim() : ""))
+              .filter(Boolean)
+          )
+        )
+      : [];
+
+    const updatedMetadata = {
+      ...currentMetadata,
+      firstName: resolvedFirst,
+      lastName: resolvedLast,
+      phone: typeof phone === "string" ? phone.trim() : currentMetadata.phone || "",
+      university: typeof university === "string" ? university.trim() : currentMetadata.university || "",
+      major: typeof major === "string" ? major.trim() : currentMetadata.major || "",
+      currentYear: typeof currentYear === "string" ? currentYear.trim() : currentMetadata.currentYear || "",
+      studentId: typeof studentId === "string" ? studentId.trim() : currentMetadata.studentId || "",
+      subjects: normalizedSubjects,
+    };
+
+    const adminPayload = {
+      email: trimmedEmail,
+      user_metadata: updatedMetadata,
+    };
+
+    const { error: adminError } = await supabase.auth.admin.updateUserById(userId, adminPayload);
+    if (adminError) {
+      console.error("Failed to update auth user:", adminError);
+      return res.status(500).json({ error: "Failed to update authentication profile." });
+    }
+
+    const userUpdates = {};
+    if (trimmedEmail) userUpdates.email = trimmedEmail;
+    if (resolvedFirst) userUpdates.firstName = resolvedFirst;
+    userUpdates.lastName = resolvedLast;
+    if (typeof phone === "string") userUpdates.phone = phone.trim();
+
+    if (Object.keys(userUpdates).length > 0) {
+      const { error: userTableError } = await supabase.from("users").update(userUpdates).eq("id", userId);
+      if (userTableError) {
+        console.error("Failed to update users table:", userTableError);
+        return res.status(500).json({ error: "Failed to update user record." });
+      }
+    }
+
+    const studentUpdates = {};
+    if (resolvedFirst) studentUpdates.firstName = resolvedFirst;
+    studentUpdates.lastName = resolvedLast;
+    if (typeof phone === "string") studentUpdates.phone = phone.trim();
+    if (typeof major === "string") studentUpdates.major = major.trim();
+    if (typeof currentYear === "string") studentUpdates.currentYear = currentYear.trim();
+    if (typeof studentId === "string" && studentId.trim()) {
+      studentUpdates.studentId = studentId.trim();
+    }
+
+    if (Object.keys(studentUpdates).length > 0) {
+      const { error: studentTableError } = await supabase.from("students").update(studentUpdates).eq("id", userId);
+      if (studentTableError) {
+        console.error("Failed to update students table:", studentTableError);
+        return res.status(500).json({ error: "Failed to update academic record." });
+      }
+    }
+
+    const mergedProfile = {
+      firstName: updatedMetadata.firstName || "",
+      lastName: updatedMetadata.lastName || "",
+      phone: updatedMetadata.phone || "",
+      university: updatedMetadata.university || "",
+      major: updatedMetadata.major || "",
+      currentYear: updatedMetadata.currentYear || "",
+      studentId: updatedMetadata.studentId || "",
+      subjects: updatedMetadata.subjects || [],
+      birthdate: updatedMetadata.birthdate || "",
+      gpa: updatedMetadata.gpa || "",
+    };
+
+    return res.status(200).json({
+      message: "Profile updated successfully.",
+      userId,
+      email: trimmedEmail,
+      profile: mergedProfile,
+    });
+  } catch (err) {
+    console.error("Unexpected profile update error:", err);
+    res.status(500).json({ error: "Unexpected server error." });
+  }
 });
 
 // -------------------- EMAIL VERIFIED WEBHOOK --------------------

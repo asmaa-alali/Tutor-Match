@@ -296,8 +296,8 @@
          <div class="setting-label">
           Email Address
          </div>
-         <div class="setting-description">
-          alex.smith@mail.aub.edu
+         <div class="setting-description" data-setting-email>
+          Not set
          </div>
         </div><button class="glass-btn-primary" onclick="editEmail()"> <i data-lucide="edit" class="w-4 h-4"></i> Edit </button>
        </div>
@@ -306,8 +306,8 @@
          <div class="setting-label">
           Phone Number
          </div>
-         <div class="setting-description">
-          +961 70 123 456
+         <div class="setting-description" data-setting-phone>
+          Not set
          </div>
         </div><button class="glass-btn-primary" onclick="editPhone()"> <i data-lucide="edit" class="w-4 h-4"></i> Edit </button>
        </div>
@@ -316,8 +316,8 @@
          <div class="setting-label">
           Password
          </div>
-         <div class="setting-description">
-          Last changed 2 months ago
+         <div class="setting-description" data-setting-password>
+          Checking last password update...
          </div>
         </div><button class="glass-btn-primary" onclick="changePassword()"> <i data-lucide="key" class="w-4 h-4"></i> Change </button>
        </div>
@@ -472,6 +472,77 @@
 
         let currentEditType = '';
 
+        const sessionData = (() => {
+            const fallback = { profile: {}, passwordUpdatedAt: null };
+            const raw = localStorage.getItem('tmUserSession');
+            if (!raw) return fallback;
+            try {
+                const parsed = JSON.parse(raw);
+                if (!parsed || typeof parsed !== 'object') {
+                    return fallback;
+                }
+                if (!parsed.profile || typeof parsed.profile !== 'object') {
+                    parsed.profile = {};
+                }
+                if (!Object.prototype.hasOwnProperty.call(parsed, 'passwordUpdatedAt')) {
+                    parsed.passwordUpdatedAt = null;
+                }
+                return parsed;
+            } catch (err) {
+                console.warn('Failed to parse session data:', err);
+                return fallback;
+            }
+        })();
+
+        let currentEmail = (sessionData.email || '').trim();
+        let currentPhone = (sessionData.profile.phone || '').trim();
+        let passwordUpdatedAt = sessionData.passwordUpdatedAt || null;
+
+        function persistSession() {
+            try {
+                localStorage.setItem('tmUserSession', JSON.stringify(sessionData));
+            } catch (err) {
+                console.warn('Unable to persist session updates:', err);
+            }
+        }
+
+        function describePasswordChanged(timestamp) {
+            if (!timestamp) {
+                return 'Password has not been updated yet';
+            }
+
+            const parsed = new Date(timestamp);
+            if (Number.isNaN(parsed.getTime())) {
+                return 'Password update date unavailable';
+            }
+
+            const formatted = new Intl.DateTimeFormat(undefined, {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            }).format(parsed);
+
+            return `Last changed on ${formatted}`;
+        }
+
+        function syncSettingFields() {
+            const emailDisplay = document.querySelector('[data-setting-email]');
+            if (emailDisplay) {
+                emailDisplay.textContent = currentEmail || 'Not set';
+            }
+
+            const phoneDisplay = document.querySelector('[data-setting-phone]');
+            if (phoneDisplay) {
+                phoneDisplay.textContent = currentPhone || 'Not set';
+            }
+
+            const passwordDisplay = document.querySelector('[data-setting-password]');
+            if (passwordDisplay) {
+                passwordDisplay.textContent = describePasswordChanged(passwordUpdatedAt);
+            }
+        }
+
+        syncSettingFields();
+
         function editEmail() {
             currentEditType = 'email';
             document.getElementById('modalTitle').textContent = 'Edit Email Address';
@@ -479,7 +550,7 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-2">Current Email</label>
-                        <input type="email" value="alex.smith@mail.aub.edu" class="form-input" readonly>
+                        <input type="email" class="form-input" id="currentEmailValue" readonly>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-2">New Email</label>
@@ -492,6 +563,20 @@
                 </div>
             `;
             document.getElementById('editModal').classList.remove('hidden');
+            const currentEmailInput = document.getElementById('currentEmailValue');
+            if (currentEmailInput) {
+                if (currentEmail) {
+                    currentEmailInput.value = currentEmail;
+                } else {
+                    currentEmailInput.value = '';
+                    currentEmailInput.placeholder = 'Not set';
+                }
+            }
+
+            const newEmailInput = document.getElementById('newEmail');
+            if (newEmailInput) {
+                newEmailInput.value = '';
+            }
         }
 
         function editPhone() {
@@ -501,7 +586,7 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-2">Current Phone</label>
-                        <input type="tel" value="+961 70 123 456" class="form-input" readonly>
+                        <input type="tel" class="form-input" id="currentPhoneValue" readonly>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-2">New Phone Number</label>
@@ -510,6 +595,20 @@
                 </div>
             `;
             document.getElementById('editModal').classList.remove('hidden');
+            const currentPhoneInput = document.getElementById('currentPhoneValue');
+            if (currentPhoneInput) {
+                if (currentPhone) {
+                    currentPhoneInput.value = currentPhone;
+                } else {
+                    currentPhoneInput.value = '';
+                    currentPhoneInput.placeholder = 'Not set';
+                }
+            }
+
+            const newPhoneInput = document.getElementById('newPhone');
+            if (newPhoneInput) {
+                newPhoneInput.value = '';
+            }
         }
 
         function changePassword() {
@@ -541,22 +640,50 @@
 
         function saveModalChanges() {
             if (currentEditType === 'email') {
-                const newEmail = document.getElementById('newEmail').value;
-                if (newEmail) {
-                    showToast('Email address updated successfully!', 'success');
-                    closeModal();
+                const newEmailInput = document.getElementById('newEmail');
+                if (!newEmailInput) return;
+                const newEmail = newEmailInput.value.trim();
+                if (!newEmail) {
+                    showToast('Please enter a valid email address.', 'error');
+                    return;
                 }
+                if (!newEmailInput.checkValidity()) {
+                    newEmailInput.reportValidity();
+                    return;
+                }
+                currentEmail = newEmail;
+                sessionData.email = currentEmail;
+                persistSession();
+                syncSettingFields();
+                showToast('Email address updated successfully!', 'success');
+                closeModal();
             } else if (currentEditType === 'phone') {
-                const newPhone = document.getElementById('newPhone').value;
-                if (newPhone) {
-                    showToast('Phone number updated successfully!', 'success');
-                    closeModal();
+                const newPhoneInput = document.getElementById('newPhone');
+                if (!newPhoneInput) return;
+                const newPhone = newPhoneInput.value.trim();
+                if (!newPhone) {
+                    showToast('Please enter a phone number.', 'error');
+                    return;
                 }
+                currentPhone = newPhone;
+                if (!sessionData.profile || typeof sessionData.profile !== 'object') {
+                    sessionData.profile = {};
+                }
+                sessionData.profile.phone = currentPhone;
+                persistSession();
+                syncSettingFields();
+                showToast('Phone number updated successfully!', 'success');
+                closeModal();
             } else if (currentEditType === 'password') {
                 const newPassword = document.getElementById('newPassword').value;
                 const confirmPassword = document.getElementById('confirmNewPassword').value;
                 if (newPassword && newPassword === confirmPassword) {
                     showToast('Password changed successfully!', 'success');
+                    const nowIso = new Date().toISOString();
+                    sessionData.passwordUpdatedAt = nowIso;
+                    passwordUpdatedAt = nowIso;
+                    persistSession();
+                    syncSettingFields();
                     closeModal();
                 } else {
                     showToast('Passwords do not match!', 'error');

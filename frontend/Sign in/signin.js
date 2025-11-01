@@ -51,6 +51,30 @@ function togglePassword() {
 
 // ✅ Real working login hooked to backend
 // ---- LOGIN HANDLER WITH ATTEMPT LIMIT ----
+let lastLoginRole = null;
+let lastLoginProfile = null;
+let lastLoginUserId = null;
+let lastLoginEmail = ""; // we’ll set this after successful /api/login
+let lastPasswordUpdatedAt = null;
+
+function persistUserSession() {
+    if (!lastLoginUserId) return;
+
+    const payload = {
+        userId: lastLoginUserId,
+        email: lastLoginEmail,
+        role: lastLoginRole,
+        profile: lastLoginProfile || {},
+        passwordUpdatedAt: lastPasswordUpdatedAt
+    };
+
+    try {
+        localStorage.setItem("tmUserSession", JSON.stringify(payload));
+    } catch (err) {
+        console.warn("Failed to persist user session:", err);
+    }
+}
+
 document.getElementById("signInForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
@@ -79,9 +103,17 @@ document.getElementById("signInForm").addEventListener("submit", async function 
     });
 
     const data = await res.json();
+    lastLoginRole = data.role || null;
+    lastLoginProfile = data.profile || null;
+    lastLoginUserId = data.userId || null;
+    lastPasswordUpdatedAt = data.passwordUpdatedAt || null;
 
     // ❌ Step 4: Handle wrong credentials
     if (!res.ok) {
+      lastLoginRole = null;
+      lastLoginProfile = null;
+      lastLoginUserId = null;
+      lastPasswordUpdatedAt = null;
       loginAttempts++;
       const remaining = maxLoginAttempts - loginAttempts;
 
@@ -142,6 +174,10 @@ if (!otpRes.ok) {
     // ✅ Step 8: Open OTP modal
     openOtpModal(email);
   } catch (err) {
+    lastLoginRole = null;
+    lastLoginProfile = null;
+    lastLoginUserId = null;
+    lastPasswordUpdatedAt = null;
     console.error("Login failed:", err);
     showNotification("Server error, please try again.", "error");
   } finally {
@@ -203,7 +239,6 @@ document.addEventListener('keydown', function(e) {
     }
 });
 // ---------- OTP MODAL CONTROL ----------
-let lastLoginEmail = ""; // we’ll set this after successful /api/login
 
 function openOtpModal(email) {
   lastLoginEmail = email;
@@ -234,6 +269,10 @@ function openOtpModal(email) {
 function closeOtpModal() {
   document.getElementById("otpModal").classList.add("hidden");
   otpCanceled = true; // user canceled OTP process
+  lastLoginRole = null;
+  lastLoginProfile = null;
+  lastLoginUserId = null;
+  lastPasswordUpdatedAt = null;
   showNotification("OTP process canceled. Please sign in again to continue.", "error");
 }
 
@@ -261,11 +300,13 @@ async function submitOtpCode() {
       return;
     }
 
+    persistUserSession();
     showNotification("Verified! Redirecting...", "success");
     setTimeout(() => {
-      if (data.role === "student") {
-        window.location.href = "/student-dashboard.html";
-      } else if (data.role === "tutor") {
+      const role = lastLoginRole || data.role;
+      if (role === "student") {
+        window.location.href = "/Student%20Page/findtutor.html";
+      } else if (role === "tutor") {
         window.location.href = "/tutor-profile.html";
       } else {
         window.location.href = "/Homepage/home.html";
