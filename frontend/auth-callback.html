@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Google Sign-in</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gray-50">
+  <div class="bg-white p-8 rounded-xl shadow w-full max-w-md text-center">
+    <h2 class="text-xl font-semibold mb-3">Checking your account…</h2>
+    <p id="status" class="text-gray-600">Please wait</p>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    // 🔐 Public anon key is safe in the browser. Service key stays on server only.
+    const supabase = createClient(
+      "https://tdwgbaingdbodbqisotm.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkd2diYWluZ2Rib2RicWlzb3RtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4NzIxMjIsImV4cCI6MjA3NjQ0ODEyMn0.Rw8WQiSswknrGtdD3418RASZ7okwLS4-RGr7dbjZgzs"
+    );
+
+    async function handleCallback() {
+      console.log("🔍 Starting Supabase callback handling...");
+      const status = document.getElementById("status");
+
+      try {
+        // Parse hash (#access_token=...) placed by Supabase
+        const hash = new URLSearchParams(window.location.hash.substring(1));
+        const access_token  = hash.get("access_token");
+        const refresh_token = hash.get("refresh_token");
+
+        if (!access_token || !refresh_token) {
+          status.textContent = "Google authentication failed. Please try again.";
+          console.error("No tokens found in callback hash.");
+          return;
+        }
+
+        // Set the session from tokens so we can call supabase.auth.getUser()
+        const { data: setData, error: setErr } = await supabase.auth.setSession({
+          access_token,
+          refresh_token
+        });
+        if (setErr) {
+          console.error("setSession error:", setErr);
+          status.textContent = "Google authentication failed. Please try again.";
+          return;
+        }
+
+        // Get the authenticated user
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (userErr || !userData?.user) {
+          console.error("getUser error:", userErr);
+          status.textContent = "Failed to load user. Please try again.";
+          return;
+        }
+
+        const user = userData.user;
+        console.log("✅ Google user:", user.email, user.id);
+
+        // ✅ Only allow existing tutors (block new users)
+        const checkRes = await fetch(`/api/tutor-exists?email=${encodeURIComponent(user.email)}`);
+        const { found } = await checkRes.json();
+
+        if (found) {
+          status.textContent = "Welcome back! Redirecting...";
+          setTimeout(() => (window.location.href = "/tutor-profile.html"), 1200);
+        } else {
+          status.textContent = "Tutor account not found. Access denied.";
+
+          // ❌ Delete the temp auth user so they don’t remain in Supabase
+          await fetch("/api/delete-auth-user", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: user.id }),
+          });
+
+          await supabase.auth.signOut();
+          setTimeout(() => (window.location.href = "/Sign%20in/signin.html"), 2200);
+        }
+      } catch (e) {
+        console.error("❌ Google Auth callback error:", e);
+        status.textContent = "Google authentication failed. Please try again.";
+      }
+    }
+
+    handleCallback();
+  </script>
+</body>
+</html>

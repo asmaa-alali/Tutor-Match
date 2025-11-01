@@ -1,3 +1,4 @@
+
 lucide.createIcons();
 let loginAttempts = 0;
 const maxLoginAttempts = 5;
@@ -152,8 +153,11 @@ if (!otpRes.ok) {
 
 // Social Sign In
 function signInWithGoogle() {
-    showNotification('Redirecting to Google...', 'success');
+  showNotification("Redirecting to Google...", "success");
+   window.location.href = "/auth/google?prompt=select_account";
 }
+
+
 
 function signInWithGitHub() {
     showNotification('Redirecting to GitHub...', 'success');

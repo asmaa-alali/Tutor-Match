@@ -65,6 +65,50 @@ app.get("/verified", (req, res) => res.sendFile(path.join(__dirname, "../fronten
 app.get("/reset-password", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/reset-password.html"));
 });
+// ✅ Check if tutor exists by email
+app.get("/api/tutor-exists", async (req, res) => {
+  const email = req.query.email;
+  if (!email) return res.json({ found: false });
+
+  const { data, error } = await supabase
+    .from("tutors")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error || !data) return res.json({ found: false });
+  res.json({ found: true });
+});
+// ❌ Delete unauthorized Google user (requires service_role on server)
+app.post("/api/delete-auth-user", async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ error: "Missing user ID" });
+
+    const { error } = await supabase.auth.admin.deleteUser(id);
+    if (error) throw error;
+
+    res.json({ message: "Unauthorized user deleted" });
+  } catch (err) {
+    console.error("Auth user deletion failed:", err);
+    res.status(500).json({ error: "Failed to delete user" });
+  }
+});
+
+
+// ✅ 1) Start Google OAuth
+app.get("/auth/google", (req, res) => {
+  const redirectTo = "http://localhost:3000/auth/callback";
+  const prompt = req.query.prompt || "none"; // default = none
+  const url = `${process.env.SUPABASE_URL}/auth/v1/authorize?provider=google&prompt=${prompt}&redirect_to=${encodeURIComponent(redirectTo)}`;
+  console.log("Redirecting to:", url);
+  res.redirect(url);
+});
+
+// ✅ 2) Serve the callback page
+app.get("/auth/callback", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/auth-callback.html"));
+});
 
 // -------------------- STUDENT SIGNUP --------------------
 app.post("/api/signup/student", async (req, res) => {
@@ -320,6 +364,20 @@ app.post("/api/verify-otp", (req, res) => {
 
   otpStore.delete(email);
   res.status(200).json({ message: "OTP verified" });
+});
+// ✅ Check if tutor exists by email
+app.get("/api/tutor-exists", async (req, res) => {
+  const email = req.query.email;
+  if (!email) return res.json({ found: false });
+
+  const { data, error } = await supabase
+    .from("tutors")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error || !data) return res.json({ found: false });
+  res.json({ found: true });
 });
 
 // -------------------- EMAIL VERIFIED WEBHOOK --------------------
