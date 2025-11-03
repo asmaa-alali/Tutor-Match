@@ -101,6 +101,7 @@ document.getElementById("signInForm").addEventListener("submit", async function 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
+    
 
     const data = await res.json();
     lastLoginRole = data.role || null;
@@ -150,6 +151,14 @@ document.getElementById("signInForm").addEventListener("submit", async function 
     // ✅ Step 6: Success — reset counters
     loginAttempts = 0;
     lockUntil = null;
+    // ✅ ADMIN LOGIN SHORTCUT (place here)
+if (data.role === "admin") {
+  showNotification("Welcome Admin! Redirecting...", "success");
+  setTimeout(() => {
+    window.location.href = "/Adminpage/AdminPage.html";
+  }, 1000);
+  return; // stop here, skip OTP
+}
 
     // ✅ Step 7: Send OTP (only if not canceled)
 if (otpCanceled) {

@@ -277,12 +277,12 @@ app.post(
     }
   }
 );
-// -------------------- LOGIN (STUDENT + TUTOR) --------------------
+// -------------------- LOGIN (ADMIN + STUDENT + TUTOR) --------------------
 app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1) Try to sign in with Supabase Auth
+    // 1️⃣ Try to sign in with Supabase Auth
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error || !data?.user) {
@@ -291,15 +291,24 @@ app.post("/api/login", async (req, res) => {
 
     const user = data.user;
 
-    // 2) Block unverified accounts
+    // 2️⃣ ADMIN SHORTCUT
+    if (user.email === "admintm01@proton.me") {
+      return res.status(200).json({
+        message: "Admin login successful",
+        role: "admin",
+        userId: user.id,
+        email: user.email,
+      });
+    }
+
+    // 3️⃣ Block unverified non-admin accounts
     if (!user.email_confirmed_at) {
       return res.status(403).json({ error: "Please verify your email first." });
     }
 
-    // 3) Read role from metadata
+    // 4️⃣ Normal user (tutor/student)
     const role = user.user_metadata?.role || "unknown";
 
-    // 4) Send role + id for redirect on frontend
     res.status(200).json({
       message: "Login successful!",
       role,
@@ -327,6 +336,7 @@ app.post("/api/login", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 // -------------------- GENERATE AND SEND LOGIN OTP --------------------
 import crypto from "crypto";
 import nodemailer from "nodemailer";
@@ -741,7 +751,7 @@ async function deleteUnverifiedUsers() {
 }
 
 // Schedule to run every minute (for testing)
-cron.schedule("* * * * *", () => {
+cron.schedule("0 * * * *", () => {
   console.log("Running cleanup job for unverified users...");
   deleteUnverifiedUsers();
 });
