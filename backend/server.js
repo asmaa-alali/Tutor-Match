@@ -26,36 +26,141 @@ const PORT = process.env.PORT || 3000;
 // -------------------- SUPABASE --------------------
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY )
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+const TUTOR_UPLOAD_BUCKET = "tutor_uploads";
+const LOCAL_PROFILE_DIR = path.join(__dirname, "uploads", "profile");
 
 app.use(express.json());
 app.use(cors());
 const upload = multer({ dest: "uploads/" });
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"), {
+    fallthrough: true,
+  })
+);
 app.use("/", express.static(path.join(__dirname, "../frontend")));
-// Upload a local temp file (multer) to Supabase Storage and return a public URL
+
+const ensureDirectory = async (dirPath) => {
+  try {
+    await fs.promises.mkdir(dirPath, { recursive: true });
+  } catch (err) {
+    if (err && err.code !== "EEXIST") {
+      throw err;
+    }
+  }
+};
+
+const savePhotoLocally = async (buffer, originalName) => {
+  await ensureDirectory(LOCAL_PROFILE_DIR);
+
+  const rawName = path.basename(originalName, path.extname(originalName));
+  const safeBase = rawName.replace(/[^a-z0-9_-]/gi, "") || "avatar";
+  const ext = (path.extname(originalName) || ".png").toLowerCase();
+  const filename = `${Date.now()}_${safeBase}${ext}`;
+  const destinationPath = path.join(LOCAL_PROFILE_DIR, filename);
+
+  await fs.promises.writeFile(destinationPath, buffer);
+  return `/uploads/profile/${filename}`;
+};
+
+const deleteLocalProfilePhoto = async (avatarPath) => {
+  if (
+    !avatarPath ||
+    typeof avatarPath !== "string" ||
+    !avatarPath.startsWith("/uploads/profile/")
+  ) {
+    return;
+  }
+
+  const filePart = avatarPath.replace("/uploads/profile/", "");
+  if (!filePart) return;
+
+  const safePart = filePart.replace(/[^a-zA-Z0-9._-]/g, "");
+  if (!safePart) return;
+
+  const absolutePath = path.join(LOCAL_PROFILE_DIR, safePart);
+  try {
+    await fs.promises.unlink(absolutePath);
+  } catch (err) {
+    if (err && err.code !== "ENOENT") {
+      console.warn("Failed to delete previous local profile photo:", err);
+    }
+  }
+};
+
+// Upload a local temp file (multer) to Supabase Storage and return a public or fallback URL
 async function uploadToSupabaseStorage(file, folder) {
   const buffer = fs.readFileSync(file.path);
-  const uniqueName = `${folder}/${Date.now()}_${file.originalname}`;
+  const originalName = file.originalname || "upload.bin";
+  const sanitizedOriginal = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const safeOriginal = sanitizedOriginal || "upload.bin";
+  const uniqueName = `${folder}/${Date.now()}_${safeOriginal}`;
 
-  const { data, error } = await supabase
-    .storage
-    .from("tutor_uploads")          // <-- make sure this bucket exists
-    .upload(uniqueName, buffer, {
-      contentType: file.mimetype,
-      upsert: false,
-    });
+  const attemptSupabaseUpload = async () => {
+    const result = await supabase.storage
+      .from(TUTOR_UPLOAD_BUCKET)
+      .upload(uniqueName, buffer, {
+        contentType: file.mimetype || "application/octet-stream",
+        upsert: false,
+      });
 
-  // remove temp file regardless of upload success
-  try { fs.unlinkSync(file.path); } catch (e) {}
+    if (result.error) {
+      return { success: false, error: result.error };
+    }
 
-  if (error) throw error;
+    const { data: publicUrl, error: urlError } = supabase.storage
+      .from(TUTOR_UPLOAD_BUCKET)
+      .getPublicUrl(uniqueName);
 
-  const { data: publicUrl } = supabase
-    .storage
-    .from("tutor_uploads")
-    .getPublicUrl(uniqueName);
+    if (urlError || !publicUrl?.publicUrl) {
+      return { success: false, error: urlError };
+    }
 
-  return publicUrl.publicUrl; // string
+    return { success: true, url: publicUrl.publicUrl };
+  };
+
+  try {
+    let uploadResult = await attemptSupabaseUpload();
+
+    if (!uploadResult.success) {
+      const message = (uploadResult.error?.message || "").toLowerCase();
+
+      if (message.includes("bucket") && message.includes("not found")) {
+        const { error: createError } = await supabase.storage.createBucket(
+          TUTOR_UPLOAD_BUCKET,
+          { public: true }
+        );
+
+        if (
+          createError &&
+          !/(already exists|exists)/i.test(createError.message || "")
+        ) {
+          throw uploadResult.error || createError;
+        }
+
+        uploadResult = await attemptSupabaseUpload();
+      }
+    }
+
+    if (uploadResult.success) {
+      return uploadResult.url;
+    }
+
+    throw uploadResult.error;
+  } catch (err) {
+    console.warn(
+      "Supabase storage upload failed, falling back to local storage:",
+      err
+    );
+    return await savePhotoLocally(buffer, safeOriginal);
+  } finally {
+    try {
+      fs.unlinkSync(file.path);
+    } catch (_) {}
+  }
 }
 
 // -------------------- ROUTES --------------------
@@ -329,6 +434,7 @@ app.post("/api/login", async (req, res) => {
         motivation: user.user_metadata?.motivation || "",
         format: user.user_metadata?.format || "",
         availability: user.user_metadata?.availability || "",
+        avatarUrl: user.user_metadata?.avatarUrl || "",
       },
     });
   } catch (err) {
@@ -411,6 +517,94 @@ app.post("/api/change-password", async (req, res) => {
     }
   }
 });
+
+// -------------------- UPDATE STUDENT PROFILE PHOTO --------------------
+app.post(
+  "/api/students/profile/photo",
+  upload.single("photo"),
+  async (req, res) => {
+    try {
+      const userId = (req.body?.userId || "").trim();
+      if (!userId) {
+        return res.status(400).json({ error: "Missing user ID." });
+      }
+
+      const photoFile = req.file;
+      if (!photoFile) {
+        return res.status(400).json({ error: "No photo provided." });
+      }
+
+      if (!photoFile.mimetype || !photoFile.mimetype.startsWith("image/")) {
+        return res
+          .status(400)
+          .json({ error: "Only image uploads are supported." });
+      }
+
+      const { data: userLookup, error: lookupError } =
+        await supabase.auth.admin.getUserById(userId);
+      if (lookupError || !userLookup?.user) {
+        console.error("Unable to fetch user for photo update:", lookupError);
+        return res.status(404).json({ error: "Student not found." });
+      }
+
+      const authUser = userLookup.user;
+      const metadata = authUser.user_metadata || {};
+      const previousAvatar =
+        typeof metadata.avatarUrl === "string" ? metadata.avatarUrl.trim() : "";
+      if (metadata.role && metadata.role !== "student") {
+        return res
+          .status(403)
+          .json({ error: "Only students can update this photo." });
+      }
+
+      let photoUrl;
+      try {
+        photoUrl = await uploadToSupabaseStorage(photoFile, `students/${userId}`);
+      } catch (uploadErr) {
+        console.error("Photo upload failed:", uploadErr);
+        return res.status(500).json({ error: "Unable to store profile photo." });
+      }
+
+      const updatedMetadata = {
+        ...metadata,
+        avatarUrl: photoUrl,
+      };
+
+      const { error: updateError } = await supabase.auth.admin.updateUserById(
+        userId,
+        { user_metadata: updatedMetadata }
+      );
+
+      if (updateError) {
+        console.error("Failed to persist photo metadata:", updateError);
+        return res
+          .status(500)
+          .json({ error: "Unable to update profile photo metadata." });
+      }
+
+      if (previousAvatar && previousAvatar !== photoUrl) {
+        try {
+          await deleteLocalProfilePhoto(previousAvatar);
+        } catch (cleanupErr) {
+          console.warn(
+            "Unable to clean up previous local profile photo:",
+            cleanupErr
+          );
+        }
+      }
+
+      return res.json({
+        message: "Profile photo updated successfully.",
+        photoUrl,
+      });
+    } catch (err) {
+      console.error("Profile photo update error:", err);
+      return res
+        .status(500)
+        .json({ error: "Unexpected error while updating photo." });
+    }
+  }
+);
 
 // -------------------- GENERATE AND SEND LOGIN OTP --------------------
 import crypto from "crypto";
@@ -562,6 +756,7 @@ app.get("/api/students/profile/:userId", async (req, res) => {
       university: pickFirstString(metadata.university),
       gpa: resolveGpa(),
       subjects: normalizeSubjects,
+      avatarUrl: pickFirstString(metadata.avatarUrl),
     };
 
     return res.status(200).json({
@@ -694,6 +889,7 @@ app.put("/api/students/profile", async (req, res) => {
       subjects: updatedMetadata.subjects || [],
       birthdate: updatedMetadata.birthdate || "",
       gpa: updatedMetadata.gpa || "",
+      avatarUrl: updatedMetadata.avatarUrl || "",
     };
 
     return res.status(200).json({

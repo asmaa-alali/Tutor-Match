@@ -225,7 +225,7 @@
       <div class="flex flex-col items-center">
        <div class="profile-avatar mb-4" id="profileAvatar">
         AS
-       </div><button class="glass-btn-primary text-sm" onclick="changePhoto()"> <i data-lucide="camera" class="w-4 h-4"></i> Change Photo </button> <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="handlePhotoChange(event)">
+       </div><button id="changePhotoBtn" class="glass-btn-primary text-sm" onclick="changePhoto()"> <i data-lucide="camera" class="w-4 h-4"></i> Change Photo </button> <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="handlePhotoChange(event)">
       </div>
       <div class="flex-1 text-center md:text-left">
        <h1 class="text-4xl font-bold text-white mb-2" id="profileHeaderName">Alex Smith</h1>
@@ -384,6 +384,32 @@
             }
         }
 
+        function getAvatarInitials(fullName) {
+            const trimmed = (fullName || '').trim();
+            if (!trimmed) return 'ST';
+            const parts = trimmed.split(/\s+/).filter(Boolean).slice(0, 2);
+            if (!parts.length) return 'ST';
+            return parts.map(part => part[0]?.toUpperCase() || '').join('') || 'ST';
+        }
+
+        function setAvatarImage(url, fullName) {
+            const avatar = document.getElementById('profileAvatar');
+            if (!avatar) return;
+
+            const hasUrl = typeof url === 'string' && url.trim().length > 0;
+            if (hasUrl) {
+                avatar.style.backgroundImage = `url(${url})`;
+                avatar.style.backgroundSize = 'cover';
+                avatar.style.backgroundPosition = 'center';
+                avatar.textContent = '';
+                avatar.dataset.avatarUrl = url;
+            } else {
+                avatar.style.backgroundImage = '';
+                avatar.textContent = getAvatarInitials(fullName);
+                delete avatar.dataset.avatarUrl;
+            }
+        }
+
         function updateHeaderFromFullName(fullName) {
             const header = document.getElementById('profileHeaderName');
             const avatar = document.getElementById('profileAvatar');
@@ -394,10 +420,7 @@
             }
 
             if (avatar && !avatar.style.backgroundImage) {
-                const initials = trimmed
-                    ? trimmed.split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase() || '').join('') || 'ST'
-                    : 'ST';
-                avatar.textContent = initials;
+                avatar.textContent = getAvatarInitials(fullName);
             }
         }
 
@@ -436,20 +459,31 @@
             editingEnabled = enabled;
 
             document.querySelectorAll('.form-input').forEach(input => {
-                if (input.tagName === 'SELECT') {
+                const isSelect = input.tagName === 'SELECT';
+                const isEmailField = input.id === 'email';
+
+                if (isSelect) {
                     if (enabled) {
                         input.removeAttribute('disabled');
                     } else {
                         input.setAttribute('disabled', 'disabled');
                     }
                 } else {
-                    if (enabled) {
-                        input.removeAttribute('readonly');
-                    } else {
+                    if (isEmailField) {
                         input.setAttribute('readonly', 'readonly');
+                    } else {
+                        if (enabled) {
+                            input.removeAttribute('readonly');
+                        } else {
+                            input.setAttribute('readonly', 'readonly');
+                        }
                     }
                 }
-                input.style.background = enabled ? 'rgba(30, 41, 59, 0.8)' : '';
+                if (!isEmailField) {
+                    input.style.background = enabled ? 'rgba(30, 41, 59, 0.8)' : '';
+                } else {
+                    input.style.background = '';
+                }
             });
 
             const addBtn = document.getElementById('addSubjectBtn');
@@ -486,6 +520,7 @@
             document.getElementById('university').value = university;
             document.getElementById('major').value = major;
 
+            setAvatarImage(profile.avatarUrl, fullName);
             const yearSelect = document.getElementById('yearOfStudy');
             if (yearSelect) {
                 if (yearOfStudy && Array.from(yearSelect.options).some(opt => opt.value === yearOfStudy)) {
@@ -520,22 +555,88 @@
         }
 
         function changePhoto() {
+            if (!ensureActiveSession()) return;
             document.getElementById('photoInput').click();
         }
 
-        function handlePhotoChange(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const avatar = document.getElementById('profileAvatar');
-                    avatar.style.backgroundImage = `url(${e.target.result})`;
-                    avatar.style.backgroundSize = 'cover';
-                    avatar.style.backgroundPosition = 'center';
-                    avatar.textContent = '';
-                    showToast('Profile photo updated!', 'success');
-                };
-                reader.readAsDataURL(file);
+        async function handlePhotoChange(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            if (!ensureActiveSession()) {
+                event.target.value = '';
+                return;
+            }
+
+            if (!file.type || !file.type.startsWith('image/')) {
+                showToast('Please select a valid image file.', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            const maxBytes = 5 * 1024 * 1024; // 5 MB
+            if (file.size > maxBytes) {
+                showToast('Please choose an image smaller than 5 MB.', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            const changeBtn = document.getElementById('changePhotoBtn');
+            const originalBtnHtml = changeBtn ? changeBtn.innerHTML : '';
+
+            if (changeBtn) {
+                changeBtn.disabled = true;
+                changeBtn.innerHTML = `
+                    <span class="flex items-center gap-2">
+                        <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+                        Uploading...
+                    </span>
+                `;
+                lucide.createIcons();
+            }
+
+            const formData = new FormData();
+            formData.append('photo', file);
+            formData.append('userId', activeSession.userId);
+
+            try {
+                const response = await fetch("http://localhost:3000/api/students/profile/photo", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                const payload = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    throw new Error(payload?.error || 'Failed to update profile photo.');
+                }
+
+                const photoUrl = payload.photoUrl;
+                setAvatarImage(photoUrl, document.getElementById('fullName')?.value || '');
+
+                if (!activeSession.profile || typeof activeSession.profile !== 'object') {
+                    activeSession.profile = {};
+                }
+
+                activeSession.profile.avatarUrl = photoUrl;
+
+                try {
+                    localStorage.setItem(SESSION_KEY, JSON.stringify(activeSession));
+                } catch (storageErr) {
+                    console.warn('Unable to persist photo change to session storage:', storageErr);
+                }
+
+                showToast('Profile photo updated!', 'success');
+            } catch (err) {
+                console.error('Profile photo upload failed:', err);
+                showToast(err.message || 'Failed to update photo.', 'error');
+            } finally {
+                if (changeBtn) {
+                    changeBtn.disabled = false;
+                    changeBtn.innerHTML = originalBtnHtml || '<i data-lucide="camera" class="w-4 h-4"></i> Change Photo';
+                    lucide.createIcons();
+                }
+                event.target.value = '';
             }
         }
 

@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const lastName = (profile.lastName || "").trim();
     const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
     const major = (profile.major || "").trim();
+    const avatarUrl = typeof profile.avatarUrl === "string" ? profile.avatarUrl.trim() : "";
 
     if (fullName) {
         document.querySelectorAll("[data-student-name]").forEach((el) => {
@@ -39,10 +40,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const avatar = document.getElementById("profileAvatar");
-    if (avatar && fullName) {
-        const initials = [firstName[0], lastName[0]].filter(Boolean).join("");
-        avatar.style.backgroundImage = "";
-        avatar.textContent = initials ? initials.toUpperCase() : fullName.slice(0, 2).toUpperCase();
+    if (avatar) {
+        if (avatarUrl) {
+            avatar.style.backgroundImage = `url(${avatarUrl})`;
+            avatar.style.backgroundSize = "cover";
+            avatar.style.backgroundPosition = "center";
+            avatar.textContent = "";
+            avatar.dataset.avatarUrl = avatarUrl;
+        } else {
+            const initialsSource = fullName || "Student";
+            const initials = [firstName[0], lastName[0]]
+                .filter(Boolean)
+                .join("");
+            const fallback = initials
+                ? initials.toUpperCase()
+                : initialsSource.slice(0, 2).toUpperCase() || "ST";
+            avatar.style.backgroundImage = "";
+            avatar.textContent = fallback;
+            delete avatar.dataset.avatarUrl;
+        }
     }
 
     const headerName = document.getElementById("profileHeaderName");

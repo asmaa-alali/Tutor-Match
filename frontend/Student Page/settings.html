@@ -300,7 +300,7 @@
          <div class="setting-description" data-setting-email>
           Not set
          </div>
-        </div><button class="glass-btn-primary" onclick="editEmail()"> <i data-lucide="edit" class="w-4 h-4"></i> Edit </button>
+        </div>
        </div>
        <div class="glass-card setting-item">
         <div class="flex-1">
@@ -544,42 +544,6 @@
 
         syncSettingFields();
 
-        function editEmail() {
-            currentEditType = 'email';
-            document.getElementById('modalTitle').textContent = 'Edit Email Address';
-            document.getElementById('modalContent').innerHTML = `
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Current Email</label>
-                        <input type="email" class="form-input" id="currentEmailValue" readonly>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">New Email</label>
-                        <input type="email" placeholder="Enter new email address" class="form-input" id="newEmail">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
-                        <input type="password" placeholder="Enter your password" class="form-input" id="confirmPassword">
-                    </div>
-                </div>
-            `;
-            document.getElementById('editModal').classList.remove('hidden');
-            const currentEmailInput = document.getElementById('currentEmailValue');
-            if (currentEmailInput) {
-                if (currentEmail) {
-                    currentEmailInput.value = currentEmail;
-                } else {
-                    currentEmailInput.value = '';
-                    currentEmailInput.placeholder = 'Not set';
-                }
-            }
-
-            const newEmailInput = document.getElementById('newEmail');
-            if (newEmailInput) {
-                newEmailInput.value = '';
-            }
-        }
-
         function editPhone() {
             currentEditType = 'phone';
             document.getElementById('modalTitle').textContent = 'Edit Phone Number';
@@ -640,25 +604,7 @@
         }
 
         async function saveModalChanges() {
-            if (currentEditType === 'email') {
-                const newEmailInput = document.getElementById('newEmail');
-                if (!newEmailInput) return;
-                const newEmail = newEmailInput.value.trim();
-                if (!newEmail) {
-                    showToast('Please enter a valid email address.', 'error');
-                    return;
-                }
-                if (!newEmailInput.checkValidity()) {
-                    newEmailInput.reportValidity();
-                    return;
-                }
-                currentEmail = newEmail;
-                sessionData.email = currentEmail;
-                persistSession();
-                syncSettingFields();
-                showToast('Email address updated successfully!', 'success');
-                closeModal();
-            } else if (currentEditType === 'phone') {
+            if (currentEditType === 'phone') {
                 const newPhoneInput = document.getElementById('newPhone');
                 if (!newPhoneInput) return;
                 const newPhone = newPhoneInput.value.trim();
