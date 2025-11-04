@@ -6,6 +6,8 @@
   <title>Student Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link href="student-dashboard.css" rel="stylesheet" />
+  <script src="../common/session-guard.js" defer></script>
+  <script src="../common/logout.js" defer></script>
 </head>
 <body class="bg-gray-50 font-poppins text-gray-800">
 
@@ -25,7 +27,7 @@
         <a href="#" class="block py-3 px-6 hover:bg-indigo-700 transition">🆘 Help & Support</a>
       </nav>
 
-      <a href="#" class="block py-3 px-6 mt-auto bg-indigo-800 hover:bg-red-600 text-center transition">🚪 Logout</a>
+      <a href="../Sign in/signin.html" data-tm-logout data-logout-redirect="../Sign in/signin.html" class="block py-3 px-6 mt-auto bg-indigo-800 hover:bg-red-600 text-center transition">🚪 Logout</a>
     </aside>
 
     <!-- Main Content -->

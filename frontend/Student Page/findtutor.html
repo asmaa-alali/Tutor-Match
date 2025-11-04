@@ -6,6 +6,8 @@
     <title>Find Tutors - Tutor Match</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="../common/session-guard.js" defer></script>
+    <script src="../common/logout.js" defer></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         
@@ -617,7 +619,7 @@
                     </span>
                     <i data-lucide="toggle-right" class="w-5 h-5"></i>
                 </button>
-                <a href="/Sign in/signin.html" class="block text-center px-4 py-3 rounded-xl bg-red-500/80 hover:bg-red-500 text-white font-medium">
+                <a href="/Sign in/signin.html" data-tm-logout data-logout-redirect="/Sign in/signin.html" class="block text-center px-4 py-3 rounded-xl bg-red-500/80 hover:bg-red-500 text-white font-medium">
                     <i data-lucide="log-out" class="inline w-5 h-5 mr-1 align-text-bottom"></i>
                     Log Out
                 </a>
