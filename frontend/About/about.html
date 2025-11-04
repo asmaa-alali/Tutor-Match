@@ -22,7 +22,7 @@
     <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-500">
         <div class="max-w-7xl mx-auto px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
-                <a href="index.html" class="flex items-center space-x-4 magnetic cursor-pointer">
+                <a href="index.html" id="about-brand-link" class="flex items-center space-x-4 magnetic cursor-pointer">
                     <div
                         class="w-12 h-12 liquid-morph bg-gradient-to-r from-blue-500 to-blue-800 flex items-center justify-center shadow-2xl">
                         <i data-lucide="graduation-cap" class="w-7 h-7 text-white"></i>
@@ -33,7 +33,7 @@
                     </span>
                 </a>
 
-                <div class="hidden md:flex items-center space-x-8">
+                <div id="desktop-nav-links" class="hidden md:flex items-center space-x-8">
                     <a href="/Homepage/home.html"
                         class="magnetic text-white hover:text-blue-300 font-medium transition-all duration-300">Home</a>
                     <a href="/FindTutor/find-tutor.html"
@@ -47,7 +47,7 @@
 
 
 
-                 <div class="flex items-center space-x-4">
+                 <div id="auth-links" class="flex items-center space-x-4">
     <a href="/Sign in/signin.html"
        class="magnetic text-white hover:text-blue-300 font-medium px-4 py-2 rounded-xl glass transition-all duration-300 hover:scale-105 flex items-center">
         <i data-lucide="log-in" class="w-4 h-4 inline mr-2"></i>
@@ -630,7 +630,7 @@
             </div>
         </div>
     </footer>
-
+    <script src="/common/session-nav.js"></script>
     <script src="about.js"></script>
 </body>
 
