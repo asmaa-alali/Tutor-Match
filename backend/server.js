@@ -337,6 +337,81 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+// -------------------- CHANGE PASSWORD --------------------
+app.post("/api/change-password", async (req, res) => {
+  const { userId, email, currentPassword, newPassword } = req.body || {};
+
+  if (
+    !userId ||
+    !email ||
+    typeof currentPassword !== "string" ||
+    typeof newPassword !== "string"
+  ) {
+    return res.status(400).json({ error: "Missing required fields." });
+  }
+
+  if (newPassword.length < 8) {
+    return res
+      .status(400)
+      .json({ error: "Password must be at least 8 characters long." });
+  }
+
+  if (currentPassword === newPassword) {
+    return res
+      .status(400)
+      .json({ error: "New password must be different from current password." });
+  }
+
+  const authClient = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+  );
+
+  try {
+    const { error: verifyError } = await authClient.auth.signInWithPassword({
+      email,
+      password: currentPassword,
+    });
+
+    if (verifyError) {
+      return res
+        .status(401)
+        .json({ error: "Current password is incorrect." });
+    }
+
+    const { error: updateError } = await supabase.auth.admin.updateUserById(
+      userId,
+      { password: newPassword }
+    );
+
+    if (updateError) {
+      console.error("Password update failed:", updateError);
+      return res.status(500).json({ error: "Unable to update password." });
+    }
+
+    const passwordUpdatedAt = new Date().toISOString();
+
+    return res.json({
+      message: "Password updated successfully.",
+      passwordUpdatedAt,
+    });
+  } catch (err) {
+    console.error("change-password error:", err);
+    return res
+      .status(500)
+      .json({ error: "Server error while updating password." });
+  } finally {
+    try {
+      await authClient.auth.signOut();
+    } catch (signOutErr) {
+      console.warn(
+        "Unable to clear auth session after password change",
+        signOutErr
+      );
+    }
+  }
+});
+
 // -------------------- GENERATE AND SEND LOGIN OTP --------------------
 import crypto from "crypto";
 import nodemailer from "nodemailer";

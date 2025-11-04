@@ -44,24 +44,28 @@
     return;
   }
 
-  const dashboardUrl = "/Student%20Page/StudentDashboard.html";
   const profileUrl = "/Student%20Page/MyProfile.html";
   const studentFindUrl = "/Student%20Page/findtutor.html";
 
   const navBrand = document.getElementById("about-brand-link");
   if (navBrand) {
-    navBrand.setAttribute("href", dashboardUrl);
+    navBrand.setAttribute("href", studentFindUrl);
   }
 
   const desktopNav = document.getElementById("desktop-nav-links");
   if (desktopNav) {
-    const adjustLink = (selector, href) => {
-      const link = desktopNav.querySelector(selector);
-      if (link) link.setAttribute("href", href);
-    };
+    const homeLink = desktopNav.querySelector('a[href="/Homepage/home.html"]');
+    if (homeLink) homeLink.remove();
 
-    adjustLink('a[href="/Homepage/home.html"]', dashboardUrl);
-    adjustLink('a[href="/FindTutor/find-tutor.html"]', studentFindUrl);
+    const findLink = desktopNav.querySelector(
+      'a[href="/FindTutor/find-tutor.html"]'
+    );
+    if (findLink) findLink.setAttribute("href", studentFindUrl);
+
+    const tutorLinks = desktopNav.querySelectorAll('a[href*="tutorsignup.html"]');
+    if (tutorLinks.length) {
+      tutorLinks.forEach((node) => node.remove());
+    }
   }
 
   const authLinks = document.getElementById("auth-links");
@@ -74,10 +78,10 @@
     const safeName = escapeHtml(firstName || "Student");
 
     authLinks.innerHTML = `
-      <a href="${dashboardUrl}"
+      <a href="${studentFindUrl}"
          class="magnetic text-white hover:text-blue-300 font-medium px-4 py-2 rounded-xl glass transition-all duration-300 hover:scale-105 flex items-center">
-        <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-2"></i>
-        Dashboard
+        <i data-lucide="search" class="w-4 h-4 inline mr-2"></i>
+        Find Tutors
       </a>
       <a href="${profileUrl}"
          class="magnetic bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-semibold px-6 py-2 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl flex items-center">

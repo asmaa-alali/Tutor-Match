@@ -416,7 +416,7 @@
     </div>
     <div id="modalContent">
     </div>
-    <div class="flex gap-3 mt-6"><button class="glass-btn-primary flex-1" onclick="saveModalChanges()"> <i data-lucide="check" class="w-4 h-4"></i> Save </button> <button class="glass-btn-primary bg-gray-600 hover:bg-gray-700 flex-1" onclick="closeModal()"> <i data-lucide="x" class="w-4 h-4"></i> Cancel </button>
+    <div class="flex gap-3 mt-6"><button id="modalSaveBtn" class="glass-btn-primary flex-1" onclick="saveModalChanges()"> <i data-lucide="check" class="w-4 h-4"></i> Save </button> <button class="glass-btn-primary bg-gray-600 hover:bg-gray-700 flex-1" onclick="closeModal()"> <i data-lucide="x" class="w-4 h-4"></i> Cancel </button>
     </div>
    </div>
   </div>
@@ -639,7 +639,7 @@
             currentEditType = '';
         }
 
-        function saveModalChanges() {
+        async function saveModalChanges() {
             if (currentEditType === 'email') {
                 const newEmailInput = document.getElementById('newEmail');
                 if (!newEmailInput) return;
@@ -676,18 +676,92 @@
                 showToast('Phone number updated successfully!', 'success');
                 closeModal();
             } else if (currentEditType === 'password') {
-                const newPassword = document.getElementById('newPassword').value;
-                const confirmPassword = document.getElementById('confirmNewPassword').value;
-                if (newPassword && newPassword === confirmPassword) {
-                    showToast('Password changed successfully!', 'success');
-                    const nowIso = new Date().toISOString();
+                const currentPasswordInput = document.getElementById('currentPassword');
+                const newPasswordInput = document.getElementById('newPassword');
+                const confirmPasswordInput = document.getElementById('confirmNewPassword');
+
+                if (!currentPasswordInput || !newPasswordInput || !confirmPasswordInput) {
+                    showToast('Password form is missing fields.', 'error');
+                    return;
+                }
+
+                const currentPassword = currentPasswordInput.value;
+                const newPassword = newPasswordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+
+                if (!currentPassword || !newPassword || !confirmPassword) {
+                    showToast('Please complete all password fields.', 'error');
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    showToast('Passwords do not match!', 'error');
+                    return;
+                }
+
+                if (newPassword.length < 8) {
+                    showToast('Password must be at least 8 characters long.', 'error');
+                    return;
+                }
+
+                if (currentPassword === newPassword) {
+                    showToast('New password must be different from the current password.', 'error');
+                    return;
+                }
+
+                if (!sessionData.userId || !sessionData.email) {
+                    showToast('Missing account details. Please sign in again.', 'error');
+                    return;
+                }
+
+                const saveButton = document.getElementById('modalSaveBtn');
+                const originalSaveContent = saveButton ? saveButton.innerHTML : '';
+
+                if (saveButton) {
+                    saveButton.disabled = true;
+                    saveButton.textContent = 'Saving...';
+                }
+
+                try {
+                    const response = await fetch("http://localhost:3000/api/change-password", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            userId: sessionData.userId,
+                            email: sessionData.email,
+                            currentPassword,
+                            newPassword
+                        })
+                    });
+
+                    const payload = await response.json().catch(() => ({}));
+
+                    if (!response.ok) {
+                        showToast(payload.error || 'Failed to change password.', 'error');
+                        return;
+                    }
+
+                    const nowIso = payload.passwordUpdatedAt || new Date().toISOString();
                     sessionData.passwordUpdatedAt = nowIso;
                     passwordUpdatedAt = nowIso;
                     persistSession();
                     syncSettingFields();
+                    showToast('Password changed successfully!', 'success');
                     closeModal();
-                } else {
-                    showToast('Passwords do not match!', 'error');
+                } catch (err) {
+                    console.error('Password update failed:', err);
+                    showToast('Server error, please try again later.', 'error');
+                } finally {
+                    if (saveButton) {
+                        saveButton.disabled = false;
+                        saveButton.innerHTML = originalSaveContent || '<i data-lucide="check" class="w-4 h-4"></i> Save';
+                        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                            lucide.createIcons();
+                        }
+                    }
+                    currentPasswordInput.value = '';
+                    newPasswordInput.value = '';
+                    confirmPasswordInput.value = '';
                 }
             }
         }
