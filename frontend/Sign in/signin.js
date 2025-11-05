@@ -265,7 +265,14 @@ function openOtpModal(email) {
     input.addEventListener("keydown", (e) => {
       if (e.key === "Backspace" && !input.value && i > 0) inputs[i - 1].focus();
     });
+    input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();   // block the global Enter submit
+      submitOtpCode();       // run Verify
+    }
   });
+});
 
   inputs[0].focus();
 
