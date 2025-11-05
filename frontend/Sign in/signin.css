@@ -267,3 +267,13 @@
                 height: 45px;
             }
         }
+
+        /* Ensure background also flips when .dark is on <html> */
+html.dark body {
+  background: linear-gradient(135deg, #000000 0%, #000000 100%);
+}
+/* Ensure readable text in LIGHT mode (no impact on dark) */
+html:not(.dark) .glass-card h1 { color: #111827 !important; }
+html:not(.dark) .glass-card p { color: #4b5563 !important; }
+html:not(.dark) .glass-card label { color: #374151 !important; }
+html:not(.dark) .glass-card .divider span { color: #64748b !important; }
