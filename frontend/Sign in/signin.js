@@ -8,10 +8,10 @@ let otpCanceled = false;
 
 // Theme Management
 function toggleTheme() {
-    document.body.classList.toggle('dark');
-    const isDark = document.body.classList.contains('dark');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    updateThemeIcon(isDark);
+  document.documentElement.classList.toggle('dark');         // ← html
+  const isDark = document.documentElement.classList.contains('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  updateThemeIcon(isDark);
 }
 
 function updateThemeIcon(isDark) {
@@ -26,9 +26,8 @@ const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
 
 if (isDark) {
-    document.body.classList.add('dark');
+  document.documentElement.classList.add('dark'); 
 }
-
 document.addEventListener('DOMContentLoaded', () => {
     updateThemeIcon(isDark);
 });
@@ -277,7 +276,14 @@ function openOtpModal(email) {
     input.addEventListener("keydown", (e) => {
       if (e.key === "Backspace" && !input.value && i > 0) inputs[i - 1].focus();
     });
+    input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();   // block the global Enter submit
+      submitOtpCode();       // run Verify
+    }
   });
+});
 
   inputs[0].focus();
 
