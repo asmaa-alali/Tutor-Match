@@ -1,12 +1,40 @@
 lucide.createIcons();
 
-const users = [
-  { id: 1, username: 'johndoe', email: 'john@example.com', status: 'active', role: 'user', joined: '2024-01-15', avatar: 'JD' },
-  { id: 2, username: 'janedoe', email: 'jane@example.com', status: 'active', role: 'moderator', joined: '2024-01-20', avatar: 'JD' },
-  { id: 3, username: 'mikebrown', email: 'mike@example.com', status: 'blocked', role: 'user', joined: '2024-02-01', avatar: 'MB' },
-  { id: 4, username: 'sarahwilson', email: 'sarah@example.com', status: 'active', role: 'user', joined: '2024-02-10', avatar: 'SW' },
-  { id: 5, username: 'tomjones', email: 'tom@example.com', status: 'active', role: 'user', joined: '2024-02-15', avatar: 'TJ' }
-];
+// Add this at the very top of the file
+
+// ==================== ADMIN SESSION GUARD ====================
+(function enforceAdminSession() {
+  const sessionData = localStorage.getItem("tmUserSession");
+  
+  if (!sessionData) {
+    alert("Access denied. Please log in as admin.");
+    window.location.href = "/Sign in/signin.html";
+    return;
+  }
+
+  try {
+    const session = JSON.parse(sessionData);
+    const userEmail = session.email || "";
+    const userRole = session.role || "";
+
+    // Check if admin
+    if (userEmail !== "admintm01@proton.me" && userRole !== "admin") {
+      alert("Access denied. Admin privileges required.");
+      window.location.href = "/Sign in/signin.html";
+      return;
+    }
+
+    console.log("✅ Admin access granted:", userEmail);
+  } catch (err) {
+    console.error("Session validation failed:", err);
+    localStorage.removeItem("tmUserSession");
+    window.location.href = "/Sign in/signin.html";
+  }
+})();
+
+
+
+let users = [];
 
 const posts = [
   { id: 1, user: 'johndoe', content: 'Just had an amazing day at the beach! 🏖️', type: 'text', status: 'active', date: '2024-03-01', reports: 0 },
@@ -16,13 +44,8 @@ const posts = [
   { id: 5, user: 'tomjones', content: 'Spam content with links', type: 'text', status: 'removed', date: '2024-03-05', reports: 5 }
 ];
 
-const activityLogs = [
-  { id: 1, action: 'User Blocked', details: 'Blocked user @mikebrown for violating community guidelines', admin: 'Admin User', timestamp: '2024-03-10 14:30:00', type: 'user' },
-  { id: 2, action: 'Post Removed', details: 'Removed inappropriate post by @tomjones', admin: 'Admin User', timestamp: '2024-03-10 14:25:00', type: 'post' },
-  { id: 3, action: 'User Unblocked', details: 'Unblocked user @janedoe after appeal review', admin: 'Admin User', timestamp: '2024-03-10 13:15:00', type: 'user' },
-  { id: 4, action: 'Post Approved', details: 'Approved reported post by @sarahwilson after review', admin: 'Admin User', timestamp: '2024-03-10 12:45:00', type: 'post' },
-  { id: 5, action: 'Settings Updated', details: 'Updated content moderation settings', admin: 'Admin User', timestamp: '2024-03-10 11:30:00', type: 'system' }
-];
+// Initialize with empty array - will be populated by user actions
+let activityLogs = [];
 
 let currentSection = 'dashboard';
 let filteredUsers = [...users];
@@ -51,10 +74,62 @@ if (isDark) {
 
 document.addEventListener('DOMContentLoaded', () => {
   updateThemeIcon(isDark);
-  loadUsers();
+  fetchUsers();
   loadPosts();
   loadActivityLog();
 });
+
+// Fetch users from backend admin API
+async function fetchUsers() {
+  try {
+    const sessionData = localStorage.getItem('tmUserSession');
+    const session = sessionData ? JSON.parse(sessionData) : null;
+    const email = (session && session.email) ? String(session.email).trim() : '';
+    
+    console.log('Fetching users with email:', email);
+
+    const res = await fetch('/api/admin/users', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-email': email
+      }
+    });
+
+    console.log('API response status:', res.status);
+    
+    if (!res.ok) {
+      const errorBody = await res.json();
+      console.error('API error response:', errorBody);
+      throw new Error(errorBody.error || 'Failed to fetch users');
+    }
+
+    const body = await res.json();
+    console.log('Users fetched:', body.users);
+    const remote = body.users || [];
+
+    // Map to UI expected shape
+    users = remote.map(u => ({
+      id: u.id,
+      username: u.username || (u.email ? u.email.split('@')[0] : 'user'),
+      email: u.email || '',
+      status: u.raw?.email_confirmed_at || u.email_confirmed_at ? 'active' : 'unverified',
+      role: u.role || 'user',
+      joined: u.created_at ? new Date(u.created_at).toLocaleDateString() : '',
+      avatar: (u.email && u.email.charAt(0).toUpperCase()) || 'U'
+    }));
+
+    filteredUsers = [...users];
+    loadUsers();
+    console.log('Users loaded successfully:', users.length, 'users');
+  } catch (err) {
+    console.error('fetchUsers error:', err);
+    showNotification('Unable to load users from server: ' + err.message, 'error');
+    // fallback to current users array (may be empty)
+    filteredUsers = [...users];
+    loadUsers();
+  }
+}
 
 function showSection(section) {
   document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
@@ -78,6 +153,7 @@ function loadUsers() {
   filteredUsers.forEach(user => {
     const row = document.createElement('tr');
     row.className = 'table-row';
+    const encodedEmail = encodeURIComponent(user.email);
     row.innerHTML = `
       <td class="py-3 px-4">
         <div class="flex items-center gap-3">
@@ -96,10 +172,11 @@ function loadUsers() {
       <td class="py-3 px-4">
         <div class="flex gap-2">
           ${user.status === 'active'
-            ? `<button class="btn-danger text-xs" onclick="blockUser(${user.id})">Block</button>`
-            : `<button class="btn-success text-xs" onclick="unblockUser(${user.id})">Unblock</button>`
+            ? `<button class="btn-danger text-xs" onclick="blockUser('${encodedEmail}')">Block</button>`
+            : `<button class="btn-success text-xs" onclick="unblockUser('${encodedEmail}')">Unblock</button>`
           }
-          <button class="btn-secondary text-xs" onclick="viewUser(${user.id})">View</button>
+          <button class="btn-secondary text-xs" onclick="viewUser('${encodedEmail}')">View</button>
+          <button class="btn-danger text-xs" onclick="deleteUser('${encodedEmail}')" style="background-color: #dc2626;">Delete</button>
         </div>
       </td>
     `;
@@ -131,35 +208,97 @@ function resetUserFilters() {
   loadUsers();
 }
 
-function blockUser(userId) {
-  const user = users.find(u => u.id === userId);
+function blockUser(userEmail) {
+  userEmail = decodeURIComponent(userEmail);
+  const user = users.find(u => u.email === userEmail);
+  if (!user) {
+    showNotification('User not found', 'error');
+    return;
+  }
   showConfirmModal(
-    `Are you sure you want to block user "${user.username}"? They will no longer be able to access the website.`,
+    `Are you sure you want to block user "${user.email}"? They will no longer be able to access the website.`,
     () => {
       user.status = 'blocked';
-      logActivity('User Blocked', `Blocked user @${user.username} for violating community guidelines`);
+      logActivity('User Blocked', `Blocked user ${user.email} for violating community guidelines`);
       loadUsers();
-      showNotification(`User ${user.username} has been blocked`, 'success');
+      showNotification(`User ${user.email} has been blocked`, 'success');
     }
   );
 }
 
-function unblockUser(userId) {
-  const user = users.find(u => u.id === userId);
+function unblockUser(userEmail) {
+  userEmail = decodeURIComponent(userEmail);
+  const user = users.find(u => u.email === userEmail);
+  if (!user) {
+    showNotification('User not found', 'error');
+    return;
+  }
   showConfirmModal(
-    `Are you sure you want to unblock user "${user.username}"? They will regain access to the website.`,
+    `Are you sure you want to unblock user "${user.email}"? They will regain access to the website.`,
     () => {
       user.status = 'active';
-      logActivity('User Unblocked', `Unblocked user @${user.username} after review`);
+      logActivity('User Unblocked', `Unblocked user ${user.email} after review`);
       loadUsers();
-      showNotification(`User ${user.username} has been unblocked`, 'success');
+      showNotification(`User ${user.email} has been unblocked`, 'success');
     }
   );
 }
 
-function viewUser(userId) {
-  const user = users.find(u => u.id === userId);
-  showNotification(`Viewing details for ${user.username}`, 'success');
+function viewUser(userEmail) {
+  userEmail = decodeURIComponent(userEmail);
+  const user = users.find(u => u.email === userEmail);
+  if (!user) {
+    showNotification('User not found', 'error');
+    return;
+  }
+  showNotification(`Viewing details for ${user.email}`, 'success');
+}
+
+function deleteUser(userEmail) {
+  userEmail = decodeURIComponent(userEmail);
+  const user = users.find(u => u.email === userEmail);
+  if (!user) {
+    showNotification('User not found', 'error');
+    return;
+  }
+  showConfirmModal(
+    `Are you sure you want to permanently delete user "${user.email}"? This action cannot be undone.`,
+    async () => {
+      try {
+        const session = JSON.parse(localStorage.getItem('tmUserSession') || 'null');
+        const adminEmail = (session && session.email) ? String(session.email).trim() : '';
+        
+        const res = await fetch('/api/admin/delete-user', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-email': adminEmail
+          },
+          body: JSON.stringify({ userEmail: user.email })
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          showNotification(error.error || 'Failed to delete user', 'error');
+          return;
+        }
+
+        // Remove user from local array
+        const index = users.findIndex(u => u.email === user.email);
+        if (index > -1) {
+          users.splice(index, 1);
+        }
+        filteredUsers = [...users];
+        
+        logActivity('User Deleted', `Deleted user ${user.email} permanently`);
+        loadUsers();
+        showNotification(`User ${user.email} has been deleted`, 'success');
+      } catch (err) {
+        console.error('Delete user error:', err);
+        showNotification('Server error, could not delete user', 'error');
+      }
+    }
+  );
 }
 
 function loadPosts() {
@@ -289,11 +428,15 @@ function loadActivityLog() {
 }
 
 function logActivity(action, details) {
+  const sessionData = localStorage.getItem('tmUserSession');
+  const session = sessionData ? JSON.parse(sessionData) : {};
+  const adminEmail = session.email || 'Admin User';
+  
   const newLog = {
     id: activityLogs.length + 1,
     action: action,
     details: details,
-    admin: 'Admin User',
+    admin: adminEmail,
     timestamp: new Date().toLocaleString(),
     type: action.toLowerCase().includes('user') ? 'user' : 'post'
   };
@@ -349,6 +492,20 @@ document.addEventListener('click', function(e) {
     sidebar.classList.remove('open');
   }
 });
+
+// Admin Logout Function
+function adminLogout() {
+  if (confirm("Are you sure you want to logout?")) {
+    localStorage.removeItem("tmUserSession");
+    showNotification("Logged out successfully", "success");
+    setTimeout(() => {
+      window.location.href = "/Sign in/signin.html";
+    }, 1000);
+  }
+}
+
+// Make it available globally
+window.adminLogout = adminLogout;
 
 /* === Cloudflare snippet moved as-is (unchanged) === */
 (function(){

@@ -71,20 +71,24 @@
       </nav>
 
       <div class="mt-auto pt-8">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
               <span class="text-white text-sm font-semibold">A</span>
             </div>
             <div>
               <p class="text-white text-sm font-medium">Admin User</p>
-              <p class="text-gray-400 text-xs">admin@site.com</p>
+              <p class="text-gray-400 text-xs">admintm01@proton.me</p>
             </div>
           </div>
           <div class="theme-toggle" onclick="toggleTheme()">
             <i data-lucide="sun" class="w-4 h-4 text-white" id="themeIcon"></i>
           </div>
         </div>
+        <button onclick="adminLogout()" class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors duration-200">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span class="text-sm font-medium">Logout</span>
+        </button>
       </div>
     </div>
 

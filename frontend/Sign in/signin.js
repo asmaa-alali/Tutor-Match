@@ -152,13 +152,25 @@ document.getElementById("signInForm").addEventListener("submit", async function 
     loginAttempts = 0;
     lockUntil = null;
     // ✅ ADMIN LOGIN SHORTCUT (place here)
+// if (data.role === "admin") {
+//   showNotification("Welcome Admin! Redirecting...", "success");
+//   setTimeout(() => {
+//     window.location.href = "/Adminpage/AdminPage.html";
+//   }, 1000);
+//   return; // stop here, skip OTP
+// }
 if (data.role === "admin") {
+  // Store admin session
+  lastLoginEmail = email; // ✅ Set email before persist
+  persistUserSession(); // ✅ Save to localStorage
+  
   showNotification("Welcome Admin! Redirecting...", "success");
   setTimeout(() => {
     window.location.href = "/Adminpage/AdminPage.html";
   }, 1000);
   return; // stop here, skip OTP
 }
+
 
     // ✅ Step 7: Send OTP (only if not canceled)
 if (otpCanceled) {

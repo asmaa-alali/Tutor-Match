@@ -43,6 +43,131 @@ app.use(
 );
 app.use("/", express.static(path.join(__dirname, "../frontend")));
 
+// -------------------- ADMIN MIDDLEWARE --------------------
+// Admin authentication middleware - use on admin-only routes
+function requireAdmin(req, res, next) {
+  try {
+    const bodyEmail = (req.body && typeof req.body === 'object' && req.body.email) || null;
+    const queryEmail = (req.query && typeof req.query === 'object' && req.query.email) || null;
+    const headerEmail = req.headers && req.headers['x-user-email'] ? String(req.headers['x-user-email']).trim() : null;
+    
+    const email = bodyEmail || queryEmail || headerEmail || '';
+    
+    if (!email || email !== "admintm01@proton.me") {
+      return res.status(403).json({
+        error: "Access denied. Admin privileges required."
+      });
+    }
+    
+    next();
+  } catch (err) {
+    console.error('requireAdmin error:', err);
+    return res.status(500).json({ error: 'Server error checking admin privileges' });
+  }
+}
+
+// Export for use in routes
+// Example usage: app.get("/api/admin/users", requireAdmin, async (req, res) => { ... });
+
+// -------------------- ADMIN API ROUTES --------------------
+// Returns a list of users (protected)
+app.get('/api/admin/users', requireAdmin, async (req, res) => {
+  try {
+    // Use Supabase admin API to list auth users
+    const { data: allUsers, error } = await supabase.auth.admin.listUsers();
+    if (error) {
+      console.error('Error listing users:', error);
+      return res.status(500).json({ error: 'Failed to fetch users' });
+    }
+
+    // allUsers has shape { users: [...] }
+    const rawUsers = allUsers.users || [];
+
+    // Map to the frontend-friendly shape
+    const users = rawUsers.map((u) => ({
+      id: u.id,
+      email: u.email,
+      username: (u.user_metadata && (u.user_metadata.username || u.user_metadata.name)) || (u.email ? u.email.split('@')[0] : ''),
+      role: (u.user_metadata && u.user_metadata.role) || 'user',
+      created_at: u.created_at,
+      email_confirmed_at: u.email_confirmed_at,
+      raw: u,
+    }));
+
+    return res.json({ users });
+  } catch (err) {
+    console.error('Admin users route error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Delete a user (protected - admin only)
+app.delete('/api/admin/delete-user', requireAdmin, async (req, res) => {
+  try {
+    const { userEmail } = req.body;
+
+    if (!userEmail) {
+      return res.status(400).json({ error: 'User email is required' });
+    }
+
+    // Prevent deleting the admin user
+    if (userEmail === 'admintm01@proton.me') {
+      return res.status(403).json({ error: 'Cannot delete admin user' });
+    }
+
+    // Find user in Supabase Auth
+    const { data: allUsers, error: listError } = await supabase.auth.admin.listUsers();
+    if (listError) {
+      console.error('Error listing users:', listError);
+      return res.status(500).json({ error: 'Failed to fetch users' });
+    }
+
+    const userToDelete = (allUsers.users || []).find(u => u.email === userEmail);
+    if (!userToDelete) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const userId = userToDelete.id;
+    const userRole = userToDelete.user_metadata?.role || 'user';
+
+    // Try to delete from role-specific tables (if they exist)
+    try {
+      if (userRole === 'student') {
+        await supabase.from('students').delete().eq('id', userId);
+      } else if (userRole === 'tutor') {
+        await supabase.from('tutors').delete().eq('id', userId);
+      }
+    } catch (tableErr) {
+      console.warn('Warning: Could not delete from role tables:', tableErr.message);
+      // Continue anyway - the auth user will still be deleted
+    }
+
+    // Try to delete from users table (if it exists)
+    try {
+      await supabase.from('users').delete().eq('id', userId);
+    } catch (tableErr) {
+      console.warn('Warning: Could not delete from users table:', tableErr.message);
+      // Continue anyway
+    }
+
+    // Delete from Supabase Auth (this is the critical part)
+    const { error: deleteError } = await supabase.auth.admin.deleteUser(userId);
+    if (deleteError) {
+      console.error('Error deleting user from auth:', deleteError);
+      return res.status(500).json({ error: 'Failed to delete user: ' + deleteError.message });
+    }
+
+    console.log(`✅ User ${userEmail} deleted successfully`);
+    return res.json({
+      success: true,
+      message: `User ${userEmail} has been deleted`
+    });
+  } catch (err) {
+    console.error('Delete user error:', err);
+    return res.status(500).json({ error: 'Server error: ' + err.message });
+  }
+});
+
 const ensureDirectory = async (dirPath) => {
   try {
     await fs.promises.mkdir(dirPath, { recursive: true });
