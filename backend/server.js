@@ -1028,6 +1028,29 @@ app.put("/api/students/profile", async (req, res) => {
     res.status(500).json({ error: "Unexpected server error." });
   }
 });
+// -------------------- FETCH TUTOR PROFILE --------------------
+app.get("/api/tutors/profile/:userId", async (req, res) => {
+  try {
+    const userId = (req.params.userId || "").trim();
+    if (!userId) return res.status(400).json({ error: "Missing user ID." });
+
+    const { data, error } = await supabase
+      .from("tutors")
+      .select("*")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (error || !data) {
+      console.error("Tutor lookup error:", error);
+      return res.status(404).json({ error: "Tutor not found." });
+    }
+
+    res.status(200).json({ tutor: data });
+  } catch (err) {
+    console.error("Error fetching tutor profile:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 // -------------------- EMAIL VERIFIED WEBHOOK --------------------
 app.post("/api/webhook/auth", async (req, res) => {

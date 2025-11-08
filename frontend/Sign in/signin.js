@@ -334,7 +334,8 @@ async function submitOtpCode() {
       if (role === "student") {
         window.location.href = "/Student%20Page/findtutor.html";
       } else if (role === "tutor") {
-        window.location.href = "/tutor-profile.html";
+        localStorage.setItem("tutorId", lastLoginUserId);
+   window.location.href = "/Tutor Page/tutorpage.html";
       } else {
         window.location.href = "/Homepage/home.html";
       }
