@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tutorId = localStorage.getItem("tutorId");
   if (!tutorId) {
     alert("No tutor logged in. Redirecting...");
-    window.location.href = "/Signin/signin.html"; // fix path consistency
+    window.location.href = "/Homepage/home.html"; // redirect to homepage
     return;
   }
 
@@ -39,16 +39,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch (err) {
     console.error("Tutor page error:", err);
     alert("Could not load your profile. Please sign in again.");
-    window.location.href = "/Signin/signin.html";
+    window.location.href = "/Homepage/home.html";
   }
 
   // ✅ Logout
   const logoutBtn = document.querySelector(".logout");
-  if (logoutBtn) {
+  if (logoutBtn && !logoutBtn.hasAttribute("data-tm-logout")) {
     logoutBtn.addEventListener("click", () => {
       localStorage.removeItem("tutorId");
       localStorage.removeItem("tmUserSession");
-      window.location.href = "/Signin/signin.html";
+      window.location.href = "/Homepage/home.html";
     });
   }
 
@@ -272,3 +272,7 @@ function initUIHandlers() {
     });
   };
 })();
+
+
+
+

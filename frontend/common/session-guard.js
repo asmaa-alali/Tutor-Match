@@ -1,7 +1,7 @@
 (function () {
   const SESSION_KEY = "tmUserSession";
-  const SIGNIN_HREF = "/Sign in/signin.html";
-  const SIGNIN_PATH = "/Sign%20in/signin.html";
+  const SIGNIN_HREF = "/Homepage/home.html";
+  const SIGNIN_PATH = "/Homepage/home.html";
 
   const hasActiveSession = () => {
     try {

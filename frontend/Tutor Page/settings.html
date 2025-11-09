@@ -822,9 +822,43 @@
             document.body.appendChild(confirmDelete);
             lucide.createIcons();
 
-            window.confirmDelete = function() {
-                showToast('Account deletion process started', 'error');
-                document.body.removeChild(confirmDelete);
+            window.confirmDelete = async function() {
+                const HOME = '/Homepage/home.html';
+                try {
+                    const raw = localStorage.getItem('tmUserSession');
+                    let userId = null;
+                    if (raw) {
+                        try { userId = (JSON.parse(raw) || {}).userId || null; } catch (_) { /* ignore */ }
+                    }
+                    if (!userId) {
+                        showToast('Could not determine your account. Please sign in again.', 'error');
+                        document.body.removeChild(confirmDelete);
+                        return;
+                    }
+
+                    const resp = await fetch('/api/account/delete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId })
+                    });
+
+                    if (!resp.ok) {
+                        const err = await resp.json().catch(() => ({ error: 'Unknown error' }));
+                        showToast(err.error || 'Failed to delete account', 'error');
+                        document.body.removeChild(confirmDelete);
+                        return;
+                    }
+
+                    try { localStorage.removeItem('tmUserSession'); } catch (_) { /* ignore */ }
+                    try { sessionStorage.removeItem('tmUserSession'); } catch (_) { /* ignore */ }
+                    showToast('Your account has been deleted.', 'success');
+                    document.body.removeChild(confirmDelete);
+                    window.location.assign(HOME);
+                } catch (e) {
+                    console.warn('Delete account failed:', e);
+                    showToast('Unexpected error during deletion', 'error');
+                    document.body.removeChild(confirmDelete);
+                }
             };
 
             window.cancelDelete = function() {

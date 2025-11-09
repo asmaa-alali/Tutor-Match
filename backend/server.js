@@ -168,6 +168,45 @@ app.delete('/api/admin/delete-user', requireAdmin, async (req, res) => {
   }
 });
 
+// Delete the currently logged-in user's account (self-service)
+app.post('/api/account/delete', async (req, res) => {
+  try {
+    const { userId } = req.body || {};
+    if (!userId || typeof userId !== 'string' || !userId.trim()) {
+      return res.status(400).json({ error: 'Missing or invalid userId' });
+    }
+
+    // Best-effort delete from app tables
+    try {
+      await supabase.from('students').delete().eq('id', userId);
+    } catch (e) {
+      console.warn('Warning: Could not delete from students table:', e?.message || e);
+    }
+    try {
+      await supabase.from('tutors').delete().eq('id', userId);
+    } catch (e) {
+      console.warn('Warning: Could not delete from tutors table:', e?.message || e);
+    }
+    try {
+      await supabase.from('users').delete().eq('id', userId);
+    } catch (e) {
+      console.warn('Warning: Could not delete from users table:', e?.message || e);
+    }
+
+    // Delete from Supabase Auth (critical)
+    const { error } = await supabase.auth.admin.deleteUser(userId);
+    if (error) {
+      console.error('Error deleting auth user:', error);
+      return res.status(500).json({ error: 'Failed to delete account: ' + error.message });
+    }
+
+    return res.json({ success: true, message: 'Account deleted' });
+  } catch (err) {
+    console.error('Self account delete error:', err);
+    return res.status(500).json({ error: 'Server error: ' + (err?.message || String(err)) });
+  }
+});
+
 const ensureDirectory = async (dirPath) => {
   try {
     await fs.promises.mkdir(dirPath, { recursive: true });
