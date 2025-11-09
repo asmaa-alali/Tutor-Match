@@ -28,10 +28,27 @@
     window.location.replace(SIGNIN_HREF);
   };
 
-  const enforceSession = () => {
+  const enforceSession = async () => {
     if (!hasActiveSession()) {
       redirectToSignIn();
+      return;
     }
+    // Best-effort: verify server-side block status
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      const sess = raw ? JSON.parse(raw) : null;
+      const userId = sess && sess.userId;
+      if (!userId) return;
+      const res = await fetch(`/api/account/status?userId=${encodeURIComponent(userId)}`);
+      if (res.ok) {
+        const body = await res.json();
+        if (body && body.blocked) {
+          try { localStorage.removeItem(SESSION_KEY); } catch (_) {}
+          alert(body.reason || 'Your account has been blocked.');
+          redirectToSignIn();
+        }
+      }
+    } catch (_) { /* ignore: keep UX resilient */ }
   };
 
   enforceSession();

@@ -391,8 +391,7 @@ app.post('/api/admin/block-user', requireAdmin, async (req, res) => {
     };
 
     const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
-      // Long ban duration; some GoTrue instances also accept 'forever'
-      ban_duration: '100 years',
+      // Rely on user_metadata.flag and app-level checks for blocking
       user_metadata: newMeta,
     });
     if (updateError) {
@@ -430,7 +429,6 @@ app.post('/api/admin/unblock-user', requireAdmin, async (req, res) => {
     delete newMeta.blocked_at;
 
     const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
-      ban_duration: 'none',
       user_metadata: newMeta,
     });
     if (updateError) {
@@ -484,6 +482,23 @@ app.post('/api/account/delete', async (req, res) => {
   } catch (err) {
     console.error('Self account delete error:', err);
     return res.status(500).json({ error: 'Server error: ' + (err?.message || String(err)) });
+  }
+});
+
+// Lightweight status endpoint for clients to verify if account is blocked
+app.get('/api/account/status', async (req, res) => {
+  try {
+    const userId = (req.query?.userId || '').toString().trim();
+    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+    const { data, error } = await supabase.auth.admin.getUserById(userId);
+    if (error || !data?.user) return res.status(404).json({ error: 'User not found' });
+    const u = data.user;
+    const blocked = u.user_metadata?.blocked === true;
+    const reason = u.user_metadata?.blocked_reason || null;
+    return res.json({ blocked, reason });
+  } catch (err) {
+    console.error('account status error:', err);
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -861,6 +876,11 @@ app.post("/api/login", async (req, res) => {
     }
 
     // 4️⃣ Normal user (tutor/student)
+    // Blocked account check
+    if (user.user_metadata && user.user_metadata.blocked === true) {
+      const reason = user.user_metadata.blocked_reason || "Your account has been blocked by an administrator.";
+      return res.status(403).json({ error: reason });
+    }
     const role = user.user_metadata?.role || "unknown";
 
     res.status(200).json({
