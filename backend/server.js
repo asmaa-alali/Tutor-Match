@@ -350,13 +350,94 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
     let blockedUsers = 0;
     try {
       const { data: allUsers } = await supabase.auth.admin.listUsers();
-      blockedUsers = (allUsers?.users || []).filter(u => !u.email_confirmed_at).length;
+      const all = (allUsers?.users || []);
+      // Count users explicitly flagged as blocked in metadata or banned by auth
+      blockedUsers = all.filter(u => {
+        const metaBlocked = !!(u.user_metadata && (u.user_metadata.blocked === true));
+        const bannedUntil = u.banned_until || u.raw_app_meta_data?.banned_until || u.raw_user_meta_data?.banned_until;
+        return metaBlocked || !!bannedUntil;
+      }).length;
     } catch (_) {}
 
     res.json({ totalUsers, blockedUsers, totalPosts: 0, removedPosts: 0 });
   } catch (err) {
     console.error('stats error:', err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// -------------------- ADMIN: BLOCK / UNBLOCK USER --------------------
+// Block a user account (prevent sign-in) and mark metadata
+app.post('/api/admin/block-user', requireAdmin, async (req, res) => {
+  try {
+    const { userEmail } = req.body || {};
+    if (!userEmail || typeof userEmail !== 'string') {
+      return res.status(400).json({ error: 'Missing userEmail' });
+    }
+    const targetEmail = userEmail.trim().toLowerCase();
+
+    // Find auth user by email
+    const { data: listData, error: listErr } = await supabase.auth.admin.listUsers();
+    if (listErr) return res.status(500).json({ error: 'Failed to query users' });
+    const authUser = (listData?.users || []).find(u => String(u.email || '').toLowerCase() === targetEmail);
+    if (!authUser) return res.status(404).json({ error: 'User not found' });
+
+    // Merge metadata and set blocked flag
+    const newMeta = { ...(authUser.user_metadata || {}), blocked: true };
+
+    const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
+      // Long ban duration; some GoTrue instances also accept 'forever'
+      ban_duration: '100 years',
+      user_metadata: newMeta,
+    });
+    if (updateError) {
+      console.error('block-user update error:', updateError);
+      return res.status(500).json({ error: 'Unable to block user' });
+    }
+
+    // Best-effort mirror to app table if present
+    try { await supabase.from('users').update({ blocked: true }).eq('id', authUser.id); } catch (_) {}
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('block-user error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Unblock a user account
+app.post('/api/admin/unblock-user', requireAdmin, async (req, res) => {
+  try {
+    const { userEmail } = req.body || {};
+    if (!userEmail || typeof userEmail !== 'string') {
+      return res.status(400).json({ error: 'Missing userEmail' });
+    }
+    const targetEmail = userEmail.trim().toLowerCase();
+
+    const { data: listData, error: listErr } = await supabase.auth.admin.listUsers();
+    if (listErr) return res.status(500).json({ error: 'Failed to query users' });
+    const authUser = (listData?.users || []).find(u => String(u.email || '').toLowerCase() === targetEmail);
+    if (!authUser) return res.status(404).json({ error: 'User not found' });
+
+    const newMeta = { ...(authUser.user_metadata || {}) };
+    delete newMeta.blocked;
+
+    const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
+      ban_duration: 'none',
+      user_metadata: newMeta,
+    });
+    if (updateError) {
+      console.error('unblock-user update error:', updateError);
+      return res.status(500).json({ error: 'Unable to unblock user' });
+    }
+
+    // Mirror to app table
+    try { await supabase.from('users').update({ blocked: false }).eq('id', authUser.id); } catch (_) {}
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('unblock-user error:', err);
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 

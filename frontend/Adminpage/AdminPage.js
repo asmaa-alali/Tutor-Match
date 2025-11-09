@@ -135,15 +135,21 @@ async function fetchUsers() {
     const remote = body.users || [];
 
     // Map to UI expected shape
-    users = remote.map(u => ({
-      id: u.id,
-      username: u.username || (u.email ? u.email.split('@')[0] : 'user'),
-      email: u.email || '',
-      status: u.raw?.email_confirmed_at || u.email_confirmed_at ? 'active' : 'unverified',
-      role: u.role || 'user',
-      joined: u.created_at ? new Date(u.created_at).toLocaleDateString() : '',
-      avatar: (u.email && u.email.charAt(0).toUpperCase()) || 'U'
-    }));
+    users = remote.map(u => {
+      const meta = u.raw?.user_metadata || u.user_metadata || {};
+      const isBlocked = !!(meta.blocked === true) || !!u.banned_until;
+      const status = isBlocked ? 'blocked' : (u.raw?.email_confirmed_at || u.email_confirmed_at ? 'active' : 'unverified');
+      return ({
+        id: u.id,
+        username: u.username || (u.email ? u.email.split('@')[0] : 'user'),
+        email: u.email || '',
+        status,
+        role: u.role || (meta.role || 'user'),
+        joined: u.created_at ? new Date(u.created_at).toLocaleDateString() : '',
+        avatar: (u.email && u.email.charAt(0).toUpperCase()) || 'U',
+        raw: u,
+      });
+    });
 
     filteredUsers = [...users];
     loadUsers();
@@ -197,9 +203,9 @@ function loadUsers() {
       <td class="py-3 px-4 text-gray-600 dark:text-gray-300">${user.joined}</td>
       <td class="py-3 px-4">
         <div class="flex gap-2">
-          ${user.status === 'active'
-            ? `<button class="btn-danger text-xs" onclick="blockUser('${encodedEmail}')">Block</button>`
-            : `<button class="btn-success text-xs" onclick="unblockUser('${encodedEmail}')">Unblock</button>`
+          ${user.status === 'blocked'
+            ? `<button class=\"btn-success text-xs\" onclick=\"unblockUser('${encodedEmail}')\">Unblock</button>`
+            : `<button class=\"btn-danger text-xs\" onclick=\"blockUser('${encodedEmail}')\">Block</button>`
           }
           <button class="btn-secondary text-xs" onclick="viewUser('${encodedEmail}')">View</button>
           <button class="btn-danger text-xs" onclick="deleteUser('${encodedEmail}')" style="background-color: #dc2626;">Delete</button>
@@ -485,7 +491,7 @@ function resetUserFilters() {
   loadUsers();
 }
 
-function blockUser(userEmail) {
+async function blockUser(userEmail) {
   userEmail = decodeURIComponent(userEmail);
   const user = users.find(u => u.email === userEmail);
   if (!user) {
@@ -494,16 +500,33 @@ function blockUser(userEmail) {
   }
   showConfirmModal(
     `Are you sure you want to block user "${user.email}"? They will no longer be able to access the website.`,
-    () => {
-      user.status = 'blocked';
-      logActivity('User Blocked', `Blocked user ${user.email} for violating community guidelines`);
-      loadUsers();
-      showNotification(`User ${user.email} has been blocked`, 'success');
+    async () => {
+      try {
+        const session = JSON.parse(localStorage.getItem('tmUserSession') || 'null');
+        const adminEmail = (session && session.email) ? String(session.email).trim() : '';
+        const res = await fetch('/api/admin/block-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-email': adminEmail },
+          body: JSON.stringify({ userEmail: user.email })
+        });
+        if (!res.ok) {
+          const e = await res.json().catch(() => ({}));
+          return showNotification(e.error || 'Failed to block user', 'error');
+        }
+        user.status = 'blocked';
+        logActivity('User Blocked', `Blocked user ${user.email} for violating community guidelines`);
+        loadUsers();
+        fetchDashboardStats();
+        showNotification(`User ${user.email} has been blocked`, 'success');
+      } catch (err) {
+        console.error('blockUser error:', err);
+        showNotification('Server error, could not block user', 'error');
+      }
     }
   );
 }
 
-function unblockUser(userEmail) {
+async function unblockUser(userEmail) {
   userEmail = decodeURIComponent(userEmail);
   const user = users.find(u => u.email === userEmail);
   if (!user) {
@@ -512,11 +535,28 @@ function unblockUser(userEmail) {
   }
   showConfirmModal(
     `Are you sure you want to unblock user "${user.email}"? They will regain access to the website.`,
-    () => {
-      user.status = 'active';
-      logActivity('User Unblocked', `Unblocked user ${user.email} after review`);
-      loadUsers();
-      showNotification(`User ${user.email} has been unblocked`, 'success');
+    async () => {
+      try {
+        const session = JSON.parse(localStorage.getItem('tmUserSession') || 'null');
+        const adminEmail = (session && session.email) ? String(session.email).trim() : '';
+        const res = await fetch('/api/admin/unblock-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-user-email': adminEmail },
+          body: JSON.stringify({ userEmail: user.email })
+        });
+        if (!res.ok) {
+          const e = await res.json().catch(() => ({}));
+          return showNotification(e.error || 'Failed to unblock user', 'error');
+        }
+        user.status = 'active';
+        logActivity('User Unblocked', `Unblocked user ${user.email} after review`);
+        loadUsers();
+        fetchDashboardStats();
+        showNotification(`User ${user.email} has been unblocked`, 'success');
+      } catch (err) {
+        console.error('unblockUser error:', err);
+        showNotification('Server error, could not unblock user', 'error');
+      }
     }
   );
 }
@@ -528,7 +568,48 @@ function viewUser(userEmail) {
     showNotification('User not found', 'error');
     return;
   }
-  showNotification(`Viewing details for ${user.email}`, 'success');
+  // Ensure modal exists
+  let modal = document.getElementById('userDetailsModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'userDetailsModal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width:640px">
+        <div class="flex items-center gap-3 mb-4">
+          <i data-lucide="user" class="w-6 h-6 text-blue-500"></i>
+          <h3 class="text-lg font-semibold">User Details</h3>
+        </div>
+        <div id="userDetailsBody" class="space-y-3 text-gray-700 dark:text-gray-200"></div>
+        <div class="flex gap-3 justify-end mt-6">
+          <button class="btn-secondary" onclick="hideUserDetails()">Close</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    try { lucide.createIcons(); } catch (_) {}
+  }
+
+  const body = document.getElementById('userDetailsBody');
+  if (body) {
+    const rows = [
+      ['Username', user.username || '-'],
+      ['Email', user.email || '-'],
+      ['Status', user.status || '-'],
+      ['Role', user.role || '-'],
+      ['Joined', user.joined || '-'],
+    ];
+    body.innerHTML = rows.map(([k,v]) => `
+      <div class="grid grid-cols-3 gap-2">
+        <div class="text-sm text-gray-500">${k}</div>
+        <div class="col-span-2 font-medium">${v}</div>
+      </div>`).join('');
+  }
+  modal.classList.add('show');
+}
+
+function hideUserDetails() {
+  const modal = document.getElementById('userDetailsModal');
+  if (modal) modal.classList.remove('show');
 }
 
 function deleteUser(userEmail) {

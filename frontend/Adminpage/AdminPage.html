@@ -355,6 +355,26 @@
       try { lucide.createIcons(); } catch (e) {}
     };
     buildDetailsModal();
+
+    // Build a reusable user details modal if not present (used by View buttons)
+    if (!document.getElementById('userDetailsModal')) {
+      const modal = document.createElement('div');
+      modal.id = 'userDetailsModal';
+      modal.className = 'modal';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 640px;">
+          <div class="flex items-center gap-3 mb-4">
+            <i data-lucide="user" class="w-6 h-6 text-blue-500"></i>
+            <h3 class="text-lg font-semibold">User Details</h3>
+          </div>
+          <div id="userDetailsBody" class="space-y-3 text-gray-700 dark:text-gray-200"></div>
+          <div class="flex gap-3 justify-end mt-6">
+            <button class="btn-secondary" onclick="hideUserDetails()">Close</button>
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+      try { lucide.createIcons(); } catch (e) {}
+    }
   </script>
 </body>
 </html>
