@@ -79,7 +79,31 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchUsers();
   fetchTutorRequests();
   // Posts and Activity sections were removed
+  fetchDashboardStats();
 });
+
+async function fetchDashboardStats() {
+  try {
+    const sessionData = localStorage.getItem('tmUserSession');
+    const session = sessionData ? JSON.parse(sessionData) : null;
+    const email = (session && session.email) ? String(session.email).trim() : '';
+
+    const res = await fetch('/api/admin/stats', {
+      method: 'GET',
+      headers: { 'x-user-email': email }
+    });
+    if (!res.ok) throw new Error((await res.json()).error || 'Failed to load stats');
+    const body = await res.json();
+    const { totalUsers = 0, blockedUsers = 0, totalPosts = 0, removedPosts = 0 } = body || {};
+    const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = String(val); };
+    setText('totalUsersCount', totalUsers);
+    setText('blockedUsersCount', blockedUsers);
+    setText('totalPostsCount', totalPosts);
+    setText('removedPostsCount', removedPosts);
+  } catch (err) {
+    console.error('fetchDashboardStats error:', err);
+  }
+}
 
 // Fetch users from backend admin API
 async function fetchUsers() {
@@ -749,11 +773,11 @@ document.addEventListener('click', function(e) {
 // Admin Logout Function
 function adminLogout() {
   if (confirm("Are you sure you want to logout?")) {
-    localStorage.removeItem("tmUserSession");
+    try { localStorage.removeItem("tmUserSession"); } catch (_) {}
     showNotification("Logged out successfully", "success");
     setTimeout(() => {
-      window.location.href = "/Sign in/signin.html";
-    }, 1000);
+      window.location.href = "/Homepage/home.html";
+    }, 600);
   }
 }
 

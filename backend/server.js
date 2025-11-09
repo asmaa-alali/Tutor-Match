@@ -334,6 +334,32 @@ app.post('/api/admin/tutor-requests/accept', requireAdmin, async (req, res) => {
   }
 });
 
+// Admin dashboard stats: total users and unverified users
+app.get('/api/admin/stats', requireAdmin, async (req, res) => {
+  try {
+    let totalUsers = 0;
+    try {
+      const { count } = await supabase.from('users').select('id', { count: 'exact', head: true });
+      if (typeof count === 'number') totalUsers = count;
+    } catch (_) {}
+    if (!totalUsers) {
+      const { data: allUsers } = await supabase.auth.admin.listUsers();
+      totalUsers = (allUsers?.users || []).length;
+    }
+
+    let blockedUsers = 0;
+    try {
+      const { data: allUsers } = await supabase.auth.admin.listUsers();
+      blockedUsers = (allUsers?.users || []).filter(u => !u.email_confirmed_at).length;
+    } catch (_) {}
+
+    res.json({ totalUsers, blockedUsers, totalPosts: 0, removedPosts: 0 });
+  } catch (err) {
+    console.error('stats error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Delete the currently logged-in user's account (self-service)
 app.post('/api/account/delete', async (req, res) => {
   try {
