@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Change Phone - TutorMatch</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+      body { background: linear-gradient(135deg,#0f172a 0%,#1e293b 25%,#334155 50%,#475569 75%,#64748b 100%); min-height: 100vh; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    </style>
+  </head>
+  <body class="flex items-center justify-center p-6">
+    <div class="w-full max-w-md glass-card bg-[rgba(15,23,42,0.8)] backdrop-blur-xl border border-slate-600/30 rounded-2xl p-6 text-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl font-bold">Change Phone Number</h1>
+        <a href="/Tutor%20Page/tutorpage.html" class="text-slate-300 hover:text-white text-sm">Home</a>
+      </div>
+      <p class="text-slate-300 mb-4">Enter a new phone number for your account.</p>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm text-slate-300 mb-2">New Phone Number</label>
+          <input id="newPhone" type="tel" class="w-full rounded-lg bg-slate-800/70 border border-slate-600/40 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. +961 70 123 456" />
+        </div>
+        <button id="saveBtn" class="w-full rounded-xl bg-blue-600 hover:bg-blue-700 py-2.5 font-semibold">Save</button>
+      </div>
+      <p id="message" class="mt-4 text-sm text-slate-300"></p>
+    </div>
+
+    <script>
+      function show(msg, type) {
+        const el = document.getElementById('message');
+        el.textContent = msg || '';
+        el.style.color = type === 'error' ? '#fca5a5' : '#bbf7d0';
+      }
+
+      function normalizePhone(p){
+        return String(p || '').trim();
+      }
+
+      document.getElementById('saveBtn').addEventListener('click', async () => {
+        try {
+          const raw = localStorage.getItem('tmUserSession');
+          const session = raw ? JSON.parse(raw) : null;
+          if (!session || !session.userId || !session.email) {
+            return show('Missing session. Please sign in again.', 'error');
+          }
+          const phone = normalizePhone(document.getElementById('newPhone').value);
+          if (!phone) return show('Please enter a phone number.', 'error');
+
+          const API_BASE = (window.location.origin && window.location.origin.startsWith('http')) ? '' : 'http://localhost:3000';
+          const res = await fetch(`${API_BASE}/api/profile/phone`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: session.userId, email: session.email, phone })
+          });
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok) return show(body.error || 'Failed to update phone.', 'error');
+
+          try {
+            const updated = Object.assign({}, session, { profile: Object.assign({}, session.profile || {}, { phone }) });
+            localStorage.setItem('tmUserSession', JSON.stringify(updated));
+          } catch {}
+          show('Phone number updated successfully!', 'success');
+        } catch (e) {
+          console.warn('change-phone error:', e);
+          show('Unexpected error. Please try again later.', 'error');
+        }
+      });
+    </script>
+  </body>
+  </html>
+

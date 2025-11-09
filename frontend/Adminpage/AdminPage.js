@@ -35,6 +35,8 @@ lucide.createIcons();
 
 
 let users = [];
+let tutorRequests = [];
+let filteredRequests = [];
 
 const posts = [
   { id: 1, user: 'johndoe', content: 'Just had an amazing day at the beach! 🏖️', type: 'text', status: 'active', date: '2024-03-01', reports: 0 },
@@ -75,6 +77,7 @@ if (isDark) {
 document.addEventListener('DOMContentLoaded', () => {
   updateThemeIcon(isDark);
   fetchUsers();
+  fetchTutorRequests();
   loadPosts();
   loadActivityLog();
 });
@@ -182,6 +185,257 @@ function loadUsers() {
     `;
     tbody.appendChild(row);
   });
+}
+
+// ==================== Tutor Requests ====================
+async function fetchTutorRequests() {
+  try {
+    const sessionData = localStorage.getItem('tmUserSession');
+    const session = sessionData ? JSON.parse(sessionData) : null;
+    const email = (session && session.email) ? String(session.email).trim() : '';
+
+    const res = await fetch('/api/admin/tutor-requests', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-email': email
+      }
+    });
+
+    if (!res.ok) {
+      const errorBody = await res.json().catch(() => ({}));
+      throw new Error(errorBody.error || 'Failed to fetch tutor requests');
+    }
+
+    const body = await res.json();
+    tutorRequests = Array.isArray(body.requests) ? body.requests : [];
+    filteredRequests = [...tutorRequests];
+    loadTutorRequests();
+  } catch (err) {
+    console.error('fetchTutorRequests error:', err);
+    showNotification('Unable to load tutor requests: ' + err.message, 'error');
+    filteredRequests = [];
+    loadTutorRequests();
+  }
+}
+
+function refreshRequests() { fetchTutorRequests(); }
+
+function filterRequests() {
+  const search = (document.getElementById('requestSearch')?.value || '').toLowerCase();
+  filteredRequests = tutorRequests.filter(r => {
+    const name = `${r.firstName || ''} ${r.lastName || ''}`.trim().toLowerCase();
+    const email = (r.email || '').toLowerCase();
+    return !search || name.includes(search) || email.includes(search);
+  });
+  loadTutorRequests();
+}
+
+function loadTutorRequests() {
+  const tbody = document.getElementById('requestsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  filteredRequests.forEach(r => {
+    const row = document.createElement('tr');
+    row.className = 'table-row';
+    const name = [r.firstName, r.lastName].filter(Boolean).join(' ') || '—';
+    const submitted = r.submittedAt ? new Date(r.submittedAt).toLocaleString() : '—';
+    row.innerHTML = `
+      <td class="py-3 px-4 text-gray-900 dark:text-white">${name}</td>
+      <td class="py-3 px-4 text-gray-600 dark:text-gray-300">${r.email || ''}</td>
+      <td class="py-3 px-4 text-gray-600 dark:text-gray-300">${submitted}</td>
+      <td class="py-3 px-4">
+        <div class="flex gap-2">
+          <button class="btn-secondary text-xs" onclick="viewTutorRequest('${r.id}')">View</button>
+          <button class="btn-success text-xs" onclick="acceptTutorRequest('${r.id}')">Accept</button>
+          <button class="btn-danger text-xs" onclick="rejectTutorRequest('${r.id}')">Reject</button>
+        </div>
+      </td>`;
+    tbody.appendChild(row);
+  });
+}
+
+function findRequestById(id) {
+  return tutorRequests.find(r => r && r.id === id) || null;
+}
+
+function viewTutorRequest(id) {
+  const req = findRequestById(id);
+  if (!req) return showNotification('Request not found', 'error');
+  const profile = req.profile || {};
+
+  const lines = [];
+  lines.push(`<div class=\"grid grid-cols-1 md:grid-cols-2 gap-4\">`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Name</div><div class=\"font-semibold\">${[req.firstName, req.lastName].filter(Boolean).join(' ') || '—'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Email</div><div class=\"font-semibold\">${req.email || '—'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Major</div><div class=\"font-semibold\">${profile.major || '—'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Degree</div><div class=\"font-semibold\">${profile.degree || '—'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">GPA</div><div class=\"font-semibold\">${profile.gpa ?? '—'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Subjects</div><div class=\"font-semibold\">${Array.isArray(profile.subjects) ? profile.subjects.join(', ') : (profile.subjects || '—')}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Experience</div><div class=\"font-semibold\">${profile.experience || '—'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Motivation</div><div class=\"font-semibold\">${profile.motivation || '—'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Format</div><div class=\"font-semibold\">${profile.format || '—'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Availability</div><div class=\"font-semibold\">${profile.availability || '—'}</div></div>`);
+  lines.push('</div>');
+
+  // Documents section (Passport photo + CV/Certificate) with preview and exit
+  const hasPassport = typeof profile.passportPhoto === 'string' && profile.passportPhoto.trim();
+  const hasCertificate = typeof profile.certificate === 'string' && profile.certificate.trim();
+  if (hasPassport || hasCertificate) {
+    lines.push('<div class=\"mt-4\">');
+    lines.push('<div class=\"text-sm text-gray-400 mb-2\">Documents</div>');
+    lines.push('<div class=\"grid grid-cols-1 md:grid-cols-2 gap-4\">');
+    if (hasPassport) {
+      const url = profile.passportPhoto;
+      lines.push(`
+        <div class=\"rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 cursor-zoom-in\" onclick=\"previewDoc('${url.replace(/"/g, '&quot;')}', 'Passport Photo')\">
+          <img src=\"${url}\" alt=\"Passport Photo\" style=\"width:100%;max-height:240px;object-fit:cover;display:block;\"/>
+          <div class=\"px-3 py-2 text-sm text-gray-600 dark:text-gray-300\">Passport Photo (click to view)</div>
+        </div>`);
+    }
+    if (hasCertificate) {
+      const url = profile.certificate;
+      const isImage = /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(url);
+      if (isImage) {
+        lines.push(`
+          <div class=\"rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 cursor-zoom-in\" onclick=\"previewDoc('${url.replace(/"/g, '&quot;')}', 'Certificate / CV')\">
+            <img src=\"${url}\" alt=\"Certificate/CV\" style=\"width:100%;max-height:240px;object-fit:cover;display:block;\"/>
+            <div class=\"px-3 py-2 text-sm text-gray-600 dark:text-gray-300\">Certificate / CV (click to view)</div>
+          </div>`);
+      } else {
+        lines.push(`
+          <a href=\"${url}\" target=\"_blank\" rel=\"noopener\" class=\"rounded-lg border border-gray-200 dark:border-gray-700 p-4 block hover:bg-gray-50 dark:hover:bg-gray-800 transition\">
+            <div class=\"flex items-center gap-3\">
+              <i data-lucide=\"file-text\" class=\"w-5 h-5 text-blue-500\"></i>
+              <div>
+                <div class=\"font-semibold\">Open Certificate / CV</div>
+                <div class=\"text-xs text-gray-500\">Opens in a new tab</div>
+              </div>
+            </div>
+          </a>`);
+      }
+    }
+    lines.push('</div>');
+    lines.push('</div>');
+  }
+
+  const body = document.getElementById('requestDetailsBody');
+  if (body) body.innerHTML = lines.join('');
+  const modal = document.getElementById('requestDetailsModal');
+  if (modal) {
+    modal.classList.add('show');
+  }
+}
+
+function hideRequestDetails() {
+  const modal = document.getElementById('requestDetailsModal');
+  if (modal) modal.classList.remove('show');
+}
+
+async function acceptTutorRequest(id) {
+  const req = findRequestById(id);
+  if (!req) return showNotification('Request not found', 'error');
+  try {
+    const session = JSON.parse(localStorage.getItem('tmUserSession') || 'null');
+    const adminEmail = (session && session.email) ? String(session.email).trim() : '';
+    const res = await fetch('/api/admin/tutor-requests/accept', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-user-email': adminEmail },
+      body: JSON.stringify({ userId: id })
+    });
+    if (!res.ok) throw new Error((await res.json()).error || 'Approve failed');
+    showNotification('Tutor approved', 'success');
+    tutorRequests = tutorRequests.filter(r => r.id !== id);
+    filterRequests();
+  } catch (err) {
+    console.error('acceptTutorRequest:', err);
+    showNotification('Failed to approve: ' + err.message, 'error');
+  }
+}
+
+async function rejectTutorRequest(id) {
+  const req = findRequestById(id);
+  if (!req) return showNotification('Request not found', 'error');
+  showConfirmModal(`Reject tutor application for \"${req.email}\"? This will delete their account.`, async () => {
+    try {
+      const session = JSON.parse(localStorage.getItem('tmUserSession') || 'null');
+      const adminEmail = (session && session.email) ? String(session.email).trim() : '';
+      const res = await fetch('/api/admin/tutor-requests/reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-user-email': adminEmail },
+        body: JSON.stringify({ userId: id })
+      });
+      if (!res.ok) throw new Error((await res.json()).error || 'Reject failed');
+      showNotification('Tutor rejected and removed', 'success');
+      tutorRequests = tutorRequests.filter(r => r.id !== id);
+      filterRequests();
+    } catch (err) {
+      console.error('rejectTutorRequest:', err);
+      showNotification('Failed to reject: ' + err.message, 'error');
+    }
+  });
+}
+
+// Lightbox-style document preview with Exit button
+function buildDocLightbox() {
+  if (document.getElementById('tm-doc-lightbox')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'tm-doc-lightbox';
+  overlay.style.position = 'fixed';
+  overlay.style.inset = '0';
+  overlay.style.background = 'rgba(0,0,0,0.7)';
+  overlay.style.backdropFilter = 'blur(2px)';
+  overlay.style.display = 'none';
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+  overlay.style.zIndex = '10000';
+
+  const frame = document.createElement('div');
+  frame.style.position = 'relative';
+  frame.style.maxWidth = '90vw';
+  frame.style.maxHeight = '85vh';
+  frame.style.borderRadius = '12px';
+  frame.style.overflow = 'hidden';
+  frame.style.boxShadow = '0 20px 50px rgba(0,0,0,0.5)';
+  frame.style.background = '#111827';
+
+  const img = document.createElement('img');
+  img.id = 'tm-doc-image';
+  img.style.display = 'block';
+  img.style.maxWidth = '90vw';
+  img.style.maxHeight = '85vh';
+  img.style.objectFit = 'contain';
+
+  const close = document.createElement('button');
+  close.textContent = 'Exit';
+  close.style.position = 'absolute';
+  close.style.top = '8px';
+  close.style.right = '8px';
+  close.style.background = 'rgba(31,41,55,0.85)';
+  close.style.color = '#fff';
+  close.style.border = '1px solid rgba(255,255,255,0.2)';
+  close.style.borderRadius = '8px';
+  close.style.padding = '8px 12px';
+  close.style.fontWeight = '700';
+  close.style.cursor = 'pointer';
+
+  close.addEventListener('click', () => overlay.style.display = 'none');
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.style.display = 'none'; });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') overlay.style.display = 'none'; });
+
+  frame.appendChild(img);
+  frame.appendChild(close);
+  overlay.appendChild(frame);
+  document.body.appendChild(overlay);
+}
+
+function previewDoc(url, title) {
+  buildDocLightbox();
+  const overlay = document.getElementById('tm-doc-lightbox');
+  const img = document.getElementById('tm-doc-image');
+  if (img) img.src = url;
+  overlay.style.display = 'flex';
 }
 
 function filterUsers() {

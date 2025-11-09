@@ -571,7 +571,7 @@
             }
         }
 
-        syncSettingFields();
+                syncSettingFields();
 
         function editPhone() {
             currentEditType = 'phone';
@@ -598,36 +598,11 @@
                     currentPhoneInput.placeholder = 'Not set';
                 }
             }
-
-            const newPhoneInput = document.getElementById('newPhone');
-            if (newPhoneInput) {
-                newPhoneInput.value = '';
-            }
         }
 
         function changePassword() {
-            currentEditType = 'password';
-            document.getElementById('modalTitle').textContent = 'Change Password';
-            document.getElementById('modalContent').innerHTML = `
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
-                        <input type="password" placeholder="Enter current password" class="form-input" id="currentPassword">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">New Password</label>
-                        <input type="password" placeholder="Enter new password" class="form-input" id="newPassword">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
-                        <input type="password" placeholder="Confirm new password" class="form-input" id="confirmNewPassword">
-                    </div>
-                </div>
-            `;
-            document.getElementById('editModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
+            window.location.assign('/common/change-password.html');
+        }function closeModal() {
             document.getElementById('editModal').classList.add('hidden');
             currentEditType = '';
         }
@@ -641,30 +616,41 @@
                     showToast('Please enter a phone number.', 'error');
                     return;
                 }
-                currentPhone = newPhone;
-                if (!sessionData.profile || typeof sessionData.profile !== 'object') {
-                    sessionData.profile = {};
+                try {
+                    const resp = await fetch('/api/profile/phone', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: sessionData.userId, email: sessionData.email, phone: newPhone })
+                    });
+                    const body = await resp.json().catch(() => ({}));
+                    if (!resp.ok) {
+                        showToast(body.error || 'Failed to update phone.', 'error');
+                        return;
+                    }
+                    currentPhone = newPhone;
+                    if (!sessionData.profile || typeof sessionData.profile !== 'object') sessionData.profile = {};
+                    sessionData.profile.phone = currentPhone;
+                    persistSession();
+                    syncSettingFields();
+                    showToast('Phone number updated successfully!', 'success');
+                    closeModal();
+                } catch (e) {
+                    console.warn('phone update error', e);
+                    showToast('Server error. Please try again.', 'error');
                 }
-                sessionData.profile.phone = currentPhone;
-                persistSession();
-                syncSettingFields();
-                showToast('Phone number updated successfully!', 'success');
-                closeModal();
             } else if (currentEditType === 'password') {
-                const currentPasswordInput = document.getElementById('currentPassword');
                 const newPasswordInput = document.getElementById('newPassword');
                 const confirmPasswordInput = document.getElementById('confirmNewPassword');
 
-                if (!currentPasswordInput || !newPasswordInput || !confirmPasswordInput) {
+                if (!newPasswordInput || !confirmPasswordInput) {
                     showToast('Password form is missing fields.', 'error');
                     return;
                 }
 
-                const currentPassword = currentPasswordInput.value;
                 const newPassword = newPasswordInput.value;
                 const confirmPassword = confirmPasswordInput.value;
 
-                if (!currentPassword || !newPassword || !confirmPassword) {
+                if (!newPassword || !confirmPassword) {
                     showToast('Please complete all password fields.', 'error');
                     return;
                 }
@@ -676,11 +662,6 @@
 
                 if (newPassword.length < 8) {
                     showToast('Password must be at least 8 characters long.', 'error');
-                    return;
-                }
-
-                if (currentPassword === newPassword) {
-                    showToast('New password must be different from the current password.', 'error');
                     return;
                 }
 
@@ -698,13 +679,12 @@
                 }
 
                 try {
-                    const response = await fetch("http://localhost:3000/api/change-password", {
+                    const API_BASE = (window.location.origin && window.location.origin.startsWith('http')) ? '' : 'http://localhost:3000';
+                    const response = await fetch(`${API_BASE}/api/change-password/simple`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             userId: sessionData.userId,
-                            email: sessionData.email,
-                            currentPassword,
                             newPassword
                         })
                     });
@@ -734,7 +714,6 @@
                             lucide.createIcons();
                         }
                     }
-                    currentPasswordInput.value = '';
                     newPasswordInput.value = '';
                     confirmPasswordInput.value = '';
                 }
@@ -914,3 +893,6 @@
     </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'996d9c452216e309',t:'MTc2MTg1NTU5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
+
+
