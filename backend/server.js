@@ -337,27 +337,11 @@ app.post('/api/admin/tutor-requests/accept', requireAdmin, async (req, res) => {
 // Admin dashboard stats: total users and unverified users
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
   try {
-    let totalUsers = 0;
-    try {
-      const { count } = await supabase.from('users').select('id', { count: 'exact', head: true });
-      if (typeof count === 'number') totalUsers = count;
-    } catch (_) {}
-    if (!totalUsers) {
-      const { data: allUsers } = await supabase.auth.admin.listUsers();
-      totalUsers = (allUsers?.users || []).length;
-    }
-
-    let blockedUsers = 0;
-    try {
-      const { data: allUsers } = await supabase.auth.admin.listUsers();
-      const all = (allUsers?.users || []);
-      // Count users explicitly flagged as blocked in metadata or banned by auth
-      blockedUsers = all.filter(u => {
-        const metaBlocked = !!(u.user_metadata && (u.user_metadata.blocked === true));
-        const bannedUntil = u.banned_until || u.raw_app_meta_data?.banned_until || u.raw_user_meta_data?.banned_until;
-        return metaBlocked || !!bannedUntil;
-      }).length;
-    } catch (_) {}
+    // Count directly from Auth to avoid drift with app tables
+    const { data: allUsers } = await supabase.auth.admin.listUsers();
+    const all = (allUsers?.users || []);
+    const totalUsers = all.length;
+    const blockedUsers = all.filter(u => u.user_metadata?.blocked === true).length;
 
     res.json({ totalUsers, blockedUsers, totalPosts: 0, removedPosts: 0 });
   } catch (err) {
@@ -424,9 +408,10 @@ app.post('/api/admin/unblock-user', requireAdmin, async (req, res) => {
     if (!authUser) return res.status(404).json({ error: 'User not found' });
 
     const newMeta = { ...(authUser.user_metadata || {}) };
-    delete newMeta.blocked;
-    delete newMeta.blocked_reason;
-    delete newMeta.blocked_at;
+    // Explicitly clear flags. Some GoTrue versions ignore deleted keys.
+    newMeta.blocked = false;
+    newMeta.blocked_reason = null;
+    newMeta.blocked_at = null;
 
     const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
       user_metadata: newMeta,
