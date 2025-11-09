@@ -78,8 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateThemeIcon(isDark);
   fetchUsers();
   fetchTutorRequests();
-  loadPosts();
-  loadActivityLog();
+  // Posts and Activity sections were removed
 });
 
 // Fetch users from backend admin API

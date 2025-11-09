@@ -56,18 +56,12 @@
           <i data-lucide="users" class="w-5 h-5 inline mr-3"></i>
           User Management
         </div>
-        <div class="sidebar-item" onclick="showSection('posts')">
-          <i data-lucide="file-text" class="w-5 h-5 inline mr-3"></i>
-          Post Management
-        </div>
+        <!-- Post Management removed -->
         <div class="sidebar-item" onclick="showSection('requests')">
           <i data-lucide="user-check" class="w-5 h-5 inline mr-3"></i>
           Tutor Requests
         </div>
-        <div class="sidebar-item" onclick="showSection('activity')">
-          <i data-lucide="activity" class="w-5 h-5 inline mr-3"></i>
-          Activity Log
-        </div>
+        <!-- Activity Log removed -->
         <div class="sidebar-item" onclick="showSection('settings')">
           <i data-lucide="settings" class="w-5 h-5 inline mr-3"></i>
           Settings
@@ -277,36 +271,7 @@
         </div>
       </div>
 
-      <div id="posts" class="section" style="display: none;">
-        <div class="mb-6">
-          <h2 class="text-3xl font-bold text-white mb-2">Post Management</h2>
-          <p class="text-gray-300">Review and moderate user-generated content</p>
-        </div>
-
-        <div class="card p-6 mb-6">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <input type="text" id="postSearch" class="input-field" placeholder="Search posts..." onkeyup="filterPosts()">
-            <select id="postTypeFilter" class="input-field" onchange="filterPosts()">
-              <option value="">All Types</option>
-              <option value="text">Text</option>
-              <option value="image">Image</option>
-              <option value="video">Video</option>
-            </select>
-            <select id="postStatusFilter" class="input-field" onchange="filterPosts()">
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="reported">Reported</option>
-              <option value="removed">Removed</option>
-            </select>
-            <button class="btn-primary" onclick="resetPostFilters()">
-              <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
-              Reset
-            </button>
-          </div>
-        </div>
-
-        <div id="postsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-      </div>
+      <!-- Posts section removed -->
 
       <div id="requests" class="section" style="display: none;">
         <div class="mb-6">
@@ -341,16 +306,7 @@
         </div>
       </div>
 
-      <div id="activity" class="section" style="display: none;">
-        <div class="mb-6">
-          <h2 class="text-3xl font-bold text-white mb-2">Activity Log</h2>
-          <p class="text-gray-300">Track all administrative actions and system events</p>
-        </div>
-
-        <div class="card p-6">
-          <div class="space-y-4" id="activityLog"></div>
-        </div>
-      </div>
+      <!-- Activity section removed -->
 
       <div id="settings" class="section" style="display: none;">
         <div class="mb-6">
