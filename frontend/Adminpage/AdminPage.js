@@ -80,6 +80,12 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchTutorRequests();
   // Posts and Activity sections were removed
   fetchDashboardStats();
+  // Restore persisted admin activity and paint recent actions
+  try {
+    const saved = JSON.parse(localStorage.getItem('tmAdminActivity') || '[]');
+    if (Array.isArray(saved)) activityLogs = saved;
+  } catch (_) { /* ignore */ }
+  loadRecentActions();
 });
 
 async function fetchDashboardStats() {
@@ -824,9 +830,68 @@ function logActivity(action, details) {
   };
 
   activityLogs.unshift(newLog);
+  // Keep only latest 50 and persist
+  activityLogs = activityLogs.slice(0, 50);
+  try { localStorage.setItem('tmAdminActivity', JSON.stringify(activityLogs)); } catch (_) {}
+  // Update dashboard panel immediately
+  loadRecentActions();
   if (currentSection === 'activity') {
     loadActivityLog();
   }
+}
+
+// Format timestamps into relative strings (e.g., "2 minutes ago")
+function formatRelativeTime(ts) {
+  const d = new Date(ts);
+  const diff = Date.now() - (isNaN(d.getTime()) ? Date.now() : d.getTime());
+  const s = Math.max(0, Math.floor(diff / 1000));
+  if (s < 60) return 'just now';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m} minute${m === 1 ? '' : 's'} ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} hour${h === 1 ? '' : 's'} ago`;
+  const dys = Math.floor(h / 24);
+  return `${dys} day${dys === 1 ? '' : 's'} ago`;
+}
+
+// Render the latest admin actions on the dashboard
+function loadRecentActions() {
+  const container = document.getElementById('recentActions');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!activityLogs.length) {
+    const empty = document.createElement('div');
+    empty.className = 'text-sm text-gray-500';
+    empty.textContent = 'No recent actions';
+    container.appendChild(empty);
+    return;
+  }
+
+  const items = activityLogs.slice(0, 5);
+  items.forEach(log => {
+    const li = document.createElement('div');
+    li.className = 'flex items-center gap-3';
+
+    let icon = 'settings';
+    let color = 'gray';
+    const a = (log.action || '').toLowerCase();
+    if (a.includes('blocked user')) { icon = 'user-x'; color = 'red'; }
+    else if (a.includes('unblocked user')) { icon = 'user-check'; color = 'green'; }
+    else if (a.includes('post removed') || a.includes('removed post')) { icon = 'trash-2'; color = 'yellow'; }
+
+    li.innerHTML = `
+      <div class="w-8 h-8 bg-${color}-100 dark:bg-${color}-900/20 rounded-full flex items-center justify-center">
+        <i data-lucide="${icon}" class="w-4 h-4 text-${color}-600"></i>
+      </div>
+      <div class="flex-1">
+        <p class="text-sm font-medium text-gray-900 dark:text-white">${log.action}</p>
+        <p class="text-xs text-gray-500">${formatRelativeTime(log.timestamp)}</p>
+      </div>`;
+    container.appendChild(li);
+  });
+
+  try { lucide.createIcons(); } catch (_) {}
 }
 
 // Modal Functions
