@@ -880,13 +880,21 @@ function loadRecentActions() {
     else if (a.includes('unblocked user')) { icon = 'user-check'; color = 'green'; }
     else if (a.includes('post removed') || a.includes('removed post')) { icon = 'trash-2'; color = 'yellow'; }
 
+    // Try to extract a user/email/handle from details for clarity
+    const details = String(log.details || '');
+    const emailMatch = details.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
+    const handleMatch = details.match(/@([a-zA-Z0-9_]+)/);
+    const subject = emailMatch ? emailMatch[0] : (handleMatch ? `@${handleMatch[1]}` : '');
+    const title = subject ? `${log.action} (${subject})` : `${log.action}`;
+    const by = log.admin ? `by ${log.admin}` : '';
+
     li.innerHTML = `
       <div class="w-8 h-8 bg-${color}-100 dark:bg-${color}-900/20 rounded-full flex items-center justify-center">
         <i data-lucide="${icon}" class="w-4 h-4 text-${color}-600"></i>
       </div>
       <div class="flex-1">
-        <p class="text-sm font-medium text-gray-900 dark:text-white">${log.action}</p>
-        <p class="text-xs text-gray-500">${formatRelativeTime(log.timestamp)}</p>
+        <p class="text-sm font-medium text-gray-900 dark:text-white">${title}</p>
+        <p class="text-xs text-gray-500">${by ? by + ' • ' : ''}${formatRelativeTime(log.timestamp)}</p>
       </div>`;
     container.appendChild(li);
   });
