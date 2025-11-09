@@ -128,3 +128,147 @@ function initUIHandlers() {
     }, 3000);
   };
 }
+
+// Initialize and expose edit/cancel/save + photo handlers used by the HTML
+(function initEditModeHandlers() {
+  const editBtn = document.getElementById("editBtn");
+  const saveBtn = document.getElementById("saveBtn");
+  const cancelBtn = document.getElementById("cancelBtn");
+
+  window.editProfile = function () {
+    setEditMode(true);
+  };
+
+  window.cancelEdit = function () {
+    setEditMode(false);
+    // Reload to restore original values from server
+    window.location.reload();
+  };
+
+  window.saveProfile = async function () {
+    try {
+      const tutorId = localStorage.getItem("tutorId");
+      const values = collectFormValues();
+      // No tutor update API yet; keep locally so UI feels responsive
+      sessionStorage.setItem("tutorDraftProfile:" + tutorId, JSON.stringify(values));
+      showToast("Changes saved (local only)", "success");
+      setEditMode(false);
+    } catch (e) {
+      console.error(e);
+      showToast("Failed to save changes", "error");
+    }
+  };
+
+  window.handlePhotoClick = function () {
+    if (!document.body.classList.contains("editing")) {
+      showToast("Enable edit mode to change photo", "info");
+      return;
+    }
+    document.getElementById("photoInput")?.click();
+  };
+
+  window.handlePhotoUpload = function (evt) {
+    const file = evt?.target?.files?.[0];
+    if (!file) return;
+    const preview = document.getElementById("profilePhotoPreview");
+    if (!preview) return;
+    const url = URL.createObjectURL(file);
+    preview.style.backgroundImage = `url('${url}')`;
+    preview.style.backgroundSize = "cover";
+    preview.style.backgroundPosition = "center";
+    preview.textContent = "";
+    preview.dataset.photoObjectUrl = url;
+  };
+
+  window.removePhoto = function () {
+    const preview = document.getElementById("profilePhotoPreview");
+    if (!preview) return;
+    if (preview.dataset.photoObjectUrl) {
+      URL.revokeObjectURL(preview.dataset.photoObjectUrl);
+      delete preview.dataset.photoObjectUrl;
+    }
+    preview.style.backgroundImage = "";
+    const nameInput = document.querySelector('.editable-field[type="text"]');
+    if (nameInput && nameInput.value) {
+      const parts = nameInput.value.trim().split(/\s+/);
+      const initials = (parts[0]?.[0] || "?") + (parts[1]?.[0] || "");
+      preview.textContent = initials.toUpperCase();
+    }
+  };
+
+  // Search stub to avoid reference error from oninput
+  window.filterFeedback = function () {};
+
+  function setEditMode(isEditing) {
+    document.body.classList.toggle("editing", isEditing);
+    document.querySelectorAll(".editable-field").forEach((el) => {
+      const tag = el.tagName.toLowerCase();
+      const type = (el.getAttribute("type") || "").toLowerCase();
+      if (tag === "input" || tag === "textarea") {
+        if (type === "checkbox") {
+          el.disabled = !isEditing;
+        } else if (type === "email") {
+          // Keep email uneditable always
+          el.readOnly = true;
+          el.classList.add("cursor-not-allowed");
+        } else {
+          el.readOnly = !isEditing;
+        }
+      }
+    });
+
+    togglePhotoControls(isEditing);
+
+    if (editBtn) editBtn.style.display = isEditing ? "none" : "";
+    if (saveBtn) saveBtn.style.display = isEditing ? "" : "none";
+    if (cancelBtn) cancelBtn.style.display = isEditing ? "" : "none";
+    lucide.createIcons();
+  }
+
+  function togglePhotoControls(isEditing) {
+    const uploadBtn = document.getElementById("photoUploadBtn");
+    const removeBtn = document.getElementById("removePhotoBtn");
+    if (uploadBtn) {
+      uploadBtn.disabled = !isEditing;
+      uploadBtn.classList.toggle("opacity-50", !isEditing);
+      uploadBtn.classList.toggle("cursor-not-allowed", !isEditing);
+    }
+    if (removeBtn) {
+      removeBtn.style.display = isEditing ? "" : "none";
+    }
+  }
+
+  function collectFormValues() {
+    const values = {};
+    const fields = document.querySelectorAll(".editable-field");
+    fields.forEach((el, idx) => {
+      const tag = el.tagName.toLowerCase();
+      const type = (el.getAttribute("type") || "").toLowerCase();
+      const key = el.name || `field_${idx}`;
+      if (tag === "input" || tag === "textarea") {
+        if (type === "email") return; // ignore email in save payload
+        values[key] = type === "checkbox" ? !!el.checked : el.value;
+      }
+    });
+    return values;
+  }
+  // Wire up View All Feedback button to navigate to feedback page
+  const viewBtn = Array.from(document.querySelectorAll("button"))
+    .find((b) => /View All Feedback/i.test(b.textContent || ""));
+  if (viewBtn) {
+    viewBtn.addEventListener("click", () => {
+      window.location.href = "feedback.html";
+    });
+  }
+
+  // Implement search that filters by student name only
+  window.filterFeedback = function () {
+    const q = (document.getElementById("searchBar")?.value || "").trim().toLowerCase();
+    document.querySelectorAll(".feedback-card").forEach((card) => {
+      const nameEl = card.querySelector("h4, .student-name");
+      const name = (nameEl?.textContent || "").trim().toLowerCase();
+      const show = !q || name.includes(q);
+      card.style.display = show ? "" : "none";
+    });
+  };
+})();
