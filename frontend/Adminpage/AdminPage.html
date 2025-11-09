@@ -35,6 +35,22 @@
     </div>
   </div>
 
+  <!-- Prompt modal (with input) -->
+  <div id="promptModal" class="modal">
+    <div class="modal-content">
+      <div class="flex items-center gap-3 mb-4">
+        <i data-lucide="help-circle" class="w-6 h-6 text-blue-500"></i>
+        <h3 class="text-lg font-semibold">Additional Details</h3>
+      </div>
+      <p id="promptMessage" class="text-gray-600 dark:text-gray-300 mb-3">Provide more information</p>
+      <textarea id="promptInput" class="input-field w-full" rows="3" placeholder="Type here..."></textarea>
+      <div class="flex gap-3 justify-end mt-4">
+        <button class="btn-secondary" onclick="closePromptModal()">Cancel</button>
+        <button id="promptButton" class="btn-primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
   <div class="flex min-h-screen">
     <div class="sidebar w-64 p-4" id="sidebar">
       <div class="flex items-center gap-3 mb-8">

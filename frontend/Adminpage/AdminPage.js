@@ -1,4 +1,4 @@
-lucide.createIcons();
+﻿lucide.createIcons();
 
 // Add this at the very top of the file
 
@@ -24,7 +24,7 @@ lucide.createIcons();
       return;
     }
 
-    console.log("✅ Admin access granted:", userEmail);
+    console.log("âœ… Admin access granted:", userEmail);
   } catch (err) {
     console.error("Session validation failed:", err);
     localStorage.removeItem("tmUserSession");
@@ -39,7 +39,7 @@ let tutorRequests = [];
 let filteredRequests = [];
 
 const posts = [
-  { id: 1, user: 'johndoe', content: 'Just had an amazing day at the beach! 🏖️', type: 'text', status: 'active', date: '2024-03-01', reports: 0 },
+  { id: 1, user: 'johndoe', content: 'Just had an amazing day at the beach! ðŸ–ï¸', type: 'text', status: 'active', date: '2024-03-01', reports: 0 },
   { id: 2, user: 'janedoe', content: 'Check out this sunset photo I took!', type: 'image', status: 'active', date: '2024-03-02', reports: 0 },
   { id: 3, user: 'mikebrown', content: 'This is inappropriate content that should be removed', type: 'text', status: 'reported', date: '2024-03-03', reports: 3 },
   { id: 4, user: 'sarahwilson', content: 'My cooking tutorial video', type: 'video', status: 'active', date: '2024-03-04', reports: 0 },
@@ -268,8 +268,8 @@ function loadTutorRequests() {
   filteredRequests.forEach(r => {
     const row = document.createElement('tr');
     row.className = 'table-row';
-    const name = [r.firstName, r.lastName].filter(Boolean).join(' ') || '—';
-    const submitted = r.submittedAt ? new Date(r.submittedAt).toLocaleString() : '—';
+    const name = [r.firstName, r.lastName].filter(Boolean).join(' ') || 'â€”';
+    const submitted = r.submittedAt ? new Date(r.submittedAt).toLocaleString() : 'â€”';
     row.innerHTML = `
       <td class="py-3 px-4 text-gray-900 dark:text-white">${name}</td>
       <td class="py-3 px-4 text-gray-600 dark:text-gray-300">${r.email || ''}</td>
@@ -296,16 +296,16 @@ function viewTutorRequest(id) {
 
   const lines = [];
   lines.push(`<div class=\"grid grid-cols-1 md:grid-cols-2 gap-4\">`);
-  lines.push(`<div><div class=\"text-sm text-gray-400\">Name</div><div class=\"font-semibold\">${[req.firstName, req.lastName].filter(Boolean).join(' ') || '—'}</div></div>`);
-  lines.push(`<div><div class=\"text-sm text-gray-400\">Email</div><div class=\"font-semibold\">${req.email || '—'}</div></div>`);
-  lines.push(`<div><div class=\"text-sm text-gray-400\">Major</div><div class=\"font-semibold\">${profile.major || '—'}</div></div>`);
-  lines.push(`<div><div class=\"text-sm text-gray-400\">Degree</div><div class=\"font-semibold\">${profile.degree || '—'}</div></div>`);
-  lines.push(`<div><div class=\"text-sm text-gray-400\">GPA</div><div class=\"font-semibold\">${profile.gpa ?? '—'}</div></div>`);
-  lines.push(`<div><div class=\"text-sm text-gray-400\">Subjects</div><div class=\"font-semibold\">${Array.isArray(profile.subjects) ? profile.subjects.join(', ') : (profile.subjects || '—')}</div></div>`);
-  lines.push(`<div><div class=\"text-sm text-gray-400\">Experience</div><div class=\"font-semibold\">${profile.experience || '—'}</div></div>`);
-  lines.push(`<div><div class=\"text-sm text-gray-400\">Motivation</div><div class=\"font-semibold\">${profile.motivation || '—'}</div></div>`);
-  lines.push(`<div><div class=\"text-sm text-gray-400\">Format</div><div class=\"font-semibold\">${profile.format || '—'}</div></div>`);
-  lines.push(`<div><div class=\"text-sm text-gray-400\">Availability</div><div class=\"font-semibold\">${profile.availability || '—'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Name</div><div class=\"font-semibold\">${[req.firstName, req.lastName].filter(Boolean).join(' ') || 'â€”'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Email</div><div class=\"font-semibold\">${req.email || 'â€”'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Major</div><div class=\"font-semibold\">${profile.major || 'â€”'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Degree</div><div class=\"font-semibold\">${profile.degree || 'â€”'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">GPA</div><div class=\"font-semibold\">${profile.gpa ?? 'â€”'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Subjects</div><div class=\"font-semibold\">${Array.isArray(profile.subjects) ? profile.subjects.join(', ') : (profile.subjects || 'â€”')}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Experience</div><div class=\"font-semibold\">${profile.experience || 'â€”'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Motivation</div><div class=\"font-semibold\">${profile.motivation || 'â€”'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Format</div><div class=\"font-semibold\">${profile.format || 'â€”'}</div></div>`);
+  lines.push(`<div><div class=\"text-sm text-gray-400\">Availability</div><div class=\"font-semibold\">${profile.availability || 'â€”'}</div></div>`);
   lines.push('</div>');
 
   // Documents section (Passport photo + CV/Certificate) with preview and exit
@@ -498,22 +498,30 @@ async function blockUser(userEmail) {
     showNotification('User not found', 'error');
     return;
   }
-  showConfirmModal(
-    `Are you sure you want to block user "${user.email}"? They will no longer be able to access the website.`,
-    async () => {
+  showPromptModal(
+    `Provide a reason for blocking "${user.email}" (optional).`,
+    'Reason for block...',
+    async (reason) => {
       try {
         const session = JSON.parse(localStorage.getItem('tmUserSession') || 'null');
         const adminEmail = (session && session.email) ? String(session.email).trim() : '';
         const res = await fetch('/api/admin/block-user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-user-email': adminEmail },
-          body: JSON.stringify({ userEmail: user.email })
+          body: JSON.stringify({ userEmail: user.email, reason })
         });
         if (!res.ok) {
           const e = await res.json().catch(() => ({}));
           return showNotification(e.error || 'Failed to block user', 'error');
         }
         user.status = 'blocked';
+        try {
+          user.raw = user.raw || {};
+          const meta = (user.raw.user_metadata = user.raw.user_metadata || {});
+          meta.blocked = true;
+          if (reason) meta.blocked_reason = reason;
+          meta.blocked_at = new Date().toISOString();
+        } catch (_) {}
         logActivity('User Blocked', `Blocked user ${user.email} for violating community guidelines`);
         loadUsers();
         fetchDashboardStats();
@@ -549,6 +557,13 @@ async function unblockUser(userEmail) {
           return showNotification(e.error || 'Failed to unblock user', 'error');
         }
         user.status = 'active';
+        try {
+          if (user.raw && user.raw.user_metadata) {
+            delete user.raw.user_metadata.blocked;
+            delete user.raw.user_metadata.blocked_reason;
+            delete user.raw.user_metadata.blocked_at;
+          }
+        } catch (_) {}
         logActivity('User Unblocked', `Unblocked user ${user.email} after review`);
         loadUsers();
         fetchDashboardStats();
@@ -591,12 +606,21 @@ function viewUser(userEmail) {
 
   const body = document.getElementById('userDetailsBody');
   if (body) {
+    const meta = (user.raw && (user.raw.user_metadata || user.raw.raw_user_meta_data)) || {};
+    const phone = meta.phone || '-';
+    const lastLogin = (user.raw && (user.raw.last_sign_in_at || user.raw.last_signin_at)) || '-';
+    const blockReason = meta.blocked_reason || '-';
+    const blockedAt = meta.blocked_at || '-';
     const rows = [
       ['Username', user.username || '-'],
       ['Email', user.email || '-'],
       ['Status', user.status || '-'],
       ['Role', user.role || '-'],
       ['Joined', user.joined || '-'],
+      ['Phone', phone],
+      ['Last Login', lastLogin && lastLogin !== '-' ? new Date(lastLogin).toLocaleString() : '-'],
+      ['Blocked Reason', blockReason],
+      ['Blocked At', blockedAt && blockedAt !== '-' ? new Date(blockedAt).toLocaleString() : '-'],
     ];
     body.innerHTML = rows.map(([k,v]) => `
       <div class="grid grid-cols-3 gap-2">
@@ -681,9 +705,9 @@ function loadPosts() {
         <p class="text-gray-700 dark:text-gray-300 text-sm">${post.content}</p>
         <div class="flex items-center gap-2 mt-2">
           <span class="text-xs text-gray-500">Type: ${post.type}</span>
-          <span class="text-xs text-gray-500">•</span>
+          <span class="text-xs text-gray-500">â€¢</span>
           <span class="text-xs text-gray-500">${post.date}</span>
-          ${post.reports > 0 ? `<span class="text-xs text-red-500">• ${post.reports} reports</span>` : ''}
+          ${post.reports > 0 ? `<span class="text-xs text-red-500">â€¢ ${post.reports} reports</span>` : ''}
         </div>
       </div>
 
@@ -819,6 +843,25 @@ function closeModal() {
   document.getElementById('confirmModal').classList.remove('show');
 }
 
+// Prompt modal (textarea) helpers
+function showPromptModal(message, placeholder, onConfirm) {
+  const modal = document.getElementById('promptModal');
+  const msg = document.getElementById('promptMessage');
+  const input = document.getElementById('promptInput');
+  const btn = document.getElementById('promptButton');
+  if (!modal || !msg || !input || !btn) return;
+  msg.textContent = message || 'Provide details';
+  input.value = '';
+  if (placeholder) input.placeholder = placeholder;
+  btn.onclick = () => { const v = input.value || ''; onConfirm(v); closePromptModal(); };
+  modal.classList.add('show');
+}
+
+function closePromptModal() {
+  const modal = document.getElementById('promptModal');
+  if (modal) modal.classList.remove('show');
+}
+
 // Notification System
 function showNotification(message, type = 'success') {
   const notification = document.getElementById('notification');
@@ -836,6 +879,9 @@ function showNotification(message, type = 'success') {
 // Close modal when clicking outside
 document.getElementById('confirmModal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
+});
+document.getElementById('promptModal').addEventListener('click', function(e) {
+  if (e.target === this) closePromptModal();
 });
 
 // Close sidebar when clicking outside on mobile

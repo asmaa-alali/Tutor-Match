@@ -370,7 +370,7 @@ app.get('/api/admin/stats', requireAdmin, async (req, res) => {
 // Block a user account (prevent sign-in) and mark metadata
 app.post('/api/admin/block-user', requireAdmin, async (req, res) => {
   try {
-    const { userEmail } = req.body || {};
+    const { userEmail, reason } = req.body || {};
     if (!userEmail || typeof userEmail !== 'string') {
       return res.status(400).json({ error: 'Missing userEmail' });
     }
@@ -383,7 +383,12 @@ app.post('/api/admin/block-user', requireAdmin, async (req, res) => {
     if (!authUser) return res.status(404).json({ error: 'User not found' });
 
     // Merge metadata and set blocked flag
-    const newMeta = { ...(authUser.user_metadata || {}), blocked: true };
+    const newMeta = {
+      ...(authUser.user_metadata || {}),
+      blocked: true,
+      blocked_reason: typeof reason === 'string' && reason.trim() ? reason.trim() : undefined,
+      blocked_at: new Date().toISOString(),
+    };
 
     const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
       // Long ban duration; some GoTrue instances also accept 'forever'
@@ -396,7 +401,7 @@ app.post('/api/admin/block-user', requireAdmin, async (req, res) => {
     }
 
     // Best-effort mirror to app table if present
-    try { await supabase.from('users').update({ blocked: true }).eq('id', authUser.id); } catch (_) {}
+    try { await supabase.from('users').update({ blocked: true, blocked_reason: newMeta.blocked_reason, blocked_at: newMeta.blocked_at }).eq('id', authUser.id); } catch (_) {}
 
     return res.json({ success: true });
   } catch (err) {
@@ -421,6 +426,8 @@ app.post('/api/admin/unblock-user', requireAdmin, async (req, res) => {
 
     const newMeta = { ...(authUser.user_metadata || {}) };
     delete newMeta.blocked;
+    delete newMeta.blocked_reason;
+    delete newMeta.blocked_at;
 
     const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
       ban_duration: 'none',
@@ -432,7 +439,7 @@ app.post('/api/admin/unblock-user', requireAdmin, async (req, res) => {
     }
 
     // Mirror to app table
-    try { await supabase.from('users').update({ blocked: false }).eq('id', authUser.id); } catch (_) {}
+    try { await supabase.from('users').update({ blocked: false, blocked_reason: null, blocked_at: null }).eq('id', authUser.id); } catch (_) {}
 
     return res.json({ success: true });
   } catch (err) {
