@@ -1,16 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Email Verified</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --tm-blue-1: #1e40af;
+      --tm-blue-2: #3b82f6;
+      --tm-indigo: #6366f1;
+      --tm-green: #22c55e;
+    }
+
+    html, body { height: 100%; }
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; }
+
+    /* Animated gradient background */
+    .gradient-bg {
+      background: radial-gradient(1200px 800px at 10% 10%, rgba(99,102,241,0.25), transparent 60%),
+                  radial-gradient(1000px 700px at 90% 30%, rgba(59,130,246,0.25), transparent 60%),
+                  linear-gradient(135deg, var(--tm-blue-1), var(--tm-blue-2), var(--tm-indigo));
+      background-size: 200% 200%;
+      animation: bgShift 18s ease infinite;
+    }
+    @keyframes bgShift { 0%,100%{background-position: 0% 50%} 50%{background-position: 100% 50%} }
+
+    /* Success check animation */
+    .checkmark {
+      width: 84px; height: 84px;
+      display: inline-block;
+      position: relative;
+    }
+    .checkmark__circle {
+      stroke-dasharray: 265;
+      stroke-dashoffset: 265;
+      animation: stroke 1s ease forwards;
+      filter: drop-shadow(0 6px 18px rgba(34,197,94,0.35));
+    }
+    .checkmark__check {
+      stroke-dasharray: 80;
+      stroke-dashoffset: 80;
+      animation: stroke 0.8s 0.3s ease forwards;
+    }
+    @keyframes stroke { to { stroke-dashoffset: 0; } }
+
+    /* Confetti */
+    .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 10; overflow: hidden; }
+    .confetti span {
+      position: absolute; top: -10px; width: 10px; height: 16px; opacity: 0.9;
+      border-radius: 2px;
+      animation: fall linear forwards;
+    }
+    @keyframes fall {
+      0%   { transform: translateY(-100vh) rotate(0deg); opacity: 0; }
+      10%  { opacity: 1; }
+      100% { transform: translateY(120vh) rotate(720deg); opacity: 1; }
+    }
+    .glass-card { backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+  </style>
+  <script>
+    // Tailwind config tweaks if needed
+    tailwind.config = { theme: { extend: { colors: { tmblue: '#1e40af', tmindigo: '#6366f1', tmsky: '#3b82f6', tmg: '#22c55e' } } } };
+  </script>
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="Your email has been successfully verified. You can now sign in." />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%2322c55e'/%3E%3Cpath fill='white' d='M23.9 11.1c.5.5.5 1.3 0 1.8l-7.5 7.5c-.5.5-1.3.5-1.8 0l-4-4a1.3 1.3 0 1 1 1.8-1.8l3.1 3.1 6.6-6.6c.5-.5 1.3-.5 1.8 0z'/%3E%3C/svg%3E" />
 </head>
-<body class="flex items-center justify-center min-h-screen bg-green-50">
-  <div class="p-6 bg-white shadow-md rounded-lg text-center">
-    <h1 class="text-2xl font-semibold text-green-700">✅ Email Verified!</h1>
-    <p class="mt-3 text-gray-600">Your account has been successfully verified.</p>
-    <a href="/Sign in/signin.html" class="mt-5 inline-block bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Go to Login</a>
-  </div>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-6">
+  <!-- Confetti Container (populates via JS) -->
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+
+  <!-- Card -->
+  <main class="relative w-full max-w-lg">
+    <!-- Subtle glow background -->
+    <div class="absolute -inset-1 rounded-3xl bg-gradient-to-br from-tmindigo/40 via-tmsky/40 to-tmblue/40 blur-2xl opacity-60"></div>
+
+    <section class="relative glass-card rounded-3xl border border-white/20 bg-white/70 shadow-2xl shadow-sky-900/10 dark:bg-white/10">
+      <div class="px-8 py-10 sm:px-10 sm:py-12 text-center">
+        <!-- Checkmark badge -->
+        <div class="mx-auto mb-6 grid place-items-center">
+          <div class="p-[2px] rounded-full bg-gradient-to-br from-tmg via-tmindigo to-tmsky">
+            <div class="bg-white dark:bg-white/5 rounded-full p-4">
+              <svg class="checkmark" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+                <circle class="checkmark__circle" cx="26" cy="26" r="24" stroke="rgb(34,197,94)" stroke-width="3" fill="none" />
+                <path class="checkmark__check" fill="none" stroke="rgb(34,197,94)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M14 27 l8 8 l16-16" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Heading -->
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+          Email Verified
+        </h1>
+        <p class="mt-3 text-slate-600 dark:text-slate-300">
+          Your account has been successfully verified. You can now sign in.
+        </p>
+
+        <!-- Actions -->
+        <div class="mt-8 flex items-center justify-center gap-3">
+          <a href="/Sign in/signin.html" class="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-tmsky to-tmindigo px-5 py-3 font-semibold text-white shadow-lg shadow-sky-500/20 ring-1 ring-white/10 transition-transform duration-200 hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-sky-400">
+            Go to Login
+            <svg class="h-5 w-5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </a>
+          <a href="/Homepage/home.html" class="inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold text-slate-700 dark:text-slate-200 ring-1 ring-slate-900/10 hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
+            Home
+          </a>
+        </div>
+
+        <!-- Footnote -->
+        <p class="mt-6 text-xs text-slate-500 dark:text-slate-400">If this wasn’t you, please reset your password.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Lightweight confetti burst
+    (function confettiBurst() {
+      const colors = ['#22c55e', '#3b82f6', '#6366f1', '#f59e0b', '#ef4444'];
+      const container = document.getElementById('confetti');
+      const COUNT = 28;
+      for (let i = 0; i < COUNT; i++) {
+        const p = document.createElement('span');
+        const size = 8 + Math.random() * 8;
+        const left = Math.random() * 100;
+        const delay = Math.random() * 0.4;
+        const duration = 1.8 + Math.random() * 0.9;
+        p.style.left = left + 'vw';
+        p.style.width = size + 'px';
+        p.style.height = (size * 1.6) + 'px';
+        p.style.background = colors[i % colors.length];
+        p.style.transform = `rotate(${Math.random()*360}deg)`;
+        p.style.animationDuration = duration + 's';
+        p.style.animationDelay = delay + 's';
+        container.appendChild(p);
+      }
+      setTimeout(() => container.remove(), 2600);
+    })();
+  </script>
 </body>
 </html>
