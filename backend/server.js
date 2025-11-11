@@ -816,6 +816,7 @@ app.post(
           phone,
           passportPhoto: passportUrl,  // ✅ Save URLs
           certificate: certificateUrl, // ✅ Save URLs
+          approved: false,            // ✅ start as pending
         },
       ]);
       if (tutorError) console.error("❌ Error inserting into tutors table:", tutorError);
@@ -867,6 +868,12 @@ app.post("/api/login", async (req, res) => {
       return res.status(403).json({ error: reason });
     }
     const role = user.user_metadata?.role || "unknown";
+
+    // ✅ Tutors must be approved by admin first
+if (role === "tutor" && user.user_metadata?.tutorApproved !== true) {
+  return res.status(403).json({ error: "Your tutor application is pending admin approval." });
+}
+
 
     res.status(200).json({
       message: "Login successful!",
@@ -1186,20 +1193,6 @@ app.post("/api/verify-otp", (req, res) => {
   otpStore.delete(email);
   res.status(200).json({ message: "OTP verified" });
 });
-// ✅ Check if tutor exists by email
-app.get("/api/tutor-exists", async (req, res) => {
-  const email = req.query.email;
-  if (!email) return res.json({ found: false });
-
-  const { data, error } = await supabase
-    .from("tutors")
-    .select("id")
-    .eq("email", email)
-    .maybeSingle();
-
-  if (error || !data) return res.json({ found: false });
-  res.json({ found: true });
-});
 
 // -------------------- FETCH STUDENT PROFILE --------------------
 app.get("/api/students/profile/:userId", async (req, res) => {
@@ -1428,6 +1421,70 @@ app.put("/api/students/profile", async (req, res) => {
     res.status(500).json({ error: "Unexpected server error." });
   }
 });
+
+// ✅✅✅ ADD THIS BLOCK — PUBLIC TUTORS BROWSING (students) ✅✅✅
+
+// PUBLIC: list tutors with optional filters (subjects as jsonb array)
+app.get('/api/tutors', async (req, res) => {
+  try {
+    const { subject, search } = req.query;
+
+let q = supabase.from('tutors').select('*');
+
+// ✅ Only show approved tutors publicly
+q = q.eq('approved', true);
+
+    // If you have an 'approved' column and want to show only approved tutors:
+    // q = q.eq('approved', true);
+
+    // SUBJECT filter (expects tutors.subjects to be jsonb array)
+    if (subject && String(subject).trim()) {
+      q = q.contains('subjects', [String(subject).trim()]);
+    }
+
+    const { data, error } = await q;
+    if (error) return res.status(400).json({ error: error.message });
+
+    let tutors = data || [];
+
+    // free-text search over name or subjects
+    if (search && String(search).trim()) {
+      const s = String(search).trim().toLowerCase();
+      tutors = tutors.filter(t => {
+        const name = `${t.firstName || ''} ${t.lastName || ''}`.toLowerCase();
+        const subs = Array.isArray(t.subjects)
+          ? t.subjects.join(', ').toLowerCase()
+          : String(t.subjects || '').toLowerCase();
+        return name.includes(s) || subs.includes(s);
+      });
+    }
+
+    res.json({ tutors });
+  } catch (err) {
+    console.error('list tutors error:', err);
+    return res.status(500).json({ error: 'Failed to load tutors' });
+  }
+});
+
+
+// GET /api/tutors/:id -> tutor profile details
+app.get('/api/tutors/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data, error } = await supabase
+      .from('tutors')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) return res.status(404).json({ error: 'Tutor not found' });
+
+    res.json({ tutor: data });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load tutor' });
+  }
+});
+
 // -------------------- FETCH TUTOR PROFILE --------------------
 app.get("/api/tutors/profile/:userId", async (req, res) => {
   try {

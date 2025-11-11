@@ -537,7 +537,7 @@
   </button>
 
 
-                <a href="findtutor.html" class="flex items-center space-x-4 magnetic cursor-pointer">
+<a href="./findtutor.html" class="flex items-center space-x-4 magnetic cursor-pointer">
                     <div class="w-12 h-12 liquid-morph bg-gradient-to-r from-blue-500 to-blue-800 flex items-center justify-center shadow-2xl">
                         <i data-lucide="graduation-cap" class="w-7 h-7 text-white"></i>
                     </div>
@@ -555,7 +555,7 @@
 
                 
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="/FindTutor/find-tutor.html" class="magnetic text-blue-300 font-medium transition-all duration-300 border-b-2 border-blue-300">Find Tutors</a>
+<a href="./findtutor.html" class="magnetic text-blue-300 font-medium transition-all duration-300 border-b-2 border-blue-300">Find Tutors</a>
                     <a href="/About/about.html" class="magnetic text-white hover:text-green-300 font-medium transition-all duration-300">About</a>
                     <a href="/Contact/contact.html" class="magnetic text-white hover:text-pink-300 font-medium transition-all duration-300">Contact</a>
                     
@@ -600,7 +600,11 @@
                     <i data-lucide="user" class="w-5 h-5"></i>
                     <span>My Profile</span>
                 </a>
-                <a href="findtutor.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white">
+<a href="./findtutor.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white">
+  <i data-lucide="search" class="w-5 h-5"></i>
+  <span>Find a Tutor</span>
+</a>
+
                     <i data-lucide="search" class="w-5 h-5"></i>
                     <span>Find a Tutor</span>
                 </a>
@@ -781,325 +785,9 @@
             </div>
             
             <!-- Tutors Grid -->
-            <div id="tutors-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 hidden">
-                <!-- Tutor Card 1 -->
-                <div class="tutor-card p-8 flying-card magnetic" style="animation-delay: 0.2s;">
-                    <div class="text-center mb-6">
-                        <div class="w-24 h-24 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl liquid-morph">
-                            👩‍💻
-                        </div>
-                        <h3 class="text-2xl font-bold text-white mb-2">Sarah M.</h3>
-                        <div class="text-blue-300 text-sm mb-2">Computer Science Senior</div>
-                        <div class="star-rating text-lg mb-4">⭐⭐⭐⭐⭐ 4.9</div>
-                    </div>
-                    
-                    <div class="space-y-4 mb-6">
-                        <div class="flex justify-between text-white/80">
-                            <span>Rate:</span>
-                            <span class="text-green-400 font-bold">$45/hour</span>
-                        </div>
-                        <div class="flex justify-between text-white/80">
-                            <span>Students:</span>
-                            <span class="text-blue-400 font-bold">45+ helped</span>
-                        </div>
-                        <div class="flex justify-between text-white/80">
-                            <span>Response:</span>
-                            <span class="text-purple-400 font-bold">< 1 hour</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-6">
-                        <div class="text-white font-medium mb-3">Specializes in:</div>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="subject-tag text-xs">CMPS 200</span>
-                            <span class="subject-tag text-xs">CMPS 201</span>
-                            <span class="subject-tag text-xs">CMPS 202</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-6 p-4 bg-white/5 rounded-xl">
-                        <p class="text-white/90 text-sm italic">
-                            "I love helping students understand complex programming concepts through practical examples and patient guidance."
-                        </p>
-                    </div>
-                    
-                    <div class="flex gap-3">
-                        <a href="/View Profile/view_profile.html" class="btn-premium flex-1 text-sm py-3 magnetic">
-                            <i data-lucide="calendar" class="w-4 h-4 inline mr-2"></i>
-                                View Profile
-                              </a>
+            <!-- Tutors Grid (filled dynamically) -->
+<div id="tutors-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 hidden"></div>
 
-                        <button class="glass dark:glass-dark text-white px-4 py-3 rounded-xl hover:scale-105 transition-all duration-300">
-                            <i data-lucide="message-circle" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Tutor Card 2 -->
-                <div class="tutor-card p-8 flying-card magnetic" style="animation-delay: 0.4s;">
-                    <div class="text-center mb-6">
-                        <div class="w-24 h-24 bg-gradient-to-r from-green-500 to-green-700 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl liquid-morph">
-                            👨‍🎓
-                        </div>
-                        <h3 class="text-2xl font-bold text-white mb-2">Ahmad K.</h3>
-                        <div class="text-green-300 text-sm mb-2">Mathematics Graduate</div>
-                        <div class="star-rating text-lg mb-4">⭐⭐⭐⭐⭐ 4.8</div>
-                    </div>
-                    
-                    <div class="space-y-4 mb-6">
-                        <div class="flex justify-between text-white/80">
-                            <span>Rate:</span>
-                            <span class="text-green-400 font-bold">$40/hour</span>
-                        </div>
-                        <div class="flex justify-between text-white/80">
-                            <span>Students:</span>
-                            <span class="text-blue-400 font-bold">32+ helped</span>
-                        </div>
-                        <div class="flex justify-between text-white/80">
-                            <span>Response:</span>
-                            <span class="text-purple-400 font-bold">< 2 hours</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-6">
-                        <div class="text-white font-medium mb-3">Specializes in:</div>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="subject-tag text-xs">MATH 201</span>
-                            <span class="subject-tag text-xs">MATH 202</span>
-                            <span class="subject-tag text-xs">STAT 230</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-6 p-4 bg-white/5 rounded-xl">
-                        <p class="text-white/90 text-sm italic">
-                            "Mathematics becomes easy when you understand the underlying patterns. I make complex concepts simple and intuitive."
-                        </p>
-                    </div>
-                    
-                    <div class="flex gap-3">
-                        <a href="book-session.html" 
-                           class="btn-premium flex-1 text-sm py-3 magnetic">
-                           <i data-lucide="calendar" class="w-4 h-4 inline mr-2"></i>
-                          View Profile
-                           </a>
-
-                        <button class="glass dark:glass-dark text-white px-4 py-3 rounded-xl hover:scale-105 transition-all duration-300">
-                            <i data-lucide="message-circle" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Tutor Card 3 -->
-                <div class="tutor-card p-8 flying-card magnetic" style="animation-delay: 0.6s;">
-                    <div class="text-center mb-6">
-                        <div class="w-24 h-24 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl liquid-morph">
-                            👩‍🏫
-                        </div>
-                        <h3 class="text-2xl font-bold text-white mb-2">Lara S.</h3>
-                        <div class="text-purple-300 text-sm mb-2">Physics TA</div>
-                        <div class="star-rating text-lg mb-4">⭐⭐⭐⭐⭐ 5.0</div>
-                    </div>
-                    
-                    <div class="space-y-4 mb-6">
-                        <div class="flex justify-between text-white/80">
-                            <span>Rate:</span>
-                            <span class="text-green-400 font-bold">$50/hour</span>
-                        </div>
-                        <div class="flex justify-between text-white/80">
-                            <span>Students:</span>
-                            <span class="text-blue-400 font-bold">38+ helped</span>
-                        </div>
-                        <div class="flex justify-between text-white/80">
-                            <span>Response:</span>
-                            <span class="text-purple-400 font-bold">< 30 min</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-6">
-                        <div class="text-white font-medium mb-3">Specializes in:</div>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="subject-tag text-xs">PHYS 201</span>
-                            <span class="subject-tag text-xs">PHYS 202</span>
-                            <span class="subject-tag text-xs">ENGR 200</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-6 p-4 bg-white/5 rounded-xl">
-                        <p class="text-white/90 text-sm italic">
-                            "Physics is about understanding how the world works. I help students see the beauty and logic behind every equation."
-                        </p>
-                    </div>
-                    
-                    <div class="flex gap-3">
-                        <a href="book-session.html" class="btn-premium flex-1 text-sm py-3 magnetic">
-                           <i data-lucide="calendar" class="w-4 h-4 inline mr-2"></i>
-                                View Profile
-                             </a>
-
-                        <button class="glass dark:glass-dark text-white px-4 py-3 rounded-xl hover:scale-105 transition-all duration-300">
-                            <i data-lucide="message-circle" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Tutor Card 4 -->
-                <div class="tutor-card p-8 flying-card magnetic" style="animation-delay: 0.8s;">
-                    <div class="text-center mb-6">
-                        <div class="w-24 h-24 bg-gradient-to-r from-orange-500 to-orange-700 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl liquid-morph">
-                            👨‍🔬
-                        </div>
-                        <h3 class="text-2xl font-bold text-white mb-2">Omar R.</h3>
-                        <div class="text-orange-300 text-sm mb-2">Chemistry Senior</div>
-                        <div class="star-rating text-lg mb-4">⭐⭐⭐⭐⭐ 4.7</div>
-                    </div>
-                    
-                    <div class="space-y-4 mb-6">
-                        <div class="flex justify-between text-white/80">
-                            <span>Rate:</span>
-                            <span class="text-green-400 font-bold">$35/hour</span>
-                        </div>
-                        <div class="flex justify-between text-white/80">
-                            <span>Students:</span>
-                            <span class="text-blue-400 font-bold">28+ helped</span>
-                        </div>
-                        <div class="flex justify-between text-white/80">
-                            <span>Response:</span>
-                            <span class="text-purple-400 font-bold">< 3 hours</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-6">
-                        <div class="text-white font-medium mb-3">Specializes in:</div>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="subject-tag text-xs">CHEM 201</span>
-                            <span class="subject-tag text-xs">CHEM 202</span>
-                            <span class="subject-tag text-xs">CHEM 301</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-6 p-4 bg-white/5 rounded-xl">
-                        <p class="text-white/90 text-sm italic">
-                            "Chemistry is like cooking - once you understand the recipe and reactions, everything makes perfect sense!"
-                        </p>
-                    </div>
-                    
-                    <div class="flex gap-3">
-                        <a href="book-session.html" class="btn-premium flex-1 text-sm py-3 magnetic">
-                         <i data-lucide="calendar" class="w-4 h-4 inline mr-2"></i>
-                           View Profile
-                          </a>
-
-                        <button class="glass dark:glass-dark text-white px-4 py-3 rounded-xl hover:scale-105 transition-all duration-300">
-                            <i data-lucide="message-circle" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Tutor Card 5 -->
-                <div class="tutor-card p-8 flying-card magnetic" style="animation-delay: 1.0s;">
-                    <div class="text-center mb-6">
-                        <div class="w-24 h-24 bg-gradient-to-r from-pink-500 to-pink-700 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl liquid-morph">
-                            👩‍💼
-                        </div>
-                        <h3 class="text-2xl font-bold text-white mb-2">Maya H.</h3>
-                        <div class="text-pink-300 text-sm mb-2">Business Graduate</div>
-                        <div class="star-rating text-lg mb-4">⭐⭐⭐⭐⭐ 4.9</div>
-                    </div>
-                    
-                    <div class="space-y-4 mb-6">
-                        <div class="flex justify-between text-white/80">
-                            <span>Rate:</span>
-                            <span class="text-green-400 font-bold">$42/hour</span>
-                        </div>
-                        <div class="flex justify-between text-white/80">
-                            <span>Students:</span>
-                            <span class="text-blue-400 font-bold">41+ helped</span>
-                        </div>
-                        <div class="flex justify-between text-white/80">
-                            <span>Response:</span>
-                            <span class="text-purple-400 font-bold">< 1 hour</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-6">
-                        <div class="text-white font-medium mb-3">Specializes in:</div>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="subject-tag text-xs">BUS 200</span>
-                            <span class="subject-tag text-xs">ECON 201</span>
-                            <span class="subject-tag text-xs">STAT 230</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-6 p-4 bg-white/5 rounded-xl">
-                        <p class="text-white/90 text-sm italic">
-                            "Business concepts become clear when you connect them to real-world examples. I make learning practical and engaging."
-                        </p>
-                    </div>
-                    
-                    <div class="flex gap-3">
-                        <a href="book-session.html" class="btn-premium flex-1 text-sm py-3 magnetic">
-                           <i data-lucide="calendar" class="w-4 h-4 inline mr-2"></i>
-                           View Profile
-                         </a>
-
-                        <button class="glass dark:glass-dark text-white px-4 py-3 rounded-xl hover:scale-105 transition-all duration-300">
-                            <i data-lucide="message-circle" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Tutor Card 6 -->
-                <div class="tutor-card p-8 flying-card magnetic" style="animation-delay: 1.2s;">
-                    <div class="text-center mb-6">
-                        <div class="w-24 h-24 bg-gradient-to-r from-teal-500 to-teal-700 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl liquid-morph">
-                            👨‍⚕️
-                        </div>
-                        <h3 class="text-2xl font-bold text-white mb-2">Karim A.</h3>
-                        <div class="text-teal-300 text-sm mb-2">Pre-Med Senior</div>
-                        <div class="star-rating text-lg mb-4">⭐⭐⭐⭐⭐ 4.8</div>
-                    </div>
-                    
-                    <div class="space-y-4 mb-6">
-                        <div class="flex justify-between text-white/80">
-                            <span>Rate:</span>
-                            <span class="text-green-400 font-bold">$38/hour</span>
-                        </div>
-                        <div class="flex justify-between text-white/80">
-                            <span>Students:</span>
-                            <span class="text-blue-400 font-bold">35+ helped</span>
-                        </div>
-                        <div class="flex justify-between text-white/80">
-                            <span>Response:</span>
-                            <span class="text-purple-400 font-bold">< 2 hours</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-6">
-                        <div class="text-white font-medium mb-3">Specializes in:</div>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="subject-tag text-xs">BIOL 201</span>
-                            <span class="subject-tag text-xs">CHEM 201</span>
-                            <span class="subject-tag text-xs">PHYS 201</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-6 p-4 bg-white/5 rounded-xl">
-                        <p class="text-white/90 text-sm italic">
-                            "Science subjects require both understanding and memorization. I help students master both through effective study strategies."
-                        </p>
-                    </div>
-                    
-                    <div class="flex gap-3">
-                        <a href="book-session.html" class="btn-premium flex-1 text-sm py-3 magnetic">
-                           <i data-lucide="calendar" class="w-4 h-4 inline mr-2"></i>
-                           View Profile
-                         </a>
-                        <button class="glass dark:glass-dark text-white px-4 py-3 rounded-xl hover:scale-105 transition-all duration-300">
-                            <i data-lucide="message-circle" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
             
             <!-- Load More Button -->
             <div class="text-center mt-12">
@@ -1383,7 +1071,7 @@
                 <div>
                     <h4 class="font-bold mb-6 text-xl text-white">For Students</h4>
                     <ul class="space-y-4 text-gray-400">
-                        <li><a href="find-tutor.html" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Find Tutors</a></li>
+<li><a href="./frontend.html" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Find Tutors</a></li>
                         <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">How It Works</a></li>
                         <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Success Stories</a></li>
                         <li><a href="#" class="hover:text-white transition-colors hover:translate-x-2 inline-block">Pricing</a></li>
@@ -1893,5 +1581,8 @@
             showSearchResults({}, 6);
         }, 2500);
     </script>
+ <!-- dynamic tutor loader -->
+<!-- dynamic tutor loader -->
+<script src="../FindTutor/find-tutor.js" defer></script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97b4a2c32572e30e',t:'MTc1NzIzMTY0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
