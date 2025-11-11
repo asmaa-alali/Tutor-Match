@@ -1098,7 +1098,57 @@
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
+        // Theme Management
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
         
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            html.classList.add('dark');
+        }
+        
+        // Set initial icon visibility
+        setTimeout(() => {
+            const sunIcon = themeToggle.querySelector('[data-lucide="sun"]');
+            const moonIcon = themeToggle.querySelector('[data-lucide="moon"]');
+            
+            if (html.classList.contains('dark')) {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+        }, 100);
+        
+        // Theme toggle function
+        function toggleTheme() {
+            const isDark = html.classList.contains('dark');
+            const sunIcon = themeToggle.querySelector('[data-lucide="sun"]');
+            const moonIcon = themeToggle.querySelector('[data-lucide="moon"]');
+            
+            document.body.classList.add('theme-transition');
+            
+            if (isDark) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+            
+            setTimeout(() => {
+                lucide.createIcons();
+                document.body.classList.remove('theme-transition');
+            }, 500);
+        }
+        
+        themeToggle.addEventListener('click', toggleTheme);
         // Theme management handled by shared script (frontend/FindTutor/find-tutor.js)
 
         // Sidebar: open/close handlers (hamburger before logo)
@@ -1120,6 +1170,14 @@
         if (menuBtn) menuBtn.addEventListener('click', openSideMenu);
         if (sideOverlay) sideOverlay.addEventListener('click', closeSideMenu);
         if (sideClose) sideClose.addEventListener('click', closeSideMenu);
+
+          // Sidebar theme toggle uses same logic
+        const sideThemeToggle = document.getElementById('side-theme-toggle');
+        if (sideThemeToggle) {
+            sideThemeToggle.addEventListener('click', () => {
+                if (typeof toggleTheme === 'function') toggleTheme();
+            });
+        }
 
         // Sidebar theme toggle is wired in shared script
         
