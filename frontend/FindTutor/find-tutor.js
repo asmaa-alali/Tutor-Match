@@ -1,4 +1,4 @@
-/* find-tutor.js */
+﻿/* find-tutor.js */
 console.log("✅ findtutor.js loaded!");
 
 (() => {
@@ -23,39 +23,40 @@ console.log("✅ findtutor.js loaded!");
     const savedTheme = localStorage.getItem('theme') || 'light';
     if (savedTheme === 'dark') htmlEl.classList.add('dark');
 
-    function syncIcons() {
-      if (!themeToggle) return;
+        // Ensure correct initial icon
+    setTimeout(() => {
+      const sunIcon = themeToggle?.querySelector('[data-lucide="sun"]');
+      const moonIcon = themeToggle?.querySelector('[data-lucide="moon"]');
+
+
+      if (!sunIcon || !moonIcon) return;
+      if (htmlEl.classList.contains('dark')) { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); }
+      else { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); }
+    },50 );
+
+       themeToggle?.addEventListener('click', () => {
       const sunIcon = themeToggle.querySelector('[data-lucide="sun"]');
       const moonIcon = themeToggle.querySelector('[data-lucide="moon"]');
-      if (!sunIcon || !moonIcon) return;
-      const isDark = htmlEl.classList.contains('dark');
-      if (isDark) { sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); }
-      else { sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); }
-    }
-
-    // Ensure correct initial icon after layout
-    setTimeout(syncIcons, 50);
-
-    function toggleTheme() {
       document.body.classList.add('theme-transition');
+
       const isDark = htmlEl.classList.contains('dark');
       if (isDark) {
         htmlEl.classList.remove('dark');
         localStorage.setItem('theme', 'light');
+          sunIcon?.classList.remove('hidden');
+        moonIcon?.classList.add('hidden');
       } else {
         htmlEl.classList.add('dark');
         localStorage.setItem('theme', 'dark');
+         sunIcon?.classList.add('hidden');
+        moonIcon?.classList.remove('hidden');
       }
-      syncIcons();
       setTimeout(() => {
         refreshIcons();
         document.body.classList.remove('theme-transition');
       }, 300);
-    }
+    });
 
-    // Bind both the header toggle and the sidebar toggle to the same handler
-    themeToggle?.addEventListener('click', toggleTheme);
-    sideThemeToggle?.addEventListener('click', toggleTheme);
   }
 
   // ------- Navbar glass on scroll -------
