@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>About Us - AUB Tutor Hub</title>
+    <title>About Us - Tutor Match</title>
 
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,15 +21,15 @@
 
     <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-500">
         <div class="max-w-7xl mx-auto px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <a href="index.html" id="about-brand-link" class="flex items-center space-x-4 magnetic cursor-pointer">
+            <div class="flex justify-between items-center h-20 relative">
+                <a href="../Homepage/home.html" id="about-brand-link" class="flex items-center space-x-4 magnetic cursor-pointer">
                     <div
                         class="w-12 h-12 liquid-morph bg-gradient-to-r from-blue-500 to-blue-800 flex items-center justify-center shadow-2xl">
                         <i data-lucide="graduation-cap" class="w-7 h-7 text-white"></i>
                     </div>
                     <span
                         class="text-2xl font-bold bg-gradient-to-r from-blue-300 to-white bg-clip-text text-transparent">
-                        AUB Tutor Hub
+                        Tutor Match
                     </span>
                 </a>
 
@@ -67,19 +67,26 @@
 </a>
 
 
-                <div class="md:hidden flex items-center space-x-4">
-                    <div class="theme-toggle magnetic" onclick="toggleTheme()"></div>
-                    <button class="magnetic glass p-3 rounded-2xl">
-                        <i data-lucide="menu" class="w-6 h-6 text-white"></i>
-                    </button>
-                </div>
-                <div class="md:hidden">
-                    <button class="magnetic glass dark:glass-dark p-3 rounded-2xl">
-                        <i data-lucide="menu" class="w-6 h-6 text-white"></i>
-                    </button>
-                </div>
+                <button id="mobile-menu-toggle" aria-expanded="false" aria-controls="mobile-menu" class="md:hidden fixed right-4 top-4 z-[60] magnetic glass dark:glass-dark p-3 rounded-2xl">
+                    <i id="icon-menu" data-lucide="menu" class="w-6 h-6 text-white"></i>
+                    <i id="icon-close" data-lucide="x" class="w-6 h-6 text-white hidden"></i>
+                </button>
             </div>
+        </div>
     </nav>
+    <!-- Mobile menu for About page -->
+    <div id="mobile-menu" class="md:hidden hidden px-6 pb-6">
+        <div class="glass dark:glass-dark rounded-2xl p-4 mt-3 space-y-2">
+            <a href="../Homepage/home.html" class="block px-3 py-2 rounded-xl text-white hover:bg-white/10">Home</a>
+            <a href="../FindTutor/find-tutor.html" class="block px-3 py-2 rounded-xl text-white hover:bg-white/10">Find Tutors</a>
+            <a href="../Sign Up/tutorsignup.html" class="block px-3 py-2 rounded-xl text-white hover:bg-white/10">Become a Tutor</a>
+            <a href="../Contact/contact.html" class="block px-3 py-2 rounded-xl text-white hover:bg-white/10">Contact</a>
+            <div class="flex gap-3 pt-2">
+                <a href="../Sign in/signin.html" class="flex-1 text-center glass dark:glass-dark px-4 py-2 rounded-xl text-white">Log In</a>
+                <a href="../Sign Up/sign-up.html" class="flex-1 text-center bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 rounded-xl text-white">Sign Up</a>
+            </div>
+        </div>
+    </div>
 
     <section class="min-h-screen flex flex-col items-center justify-center relative overflow-hidden pt-20">
         <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center relative z-10">
@@ -631,6 +638,7 @@
         </div>
     </footer>
     <script src="/common/session-nav.js"></script>
+    <script src="../shared/mobile-menu.js" defer></script>
     <script src="about.js"></script>
 </body>
 
