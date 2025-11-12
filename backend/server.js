@@ -44,6 +44,13 @@ app.use(
 );
 app.use("/", express.static(path.join(__dirname, "../frontend")));
 
+// Ensure relative asset paths on the homepage resolve correctly:
+// redirect root to the real homepage file so its relative links (./home.css, ./home.js)
+// load from /Homepage/ instead of /
+app.get("/", (req, res) => {
+  res.redirect("/Homepage/home.html");
+});
+
 // -------------------- ADMIN MIDDLEWARE --------------------
 // Admin authentication middleware - use on admin-only routes
 function requireAdmin(req, res, next) {

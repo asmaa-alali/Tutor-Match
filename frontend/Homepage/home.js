@@ -68,6 +68,45 @@ if (savedTheme === 'dark') {
                 navbar.style.background = 'transparent';
             }
         });
+
+        // Mobile menu toggle
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const iconMenu = document.getElementById('icon-menu');
+        const iconClose = document.getElementById('icon-close');
+
+        function closeMobileMenu() {
+            if (!mobileMenu) return;
+            mobileMenu.classList.add('hidden');
+            if (mobileToggle) mobileToggle.setAttribute('aria-expanded', 'false');
+            if (iconMenu && iconClose) {
+                iconMenu.classList.remove('hidden');
+                iconClose.classList.add('hidden');
+            }
+        }
+
+        function openMobileMenu() {
+            if (!mobileMenu) return;
+            mobileMenu.classList.remove('hidden');
+            if (mobileToggle) mobileToggle.setAttribute('aria-expanded', 'true');
+            if (iconMenu && iconClose) {
+                iconMenu.classList.add('hidden');
+                iconClose.classList.remove('hidden');
+            }
+        }
+
+        mobileToggle?.addEventListener('click', () => {
+            if (mobileMenu?.classList.contains('hidden')) {
+                openMobileMenu();
+            } else {
+                closeMobileMenu();
+            }
+        });
+
+        // Close after clicking a link
+        mobileMenu?.querySelectorAll('a').forEach(a => {
+            a.addEventListener('click', () => closeMobileMenu());
+        });
         
         // Magnetic Effect for Interactive Elements
         document.querySelectorAll('.magnetic').forEach(element => {

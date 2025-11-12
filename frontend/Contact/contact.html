@@ -50,13 +50,27 @@
                     
                 </div>
                 <div class="md:hidden">
-                    <button class="magnetic glass p-3 rounded-2xl">
-                        <i data-lucide="menu" class="w-6 h-6 text-white"></i>
+                    <button id="mobile-menu-toggle" aria-expanded="false" aria-controls="mobile-menu" class="magnetic glass dark:glass-dark p-3 rounded-2xl">
+                        <i id="icon-menu" data-lucide="menu" class="w-6 h-6 text-white"></i>
+                        <i id="icon-close" data-lucide="x" class="w-6 h-6 text-white hidden"></i>
                     </button>
                 </div>
             </div>
         </div>
     </nav>
+    <!-- Mobile menu for Contact page -->
+    <div id="mobile-menu" class="md:hidden hidden px-6 pb-6">
+        <div class="glass dark:glass-dark rounded-2xl p-4 mt-3 space-y-2">
+            <a href="../Homepage/home.html" class="block px-3 py-2 rounded-xl text-white hover:bg-white/10">Home</a>
+            <a href="../FindTutor/find-tutor.html" class="block px-3 py-2 rounded-xl text-white hover:bg-white/10">Find Tutors</a>
+            <a href="../Sign Up/tutorsignup.html" class="block px-3 py-2 rounded-xl text-white hover:bg-white/10">Become a Tutor</a>
+            <a href="../About/about.html" class="block px-3 py-2 rounded-xl text-white hover:bg-white/10">About</a>
+            <div class="flex gap-3 pt-2">
+                <a href="../Sign in/signin.html" class="flex-1 text-center glass dark:glass-dark px-4 py-2 rounded-xl text-white">Log In</a>
+                <a href="../Sign Up/sign-up.html" class="flex-1 text-center bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 rounded-xl text-white">Sign Up</a>
+            </div>
+        </div>
+    </div>
 
     <section class="min-h-screen flex items-center justify-center relative overflow-hidden gradient-mesh pt-20">
         <div class="absolute inset-0 bg-black/10"></div>
@@ -492,5 +506,6 @@
 
   <script src="/common/session-nav.js"></script>
   <script src="contact.js"></script>
+  <script src="../shared/mobile-menu.js" defer></script>
 </body>
 </html>

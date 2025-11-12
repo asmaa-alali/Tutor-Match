@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tutor Profile • Tutor Match</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="../common/session-guard.js" defer></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Inter", sans-serif;
+      }
+      body {
+        min-height: 100vh;
+        background: radial-gradient(circle at top, rgba(59, 130, 246, 0.35), transparent 55%),
+          #020617;
+        color: #f8fafc;
+      }
+      .glass-panel {
+        background: rgba(2, 6, 23, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 24px;
+        box-shadow: 0 25px 65px rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(18px);
+      }
+      .info-chip {
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        padding: 0.35rem 0.9rem;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: rgba(15, 23, 42, 0.75);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-3">
+          <button
+            id="backButton"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 hover:border-white/60 transition"
+          >
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Back to tutors
+          </button>
+          <span
+            id="statusBadge"
+            class="text-xs uppercase tracking-wide px-3 py-1 rounded-full bg-white/10 border border-white/20"
+          >
+            Loading…
+          </span>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <button
+            id="shareButton"
+            class="px-4 py-2 rounded-full border border-white/20 hover:border-white/60 transition inline-flex items-center gap-2"
+          >
+            <i data-lucide="share-2" class="w-4 h-4"></i>
+            Share
+          </button>
+          <button
+            id="messageButton"
+            class="px-4 py-2 rounded-full border border-white/20 hover:border-white/60 transition inline-flex items-center gap-2"
+          >
+            <i data-lucide="message-circle" class="w-4 h-4"></i>
+            Contact Tutor
+          </button>
+          <span class="text-white/60 text-sm">
+            For bookings, please contact the tutor using the details below.
+          </span>
+        </div>
+      </header>
+
+      <section class="glass-panel p-6 lg:p-8">
+        <div class="flex flex-col lg:flex-row gap-6">
+          <div class="flex items-center gap-5">
+            <img
+              id="profileAvatar"
+              src="https://placehold.co/160x160?text=Tutor"
+              alt="Tutor avatar"
+              class="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover border-4 border-white/15 shadow-xl"
+            />
+            <div>
+              <p id="profileUniversity" class="text-white/60 text-xs uppercase tracking-[0.3em] mb-2">
+                Tutor Match
+              </p>
+              <h1 id="profileName" class="text-3xl font-semibold">Tutor Name</h1>
+              <p id="profileHeadline" class="text-white/70 mt-1">Degree • Major</p>
+              <div class="flex flex-wrap gap-3 mt-4 text-sm text-white/70">
+                <div class="info-chip" id="rateChip">
+                  <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+                  <span id="profileRate">$40/hr</span>
+                </div>
+                <div class="info-chip" id="formatChip">
+                  <i data-lucide="monitor" class="w-4 h-4"></i>
+                  <span id="profileFormat">Online & In-person</span>
+                </div>
+                <div class="info-chip" id="ratingChip">
+                  <i data-lucide="star" class="w-4 h-4"></i>
+                  <span id="profileRating">4.9 • 20 reviews</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
+              <p class="text-white/60 uppercase text-xs tracking-wide">GPA</p>
+              <p id="profileGpa" class="text-2xl font-semibold mt-1">—</p>
+              <p class="text-white/50 text-xs">Verified</p>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
+              <p class="text-white/60 uppercase text-xs tracking-wide">Experience</p>
+              <p id="profileExperience" class="text-lg font-semibold mt-1">—</p>
+              <p class="text-white/50 text-xs">In tutoring</p>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
+              <p class="text-white/60 uppercase text-xs tracking-wide">Availability</p>
+              <p id="profileAvailabilitySummary" class="text-lg font-semibold mt-1">Flexible</p>
+              <p class="text-white/50 text-xs">Updated weekly</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass-panel p-6 lg:p-8 space-y-6">
+        <div>
+          <h2 class="text-2xl font-semibold">About</h2>
+          <p id="profileBio" class="text-white/80 leading-relaxed mt-3">
+            This tutor will update their bio soon. Message them for details about their teaching style.
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-4 text-sm">
+          <div>
+            <p class="text-white/60 uppercase text-xs tracking-wide">Academic focus</p>
+            <p id="profileAcademic" class="text-lg font-semibold mt-1">—</p>
+            <p class="text-white/50 text-xs">Major & specialization</p>
+          </div>
+          <div>
+            <p class="text-white/60 uppercase text-xs tracking-wide">Tutoring format</p>
+            <p id="profileFormatDetails" class="text-lg font-semibold mt-1">—</p>
+            <p class="text-white/50 text-xs">Preferred connection</p>
+          </div>
+          <div>
+            <p class="text-white/60 uppercase text-xs tracking-wide">Languages</p>
+            <p id="profileLanguages" class="text-lg font-semibold mt-1">English</p>
+            <p class="text-white/50 text-xs">Tutor will add more soon</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass-panel p-6 lg:p-8 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl font-semibold">Subjects & expertise</h2>
+          <span id="subjectsCount" class="text-white/60 text-sm">— subjects</span>
+        </div>
+        <div id="profileSubjects" class="flex flex-wrap gap-3">
+          <span class="text-white/60 text-sm">Subject list will appear here.</span>
+        </div>
+      </section>
+
+      <section class="glass-panel p-6 lg:p-8 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl font-semibold">Credentials</h2>
+          <span class="text-white/60 text-sm">Verified documents</span>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <p class="text-white/60 uppercase text-xs tracking-wide">Degree</p>
+            <p id="profileDegree" class="text-lg font-semibold mt-1">—</p>
+          </div>
+          <div>
+            <p class="text-white/60 uppercase text-xs tracking-wide">Certificates</p>
+            <div id="profileCertificates" class="space-y-1 mt-1 text-white/80">
+              <p>No certificates uploaded yet.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="glass-panel p-6 lg:p-8 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl font-semibold">Contact</h2>
+          <span class="text-white/60 text-sm">Share details when ready</span>
+        </div>
+        <p class="text-white/70 text-sm">
+          Booking requests are handled directly by each tutor—use the email or phone below to schedule a session.
+        </p>
+        <div class="grid md:grid-cols-2 gap-4 text-sm">
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
+            <i data-lucide="mail" class="w-5 h-5 text-blue-300"></i>
+            <div>
+              <p class="text-white/60 text-xs uppercase tracking-wide">Email</p>
+              <p id="profileEmail" class="font-semibold">Not shared</p>
+            </div>
+          </div>
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
+            <i data-lucide="phone" class="w-5 h-5 text-green-300"></i>
+            <div>
+              <p class="text-white/60 text-xs uppercase tracking-wide">Phone</p>
+              <p id="profilePhone" class="font-semibold">Not shared</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="./tutor-profile.js" defer></script>
+  </body>
+</html>

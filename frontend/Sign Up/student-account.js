@@ -262,7 +262,7 @@ form.addEventListener("submit", async (e) => {
 
 // ====================== NAVIGATION ======================
 function goToHome() {
-  window.location.href = "/Homepage/home.html";
+  window.location.href = "../Homepage/home.html";
 }
 
 // ====================== COMING SOON MODAL ======================
