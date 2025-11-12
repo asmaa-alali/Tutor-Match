@@ -134,7 +134,7 @@ console.log("✅ findtutor.js loaded!");
     const fmt = t.format || 'online/in-person';
 
     return `
-      <div class="tutor-card p-6" data-name="${name.toLowerCase()}" data-rate="${rate}" data-rating="${rating}" data-format="${String(fmt).toLowerCase()}" data-profile-id="${t.id || ""}">
+      <div class="tutor-card p-6" data-name="${name.toLowerCase()}" data-rate="${rate}" data-rating="${rating}" data-format="${String(fmt).toLowerCase()}">
         <div class="flex items-center gap-4 mb-4">
           <img src="${avatar}" alt="${name}" class="w-16 h-16 rounded-full object-cover"/>
           <div>
@@ -343,34 +343,17 @@ console.log("✅ findtutor.js loaded!");
 
   // ------- Card buttons / CTA -------
   function setupCardAndCtaHandlers() {
-    const openTutorProfile = (id) => {
-      if (!id) {
-        alert("This tutor is finalizing their profile. Please try again later.");
-        return;
-      }
-      window.location.href = `/Student%20Page/tutor-profile.html?id=${encodeURIComponent(id)}`;
-    };
-
     tutorsGrid?.addEventListener('click', (e) => {
       const btn = e.target.closest('button');
-      if (btn) {
-        const action = btn.dataset.action;
-        const id = btn.dataset.id;
-        if (action === 'view') {
-          e.stopPropagation();
-          openTutorProfile(id);
-        } else if (action === 'message') {
-          e.stopPropagation();
-          const card = btn.closest('.tutor-card');
-          const name = card?.querySelector('h3')?.textContent || 'Tutor';
-          alert(`💬 Opening chat with ${name}...\n\n(Stub) Implement chat UI later.`);
-        }
-        return;
-      }
-
-      const card = e.target.closest('.tutor-card');
-      if (card && card.dataset.profileId) {
-        openTutorProfile(card.dataset.profileId);
+      if (!btn) return;
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+      if (action === 'view') {
+        window.open(`/api/tutors/${encodeURIComponent(id)}`, '_blank');
+      } else if (action === 'message') {
+        const card = btn.closest('.tutor-card');
+        const name = card?.querySelector('h3')?.textContent || 'Tutor';
+        alert(`💬 Opening chat with ${name}...\n\n(Stub) Implement chat UI later.`);
       }
     });
 
