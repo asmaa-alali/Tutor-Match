@@ -153,11 +153,8 @@
 
   function wireActions() {
     $("#backButton")?.addEventListener("click", () => (window.location.href = "./findtutor.html"));
-    $("#bookButton")?.addEventListener("click", () =>
-      alert("Booking flow coming soon. Share your course and preferred time slot with the tutor.")
-    );
     $("#messageButton")?.addEventListener("click", () =>
-      alert("Messaging will open soon. Use the contact info below for now.")
+      alert("Please reach out using the contact details below to arrange your booking.")
     );
     $("#shareButton")?.addEventListener("click", async () => {
       const shareData = { title: document.title, url: window.location.href };
