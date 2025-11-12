@@ -1,3 +1,8 @@
+// 🌍 Automatically use correct backend URL
+const API_BASE =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000"  // local dev
+    : window.location.origin;   // Render deployment
 
 lucide.createIcons();
 let loginAttempts = 0;
@@ -95,12 +100,12 @@ document.getElementById("signInForm").addEventListener("submit", async function 
 
   try {
     // 🔹 Step 3: Attempt login with backend
-    const res = await fetch("http://localhost:3000/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    
+    const res = await fetch(`${API_BASE}/api/login`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email, password }),
+});
+
 
     const data = await res.json();
     lastLoginRole = data.role || null;
@@ -179,11 +184,12 @@ if (otpCanceled) {
 }
 
 showNotification("Sending verification code to your email...", "success");
-const otpRes = await fetch("http://localhost:3000/api/login-otp", {
+const otpRes = await fetch(`${API_BASE}/api/login-otp`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ email }),
 });
+
 const otpData = await otpRes.json();
 
 if (!otpRes.ok) {
@@ -315,11 +321,12 @@ async function submitOtpCode() {
   }
 
   try {
-    const res = await fetch("http://localhost:3000/api/verify-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: lastLoginEmail, code })
-    });
+    const res = await fetch(`${API_BASE}/api/verify-otp`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email: lastLoginEmail, code }),
+});
+
     const data = await res.json();
 
     if (!res.ok) {
@@ -375,11 +382,12 @@ async function resendOtp() {
   }
 
   try {
-    const res = await fetch("http://localhost:3000/api/login-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: lastLoginEmail })
-    });
+    const res = await fetch(`${API_BASE}/api/login-otp`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email: lastLoginEmail }),
+});
+
     const data = await res.json();
 
     if (!res.ok) {
