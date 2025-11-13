@@ -140,10 +140,13 @@ document.getElementById("signInForm").addEventListener("submit", async function 
   // Reset attempts after lock
   loginAttempts = 0;
 } else {
-  showNotification(
-    `Invalid credentials. ${remaining} attempt${remaining === 1 ? "" : "s"} left.`,
-    "error"
-  );
+  const serverMessage = typeof data?.error === "string" && data.error.trim().length > 0
+    ? data.error
+    : res.status === 403
+      ? "Access denied. Please contact support."
+      : `Invalid credentials. ${remaining} attempt${remaining === 1 ? "" : "s"} left.`;
+
+  showNotification(serverMessage, "error");
 }
 
 
