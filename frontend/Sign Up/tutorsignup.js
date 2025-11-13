@@ -185,7 +185,7 @@ form.addEventListener("submit", async (e) => {
   fd.append("certificate", certificateFile);
 
   try {
-    const res = await fetch("http://localhost:3000/api/signup/tutor", {
+      const res = await fetch("https://tutor-match-n8a7.onrender.com/api/signup/tutor", {
       method: "POST",
       body: fd, // ⚠️ no Content-Type header; the browser sets it for multipart
     });

@@ -239,7 +239,7 @@ form.addEventListener("submit", async (e) => {
   };
 
   try {
-    const res = await fetch("http://localhost:3000/api/signup/student", {
+      const res = await fetch("https://tutor-match-n8a7.onrender.com/api/signup/student", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),

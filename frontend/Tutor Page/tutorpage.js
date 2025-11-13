@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    const res = await fetch(`http://localhost:3000/api/tutors/profile/${tutorId}`);
+    const res = await fetch(`https://tutor-match-n8a7.onrender.com/api/tutors/profile/${tutorId}`);
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.error || "Failed to load tutor profile");
