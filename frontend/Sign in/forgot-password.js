@@ -24,8 +24,10 @@ form.addEventListener("submit", async (e) => {
   btn.textContent = "Sending...";
 
   try {
+    // Use the current origin so the reset link works on both local and deployed hosts
+    const redirectUrl = `${window.location.origin}/reset-password`;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: "http://localhost:3000/reset-password"
+      redirectTo: redirectUrl
     });
     if (error) throw error;
 
