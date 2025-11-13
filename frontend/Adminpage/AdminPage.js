@@ -1,5 +1,42 @@
 ﻿lucide.createIcons();
 
+const ADMIN_EMAIL = "admintm01@proton.me";
+
+function getAdminEmailForRequests() {
+  const sessionData = localStorage.getItem("tmUserSession");
+  if (!sessionData) return "";
+  try {
+    const session = JSON.parse(sessionData);
+    if (!session || typeof session !== "object") return "";
+    let email = typeof session.email === "string" ? session.email.trim() : "";
+    const role =
+      typeof session.role === "string" ? session.role.trim().toLowerCase() : "";
+    if (!email && role === "admin") {
+      email = ADMIN_EMAIL;
+      session.email = ADMIN_EMAIL;
+      try {
+        localStorage.setItem("tmUserSession", JSON.stringify(session));
+      } catch (storageErr) {
+        console.warn("Failed to persist admin email:", storageErr);
+      }
+    }
+    return email;
+  } catch (err) {
+    console.warn("Unable to parse admin session:", err);
+    return "";
+  }
+}
+
+function requireAdminEmail() {
+  const email = getAdminEmailForRequests();
+  if (!email) {
+    alert("Admin session expired. Please sign in again.");
+    window.location.href = "/Sign in/signin.html";
+    return null;
+  }
+  return email;
+}
+
 // Add this at the very top of the file
 
 // ==================== ADMIN SESSION GUARD ====================
