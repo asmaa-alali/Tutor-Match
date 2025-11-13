@@ -313,7 +313,8 @@ app.post('/api/admin/tutor-requests/accept', requireAdmin, async (req, res) => {
       const firstName = authUser?.user_metadata?.firstName || '';
       if (toEmail) {
         const subj = 'Welcome to Tutor Match — Application Approved';
-        const signinUrl = 'http://localhost:3000/Sign%20in/signin.html';
+        const signinUrl =  'https://tutor-match-n8a7.onrender.com/Sign%20in/signin.html';
+
         const html = `
           <div style="font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.6">
             <h2 style=\"margin:0 0 8px;color:#111827\">Congratulations!</h2>
@@ -653,7 +654,7 @@ app.post("/api/delete-auth-user", async (req, res) => {
 
 // ✅ 1) Start Google OAuth
 app.get("/auth/google", (req, res) => {
-  const redirectTo = "http://localhost:3000/auth/callback";
+  const redirectTo = "https://tutor-match-n8a7.onrender.com/auth/callback";
   const prompt = req.query.prompt || "none"; // default = none
   const url = `${process.env.SUPABASE_URL}/auth/v1/authorize?provider=google&prompt=${prompt}&redirect_to=${encodeURIComponent(redirectTo)}`;
   console.log("Redirecting to:", url);
@@ -676,7 +677,8 @@ app.post("/api/signup/student", async (req, res) => {
       password,
       options: {
         data: { role: "student", firstName, lastName, birthdate, phone, studentId, currentYear, major, gpa },
-        emailRedirectTo: "http://localhost:3000/verified",
+        emailRedirectTo: "https://tutor-match-n8a7.onrender.com/verified"
+,
       },
     });
 
@@ -763,7 +765,7 @@ app.post(
             availability,
           },
           // After verifying email, send tutors to a pending review page
-          emailRedirectTo: "http://localhost:3000/tutor-review",
+          emailRedirectTo: "https://tutor-match-n8a7.onrender.com/tutor-review",
         },
       });
 
