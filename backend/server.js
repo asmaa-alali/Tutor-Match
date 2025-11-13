@@ -14,7 +14,9 @@ import cors from "cors";
 
 import { createClient } from "@supabase/supabase-js";
 import cron from "node-cron";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
+
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -74,38 +76,24 @@ function requireAdmin(req, res, next) {
   }
 }
 
-// -------------------- MAILER --------------------
-function createMailer() {
+// -------------------- MAILER (Resend) --------------------
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+async function sendAdminEmail(to, subject, html, textFallback = "") {
   try {
-    const user = process.env.EMAIL_USER;
-    const pass = process.env.EMAIL_PASS;
-    if (!user || !pass) {
-      console.warn("Email credentials not configured; emails will not be sent.");
-      return null;
-    }
-    return nodemailer.createTransport({ service: "gmail", auth: { user, pass } });
+    await resend.emails.send({
+      from: "Tutor Match <onboarding@resend.dev>",
+      to,
+      subject,
+      html,
+      text: textFallback,
+    });
+    console.log("✔️ Email sent to:", to);
   } catch (e) {
-    console.warn("Failed to initialize mailer:", e?.message || e);
-    return null;
+    console.error("❌ Email failed:", e?.message || e);
   }
 }
 
-async function sendAdminEmail(to, subject, html, textFallback) {
-  const transporter = createMailer();
-  if (!transporter) return;
-  const mailOptions = {
-    from: `"Tutor Match" <${process.env.EMAIL_USER}>`,
-    to,
-    subject,
-    html,
-    text: textFallback || "",
-  };
-  try {
-    await transporter.sendMail(mailOptions);
-  } catch (e) {
-    console.warn("Email send failed:", e?.message || e);
-  }
-}
 
 // Export for use in routes
 // Example usage: app.get("/api/admin/users", requireAdmin, async (req, res) => { ... });
@@ -1151,42 +1139,41 @@ import crypto from "crypto";
 
 const otpStore = new Map(); // temp in-memory store (email -> code)
 
+// -------------------- GENERATE AND SEND LOGIN OTP --------------------
 app.post("/api/login-otp", async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: "Email required" });
 
-    // Generate random 6-digit code
+    // Generate OTP
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     otpStore.set(email, code);
-    setTimeout(() => otpStore.delete(email), 5 * 60 * 1000); // expire after 5 min
+    setTimeout(() => otpStore.delete(email), 5 * 60 * 1000);
 
-    // Configure mailer
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
+    // Send using Resend
+    await resend.emails.send({
+      from: "Tutor Match <onboarding@resend.dev>",
+      to: email,
+      subject: "Tutor Match Login Verification Code",
+      html: `
+        <div style="font-family:Arial;line-height:1.5">
+          <h2>Your Tutor Match Code</h2>
+          <p>Your login code is <b>${code}</b>.</p>
+          <p>This code expires in 5 minutes.</p>
+        </div>
+      `,
+      text: `Your Tutor Match login code is ${code}. It expires in 5 minutes.`,
     });
 
-    const mailOptions = {
-      from: `"Tutor Match" <${process.env.EMAIL_USER}>`,
-      to: email,
-     subject: "Tutor Match Login Verification Code",
-     text: `Hello!\n\nYour login code is ${code}. It expires in 5 minutes.\n\nIf you didn’t request this, please ignore this email.\n\n– Tutor Match Team`,
-
-    };
-
-    await transporter.sendMail(mailOptions);
+    console.log(`✔️ OTP sent to ${email}: ${code}`);
     res.status(200).json({ message: "Code sent successfully" });
-    console.log(`✅ Code sent to ${email}: ${code}`);
 
   } catch (err) {
     console.error("OTP send error:", err);
     res.status(500).json({ error: "Failed to send code" });
   }
 });
+
 
 // -------------------- VERIFY LOGIN OTP --------------------
 app.post("/api/verify-otp", (req, res) => {
