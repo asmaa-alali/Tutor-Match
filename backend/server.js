@@ -614,9 +614,12 @@ async function uploadToSupabaseStorage(file, folder) {
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../frontend/Homepage/home.html")));
 app.get("/verified", (req, res) => res.sendFile(path.join(__dirname, "../frontend/verified.html")));
 // Tutor verification landing page (pending review)
-app.get("/tutor-review", (req, res) =>
-  res.sendFile(path.join(__dirname, "../frontend/Tutor Page/pending-review.html"))
-);
+app.get("/tutor-review", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "../frontend", "Tutor Page", "pending-review.html")
+  );
+});
+
 // ✅ RESET PASSWORD PAGE
 app.get("/reset-password", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/reset-password.html"));
