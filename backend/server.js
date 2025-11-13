@@ -14,7 +14,7 @@ import cors from "cors";
 
 import { createClient } from "@supabase/supabase-js";
 import cron from "node-cron";
-import { Resend } from "resend";
+
 
 
 
@@ -76,21 +76,28 @@ function requireAdmin(req, res, next) {
   }
 }
 
-// -------------------- MAILER (Resend) --------------------
-const resend = new Resend(process.env.RESEND_API_KEY);
+// -------------------- MAILER (Brevo / Sendinblue) --------------------
+import SibApiV3Sdk from "sib-api-v3-sdk";
 
-async function sendAdminEmail(to, subject, html, textFallback = "") {
+const brevoClient = SibApiV3Sdk.ApiClient.instance;
+brevoClient.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+
+async function sendAdminEmail(to, subject, html, text = "") {
   try {
-    await resend.emails.send({
-      from: "Tutor Match <onboarding@resend.dev>",
-      to,
+    
+
+    await apiInstance.sendTransacEmail({
+      sender: { name: "Tutor Match", email: "no-reply@tutor-match.app" },
+      to: [{ email: to }],
       subject,
-      html,
-      text: textFallback,
+      htmlContent: html,
+      textContent: text,
     });
+
     console.log("✔️ Email sent to:", to);
   } catch (e) {
-    console.error("❌ Email failed:", e?.message || e);
+    console.error("❌ Email failed:", e.message || e);
   }
 }
 
@@ -1150,20 +1157,20 @@ app.post("/api/login-otp", async (req, res) => {
     otpStore.set(email, code);
     setTimeout(() => otpStore.delete(email), 5 * 60 * 1000);
 
-    // Send using Resend
-    await resend.emails.send({
-      from: "Tutor Match <onboarding@resend.dev>",
-      to: email,
-      subject: "Tutor Match Login Verification Code",
-      html: `
-        <div style="font-family:Arial;line-height:1.5">
-          <h2>Your Tutor Match Code</h2>
-          <p>Your login code is <b>${code}</b>.</p>
-          <p>This code expires in 5 minutes.</p>
-        </div>
-      `,
-      text: `Your Tutor Match login code is ${code}. It expires in 5 minutes.`,
-    });
+    await apiInstance.sendTransacEmail({
+  sender: { name: "Tutor Match", email: "marjehahmad@gmail.com" },
+  to: [{ email }],
+  subject: "Tutor Match Login Verification Code",
+  htmlContent: `
+    <div style="font-family:Arial;line-height:1.5">
+      <h2>Your Tutor Match Code</h2>
+      <p>Your code is <b>${code}</b>.</p>
+      <p>This code expires in 5 minutes.</p>
+    </div>
+  `,
+  textContent: `Your Tutor Match code is ${code}.`,
+});
+
 
     console.log(`✔️ OTP sent to ${email}: ${code}`);
     res.status(200).json({ message: "Code sent successfully" });
