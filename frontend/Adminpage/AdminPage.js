@@ -51,17 +51,28 @@ function requireAdminEmail() {
 
   try {
     const session = JSON.parse(sessionData);
-    const userEmail = session.email || "";
-    const userRole = session.role || "";
+    let userEmail = typeof session.email === "string" ? session.email.trim() : "";
+    const userRole = typeof session.role === "string" ? session.role : "";
+    const normalizedRole = userRole.toLowerCase();
+
+    if (!userEmail && normalizedRole === "admin") {
+      userEmail = ADMIN_EMAIL;
+      session.email = ADMIN_EMAIL;
+      try {
+        localStorage.setItem("tmUserSession", JSON.stringify(session));
+      } catch (storageErr) {
+        console.warn("Failed to persist admin email:", storageErr);
+      }
+    }
 
     // Check if admin
-    if (userEmail !== "admintm01@proton.me" && userRole !== "admin") {
+    if (userEmail !== ADMIN_EMAIL && normalizedRole !== "admin") {
       alert("Access denied. Admin privileges required.");
       window.location.href = "/Sign in/signin.html";
       return;
     }
 
-    console.log("âœ… Admin access granted:", userEmail);
+    console.log("Admin access granted:", userEmail || ADMIN_EMAIL);
   } catch (err) {
     console.error("Session validation failed:", err);
     localStorage.removeItem("tmUserSession");
@@ -127,9 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchDashboardStats() {
   try {
-    const sessionData = localStorage.getItem('tmUserSession');
-    const session = sessionData ? JSON.parse(sessionData) : null;
-    const email = (session && session.email) ? String(session.email).trim() : '';
+    const email = requireAdminEmail();
+    if (!email) return;
 
     const res = await fetch('/api/admin/stats', {
       method: 'GET',
@@ -151,9 +161,8 @@ async function fetchDashboardStats() {
 // Fetch users from backend admin API
 async function fetchUsers() {
   try {
-    const sessionData = localStorage.getItem('tmUserSession');
-    const session = sessionData ? JSON.parse(sessionData) : null;
-    const email = (session && session.email) ? String(session.email).trim() : '';
+    const email = requireAdminEmail();
+    if (!email) return;
     
     console.log('Fetching users with email:', email);
 
@@ -262,9 +271,8 @@ function loadUsers() {
 // ==================== Tutor Requests ====================
 async function fetchTutorRequests() {
   try {
-    const sessionData = localStorage.getItem('tmUserSession');
-    const session = sessionData ? JSON.parse(sessionData) : null;
-    const email = (session && session.email) ? String(session.email).trim() : '';
+    const email = requireAdminEmail();
+    if (!email) return;
 
     const res = await fetch('/api/admin/tutor-requests', {
       method: 'GET',
@@ -409,8 +417,8 @@ async function acceptTutorRequest(id) {
   const req = findRequestById(id);
   if (!req) return showNotification('Request not found', 'error');
   try {
-    const session = JSON.parse(localStorage.getItem('tmUserSession') || 'null');
-    const adminEmail = (session && session.email) ? String(session.email).trim() : '';
+    const adminEmail = requireAdminEmail();
+    if (!adminEmail) return;
     const res = await fetch('/api/admin/tutor-requests/accept', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-user-email': adminEmail },
@@ -431,8 +439,8 @@ async function rejectTutorRequest(id) {
   if (!req) return showNotification('Request not found', 'error');
   showConfirmModal(`Reject tutor application for \"${req.email}\"? This will delete their account.`, async () => {
     try {
-      const session = JSON.parse(localStorage.getItem('tmUserSession') || 'null');
-      const adminEmail = (session && session.email) ? String(session.email).trim() : '';
+      const adminEmail = requireAdminEmail();
+      if (!adminEmail) return;
       const res = await fetch('/api/admin/tutor-requests/reject', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-user-email': adminEmail },
@@ -546,8 +554,8 @@ async function blockUser(userEmail) {
     'Reason for block...',
     async (reason) => {
       try {
-        const session = JSON.parse(localStorage.getItem('tmUserSession') || 'null');
-        const adminEmail = (session && session.email) ? String(session.email).trim() : '';
+        const adminEmail = requireAdminEmail();
+        if (!adminEmail) return;
         const res = await fetch('/api/admin/block-user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-user-email': adminEmail },
@@ -588,8 +596,8 @@ async function unblockUser(userEmail) {
     `Are you sure you want to unblock user "${user.email}"? They will regain access to the website.`,
     async () => {
       try {
-        const session = JSON.parse(localStorage.getItem('tmUserSession') || 'null');
-        const adminEmail = (session && session.email) ? String(session.email).trim() : '';
+        const adminEmail = requireAdminEmail();
+        if (!adminEmail) return;
         const res = await fetch('/api/admin/unblock-user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-user-email': adminEmail },
@@ -690,8 +698,8 @@ function deleteUser(userEmail) {
     `Are you sure you want to permanently delete user "${user.email}"? This action cannot be undone.`,
     async () => {
       try {
-        const session = JSON.parse(localStorage.getItem('tmUserSession') || 'null');
-        const adminEmail = (session && session.email) ? String(session.email).trim() : '';
+        const adminEmail = requireAdminEmail();
+        if (!adminEmail) return;
         
         const res = await fetch('/api/admin/delete-user', {
           method: 'DELETE',
