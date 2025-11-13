@@ -11,7 +11,8 @@ function getAdminEmailForRequests() {
     let email = typeof session.email === "string" ? session.email.trim() : "";
     const role =
       typeof session.role === "string" ? session.role.trim().toLowerCase() : "";
-    if (!email && role === "admin") {
+
+    if (role === "admin" && email !== ADMIN_EMAIL) {
       email = ADMIN_EMAIL;
       session.email = ADMIN_EMAIL;
       try {
