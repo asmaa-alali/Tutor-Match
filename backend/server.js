@@ -611,6 +611,10 @@ async function uploadToSupabaseStorage(file, folder) {
 }
 
 // -------------------- ROUTES --------------------
+// ✅ RESET PASSWORD PAGE
+app.get("/reset-password", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/reset-password.html"));
+});
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../frontend/Homepage/home.html")));
 app.get("/verified", (req, res) => res.sendFile(path.join(__dirname, "../frontend/verified.html")));
 // Tutor verification landing page (pending review)
@@ -620,10 +624,7 @@ app.get("/tutor-review", (req, res) => {
   );
 });
 
-// ✅ RESET PASSWORD PAGE
-app.get("/reset-password", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/reset-password.html"));
-});
+
 // ✅ Check if tutor exists by email
 app.get("/api/tutor-exists", async (req, res) => {
   const email = req.query.email;
