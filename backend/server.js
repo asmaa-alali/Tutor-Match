@@ -1,32 +1,53 @@
-
+// backend/server.js
 import dotenv from "dotenv";
 dotenv.config();
 
-
-
-// backend/server.js
 import multer from "multer";
 import fs from "fs";
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
-
-import { createClient } from "@supabase/supabase-js";
+import crypto from "crypto";
 import cron from "node-cron";
-
-
-
+import SibApiV3Sdk from "sib-api-v3-sdk";
+import { createClient } from "@supabase/supabase-js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 
+/* -------------------- Core -------------------- */
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// -------------------- SUPABASE --------------------
+app.use(express.json({ limit: "2mb" }));
+const upload = multer({ dest: "uploads/" });
+
+/* -------------------- Static -------------------- */
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"), { fallthrough: true })
+);
+app.use("/", express.static(path.join(__dirname, "../frontend")));
+
+/* Redirect root to real homepage (relative assets work) */
+app.get("/", (req, res) => {
+  res.redirect("/Homepage/home.html");
+});
+
+/* -------------------- CORS (deployment-safe) -------------------- */
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN; // e.g. https://tutor-match-n8a7.onrender.com
+app.use(
+  cors({
+    origin: FRONTEND_ORIGIN ? [FRONTEND_ORIGIN] : "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "x-admin-email"],
+  })
+);
+
+/* -------------------- Supabase -------------------- */
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -35,57 +56,13 @@ const supabase = createClient(
 const TUTOR_UPLOAD_BUCKET = "tutor_uploads";
 const LOCAL_PROFILE_DIR = path.join(__dirname, "uploads", "profile");
 
-app.use(express.json());
-app.use(cors());
-const upload = multer({ dest: "uploads/" });
-app.use(
-  "/uploads",
-  express.static(path.join(__dirname, "uploads"), {
-    fallthrough: true,
-  })
-);
-app.use("/", express.static(path.join(__dirname, "../frontend")));
-
-// Ensure relative asset paths on the homepage resolve correctly:
-// redirect root to the real homepage file so its relative links (./home.css, ./home.js)
-// load from /Homepage/ instead of /
-app.get("/", (req, res) => {
-  res.redirect("/Homepage/home.html");
-});
-
-// -------------------- ADMIN MIDDLEWARE --------------------
-// Admin authentication middleware - use on admin-only routes
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admintm01@proton.me";
-
-// KEEP THIS (slightly improved)
-function requireAdmin(req, res, next) {
-  try {
-    const bodyEmail   = req.body?.email || null;
-    const queryEmail  = req.query?.email || null;
-    const headerEmail = req.headers?.['x-user-email'] ? String(req.headers['x-user-email']).trim() : null;
-    const email = (bodyEmail || queryEmail || headerEmail || '').toLowerCase();
-
-    if (!email || email !== ADMIN_EMAIL.toLowerCase()) {
-      return res.status(403).json({ error: "Access denied. Admin privileges required." });
-    }
-    next();
-  } catch (err) {
-    console.error('requireAdmin error:', err);
-    return res.status(500).json({ error: 'Server error checking admin privileges' });
-  }
-}
-
-// -------------------- MAILER (Brevo / Sendinblue) --------------------
-import SibApiV3Sdk from "sib-api-v3-sdk";
-
+/* -------------------- Mailer (Brevo) -------------------- */
 const brevoClient = SibApiV3Sdk.ApiClient.instance;
 brevoClient.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
 async function sendAdminEmail(to, subject, html, text = "") {
   try {
-    
-
     await apiInstance.sendTransacEmail({
       sender: { name: "Tutor Match", email: "no-reply@tutor-match.app" },
       to: [{ email: to }],
@@ -93,423 +70,57 @@ async function sendAdminEmail(to, subject, html, text = "") {
       htmlContent: html,
       textContent: text,
     });
-
     console.log("✔️ Email sent to:", to);
   } catch (e) {
     console.error("❌ Email failed:", e.message || e);
   }
 }
 
+/* -------------------- Admin middleware -------------------- */
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "admintm01@proton.me").toLowerCase();
 
-// Export for use in routes
-// Example usage: app.get("/api/admin/users", requireAdmin, async (req, res) => { ... });
-
-// -------------------- ADMIN API ROUTES --------------------
-// Returns a list of users (protected)
-app.get('/api/admin/users', requireAdmin, async (req, res) => {
+function adminOnly(req, res, next) {
   try {
-    // Use Supabase admin API to list auth users
-    const { data: allUsers, error } = await supabase.auth.admin.listUsers();
-    if (error) {
-      console.error('Error listing users:', error);
-      return res.status(500).json({ error: 'Failed to fetch users' });
-    }
-
-    // allUsers has shape { users: [...] }
-    const rawUsers = allUsers.users || [];
-
-    // Map to the frontend-friendly shape
-    const users = rawUsers.map((u) => ({
-      id: u.id,
-      email: u.email,
-      username: (u.user_metadata && (u.user_metadata.username || u.user_metadata.name)) || (u.email ? u.email.split('@')[0] : ''),
-      role: (u.user_metadata && u.user_metadata.role) || 'user',
-      created_at: u.created_at,
-      email_confirmed_at: u.email_confirmed_at,
-      raw: u,
-    }));
-
-    return res.json({ users });
+    const headerEmail = (req.headers["x-admin-email"] || "").toString().trim().toLowerCase();
+    if (!headerEmail) return res.status(401).json({ error: "Missing admin header" });
+    if (headerEmail !== ADMIN_EMAIL) return res.status(403).json({ error: "Forbidden: not admin" });
+    req.adminEmail = headerEmail;
+    next();
   } catch (err) {
-    console.error('Admin users route error:', err);
-    return res.status(500).json({ error: 'Server error' });
+    console.error("adminOnly error:", err);
+    res.status(500).json({ error: "Server error checking admin privileges" });
   }
-});
+}
 
-// Delete a user (protected - admin only)
-app.delete('/api/admin/delete-user', requireAdmin, async (req, res) => {
-  try {
-    const { userEmail } = req.body;
-
-    if (!userEmail) {
-      return res.status(400).json({ error: 'User email is required' });
-    }
-
-    // Prevent deleting the admin user
-    if (userEmail === 'admintm01@proton.me') {
-      return res.status(403).json({ error: 'Cannot delete admin user' });
-    }
-
-    // Find user in Supabase Auth
-    const { data: allUsers, error: listError } = await supabase.auth.admin.listUsers();
-    if (listError) {
-      console.error('Error listing users:', listError);
-      return res.status(500).json({ error: 'Failed to fetch users' });
-    }
-
-    const userToDelete = (allUsers.users || []).find(u => u.email === userEmail);
-    if (!userToDelete) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const userId = userToDelete.id;
-    const userRole = userToDelete.user_metadata?.role || 'user';
-
-    // Try to delete from role-specific tables (if they exist)
-    try {
-      if (userRole === 'student') {
-        await supabase.from('students').delete().eq('id', userId);
-      } else if (userRole === 'tutor') {
-        await supabase.from('tutors').delete().eq('id', userId);
-      }
-    } catch (tableErr) {
-      console.warn('Warning: Could not delete from role tables:', tableErr.message);
-      // Continue anyway - the auth user will still be deleted
-    }
-
-    // Try to delete from users table (if it exists)
-    try {
-      await supabase.from('users').delete().eq('id', userId);
-    } catch (tableErr) {
-      console.warn('Warning: Could not delete from users table:', tableErr.message);
-      // Continue anyway
-    }
-
-    // Delete from Supabase Auth (this is the critical part)
-    const { error: deleteError } = await supabase.auth.admin.deleteUser(userId);
-    if (deleteError) {
-      console.error('Error deleting user from auth:', deleteError);
-      return res.status(500).json({ error: 'Failed to delete user: ' + deleteError.message });
-    }
-
-    console.log(`✅ User ${userEmail} deleted successfully`);
-    return res.json({
-      success: true,
-      message: `User ${userEmail} has been deleted`
-    });
-  } catch (err) {
-    console.error('Delete user error:', err);
-    return res.status(500).json({ error: 'Server error: ' + err.message });
-  }
-});
-
-// List verified tutor requests for admin review
-
-// ===== Tutor Requests (pending = approved=false) =====
-
-app.get("/api/admin/tutor-requests", async (req, res) => {
-  if (!requireAdmin(req, res)) return;
-
-  try {
-    const { data, error } = await supabase
-      .from("tutors")
-      .select(`
-        id,
-        first_name,
-        last_name,
-        email,
-        created_at,
-        approved,
-        major,
-        degree,
-        gpa,
-        subjects,
-        experience,
-        motivation,
-        format,
-        availability,
-        passport_photo_url,
-        certificate_url
-      `)
-      .eq("approved", false)
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-
-    const requests = (data || []).map((r) => ({
-      id: r.id,
-      firstName: r.first_name || "",
-      lastName: r.last_name || "",
-      email: r.email || "",
-      submittedAt: r.created_at,
-      profile: {
-        major: r.major || "",
-        degree: r.degree || "",
-        gpa: r.gpa ?? null,
-        subjects: Array.isArray(r.subjects)
-          ? r.subjects
-          : (typeof r.subjects === "string"
-              ? (() => { try { return JSON.parse(r.subjects) } catch { return [r.subjects] } })()
-              : (r.subjects || [])),
-        experience: r.experience || "",
-        motivation: r.motivation || "",
-        format: r.format || "",
-        availability: r.availability || "",
-        passportPhoto: r.passport_photo_url || "",
-        certificate: r.certificate_url || "",
-      },
-    }));
-
-    res.json({ requests });
-  } catch (err) {
-    console.error("GET /api/admin/tutor-requests:", err);
-    res.status(500).json({ error: "Failed to load tutor requests" });
-  }
-});
-
-app.post("/api/admin/tutor-requests/accept", async (req, res) => {
-  if (!requireAdmin(req, res)) return;
-
-  try {
-    const { userId } = req.body || {};
-    if (!userId) return res.status(400).json({ error: "userId required" });
-
-    const { data, error } = await supabase
-      .from("tutors")
-      .update({ approved: true, approved_at: new Date().toISOString() })
-      .eq("id", userId)
-      .select("id")
-      .single();
-
-    if (error) throw error;
-    if (!data) return res.status(404).json({ error: "Tutor not found" });
-
-    res.json({ ok: true });
-  } catch (err) {
-    console.error("POST /api/admin/tutor-requests/accept:", err);
-    res.status(500).json({ error: "Approve failed" });
-  }
-});
-
-app.post("/api/admin/tutor-requests/reject", async (req, res) => {
-  if (!requireAdmin(req, res)) return;
-
-  try {
-    const { userId } = req.body || {};
-    if (!userId) return res.status(400).json({ error: "userId required" });
-
-    // If you also want to delete the auth user, store their auth id in tutors.auth_user_id and call:
-    // await supabase.auth.admin.deleteUser(auth_user_id);
-
-    const { error } = await supabase.from("tutors").delete().eq("id", userId);
-    if (error) throw error;
-
-    res.json({ ok: true });
-  } catch (err) {
-    console.error("POST /api/admin/tutor-requests/reject:", err);
-    res.status(500).json({ error: "Reject failed" });
-  }
-});
-
-
-// Admin dashboard stats: total users and unverified users
-app.get('/api/admin/stats', requireAdmin, async (req, res) => {
-  try {
-    // Count directly from Auth to avoid drift with app tables
-    const { data: allUsers } = await supabase.auth.admin.listUsers();
-    const all = (allUsers?.users || []);
-    const totalUsers = all.length;
-    const blockedUsers = all.filter(u => u.user_metadata?.blocked === true).length;
-
-    res.json({ totalUsers, blockedUsers, totalPosts: 0, removedPosts: 0 });
-  } catch (err) {
-    console.error('stats error:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// -------------------- ADMIN: BLOCK / UNBLOCK USER --------------------
-// Block a user account (prevent sign-in) and mark metadata
-app.post('/api/admin/block-user', requireAdmin, async (req, res) => {
-  try {
-    const { userEmail, reason } = req.body || {};
-    if (!userEmail || typeof userEmail !== 'string') {
-      return res.status(400).json({ error: 'Missing userEmail' });
-    }
-    const targetEmail = userEmail.trim().toLowerCase();
-
-    // Find auth user by email
-    const { data: listData, error: listErr } = await supabase.auth.admin.listUsers();
-    if (listErr) return res.status(500).json({ error: 'Failed to query users' });
-    const authUser = (listData?.users || []).find(u => String(u.email || '').toLowerCase() === targetEmail);
-    if (!authUser) return res.status(404).json({ error: 'User not found' });
-
-    // Merge metadata and set blocked flag
-    const newMeta = {
-      ...(authUser.user_metadata || {}),
-      blocked: true,
-      blocked_reason: typeof reason === 'string' && reason.trim() ? reason.trim() : undefined,
-      blocked_at: new Date().toISOString(),
-    };
-
-    const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
-      // Rely on user_metadata.flag and app-level checks for blocking
-      user_metadata: newMeta,
-    });
-    if (updateError) {
-      console.error('block-user update error:', updateError);
-      return res.status(500).json({ error: 'Unable to block user' });
-    }
-
-    // Best-effort mirror to app table if present
-    try { await supabase.from('users').update({ blocked: true, blocked_reason: newMeta.blocked_reason, blocked_at: newMeta.blocked_at }).eq('id', authUser.id); } catch (_) {}
-
-    return res.json({ success: true });
-  } catch (err) {
-    console.error('block-user error:', err);
-    return res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Unblock a user account
-app.post('/api/admin/unblock-user', requireAdmin, async (req, res) => {
-  try {
-    const { userEmail } = req.body || {};
-    if (!userEmail || typeof userEmail !== 'string') {
-      return res.status(400).json({ error: 'Missing userEmail' });
-    }
-    const targetEmail = userEmail.trim().toLowerCase();
-
-    const { data: listData, error: listErr } = await supabase.auth.admin.listUsers();
-    if (listErr) return res.status(500).json({ error: 'Failed to query users' });
-    const authUser = (listData?.users || []).find(u => String(u.email || '').toLowerCase() === targetEmail);
-    if (!authUser) return res.status(404).json({ error: 'User not found' });
-
-    const newMeta = { ...(authUser.user_metadata || {}) };
-    // Explicitly clear flags. Some GoTrue versions ignore deleted keys.
-    newMeta.blocked = false;
-    newMeta.blocked_reason = null;
-    newMeta.blocked_at = null;
-
-    const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
-      user_metadata: newMeta,
-    });
-    if (updateError) {
-      console.error('unblock-user update error:', updateError);
-      return res.status(500).json({ error: 'Unable to unblock user' });
-    }
-
-    // Mirror to app table
-    try { await supabase.from('users').update({ blocked: false, blocked_reason: null, blocked_at: null }).eq('id', authUser.id); } catch (_) {}
-
-    return res.json({ success: true });
-  } catch (err) {
-    console.error('unblock-user error:', err);
-    return res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Delete the currently logged-in user's account (self-service)
-app.post('/api/account/delete', async (req, res) => {
-  try {
-    const { userId } = req.body || {};
-    if (!userId || typeof userId !== 'string' || !userId.trim()) {
-      return res.status(400).json({ error: 'Missing or invalid userId' });
-    }
-
-    // Best-effort delete from app tables
-    try {
-      await supabase.from('students').delete().eq('id', userId);
-    } catch (e) {
-      console.warn('Warning: Could not delete from students table:', e?.message || e);
-    }
-    try {
-      await supabase.from('tutors').delete().eq('id', userId);
-    } catch (e) {
-      console.warn('Warning: Could not delete from tutors table:', e?.message || e);
-    }
-    try {
-      await supabase.from('users').delete().eq('id', userId);
-    } catch (e) {
-      console.warn('Warning: Could not delete from users table:', e?.message || e);
-    }
-
-    // Delete from Supabase Auth (critical)
-    const { error } = await supabase.auth.admin.deleteUser(userId);
-    if (error) {
-      console.error('Error deleting auth user:', error);
-      return res.status(500).json({ error: 'Failed to delete account: ' + error.message });
-    }
-
-    return res.json({ success: true, message: 'Account deleted' });
-  } catch (err) {
-    console.error('Self account delete error:', err);
-    return res.status(500).json({ error: 'Server error: ' + (err?.message || String(err)) });
-  }
-});
-
-// Lightweight status endpoint for clients to verify if account is blocked
-app.get('/api/account/status', async (req, res) => {
-  try {
-    const userId = (req.query?.userId || '').toString().trim();
-    if (!userId) return res.status(400).json({ error: 'Missing userId' });
-    const { data, error } = await supabase.auth.admin.getUserById(userId);
-    if (error || !data?.user) return res.status(404).json({ error: 'User not found' });
-    const u = data.user;
-    const blocked = u.user_metadata?.blocked === true;
-    const reason = u.user_metadata?.blocked_reason || null;
-    return res.json({ blocked, reason });
-  } catch (err) {
-    console.error('account status error:', err);
-    return res.status(500).json({ error: 'Server error' });
-  }
-});
-
+/* -------------------- Utils: storage helpers -------------------- */
 const ensureDirectory = async (dirPath) => {
   try {
     await fs.promises.mkdir(dirPath, { recursive: true });
   } catch (err) {
-    if (err && err.code !== "EEXIST") {
-      throw err;
-    }
+    if (err && err.code !== "EEXIST") throw err;
   }
 };
 
 const savePhotoLocally = async (buffer, originalName) => {
   await ensureDirectory(LOCAL_PROFILE_DIR);
-
   const rawName = path.basename(originalName, path.extname(originalName));
   const safeBase = rawName.replace(/[^a-z0-9_-]/gi, "") || "avatar";
   const ext = (path.extname(originalName) || ".png").toLowerCase();
   const filename = `${Date.now()}_${safeBase}${ext}`;
   const destinationPath = path.join(LOCAL_PROFILE_DIR, filename);
-
   await fs.promises.writeFile(destinationPath, buffer);
   return `/uploads/profile/${filename}`;
 };
 
 const deleteLocalProfilePhoto = async (avatarPath) => {
-  if (
-    !avatarPath ||
-    typeof avatarPath !== "string" ||
-    !avatarPath.startsWith("/uploads/profile/")
-  ) {
-    return;
-  }
-
-  const filePart = avatarPath.replace("/uploads/profile/", "");
+  if (!avatarPath || typeof avatarPath !== "string" || !avatarPath.startsWith("/uploads/profile/")) return;
+  const filePart = avatarPath.replace("/uploads/profile/", "").replace(/[^a-zA-Z0-9._-]/g, "");
   if (!filePart) return;
-
-  const safePart = filePart.replace(/[^a-zA-Z0-9._-]/g, "");
-  if (!safePart) return;
-
-  const absolutePath = path.join(LOCAL_PROFILE_DIR, safePart);
+  const absolutePath = path.join(LOCAL_PROFILE_DIR, filePart);
   try {
     await fs.promises.unlink(absolutePath);
   } catch (err) {
-    if (err && err.code !== "ENOENT") {
-      console.warn("Failed to delete previous local profile photo:", err);
-    }
+    if (err && err.code !== "ENOENT") console.warn("Failed to delete previous local profile photo:", err);
   }
 };
 
@@ -517,9 +128,8 @@ const deleteLocalProfilePhoto = async (avatarPath) => {
 async function uploadToSupabaseStorage(file, folder) {
   const buffer = fs.readFileSync(file.path);
   const originalName = file.originalname || "upload.bin";
-  const sanitizedOriginal = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const safeOriginal = sanitizedOriginal || "upload.bin";
-  const uniqueName = `${folder}/${Date.now()}_${safeOriginal}`;
+  const sanitizedOriginal = originalName.replace(/[^a-zA-Z0-9._-]/g, "_") || "upload.bin";
+  const uniqueName = `${folder}/${Date.now()}_${sanitizedOriginal}`;
 
   const attemptSupabaseUpload = async () => {
     const result = await supabase.storage
@@ -529,18 +139,13 @@ async function uploadToSupabaseStorage(file, folder) {
         upsert: false,
       });
 
-    if (result.error) {
-      return { success: false, error: result.error };
-    }
+    if (result.error) return { success: false, error: result.error };
 
     const { data: publicUrl, error: urlError } = supabase.storage
       .from(TUTOR_UPLOAD_BUCKET)
       .getPublicUrl(uniqueName);
 
-    if (urlError || !publicUrl?.publicUrl) {
-      return { success: false, error: urlError };
-    }
-
+    if (urlError || !publicUrl?.publicUrl) return { success: false, error: urlError };
     return { success: true, url: publicUrl.publicUrl };
   };
 
@@ -549,80 +154,59 @@ async function uploadToSupabaseStorage(file, folder) {
 
     if (!uploadResult.success) {
       const message = (uploadResult.error?.message || "").toLowerCase();
-
       if (message.includes("bucket") && message.includes("not found")) {
-        const { error: createError } = await supabase.storage.createBucket(
-          TUTOR_UPLOAD_BUCKET,
-          { public: true }
-        );
-
-        if (
-          createError &&
-          !/(already exists|exists)/i.test(createError.message || "")
-        ) {
+        const { error: createError } = await supabase.storage.createBucket(TUTOR_UPLOAD_BUCKET, { public: true });
+        if (createError && !/(already exists|exists)/i.test(createError.message || "")) {
           throw uploadResult.error || createError;
         }
-
         uploadResult = await attemptSupabaseUpload();
       }
     }
 
-    if (uploadResult.success) {
-      return uploadResult.url;
-    }
-
+    if (uploadResult.success) return uploadResult.url;
     throw uploadResult.error;
   } catch (err) {
-    console.warn(
-      "Supabase storage upload failed, falling back to local storage:",
-      err
-    );
-    return await savePhotoLocally(buffer, safeOriginal);
+    console.warn("Supabase storage upload failed, falling back to local storage:", err);
+    return await savePhotoLocally(buffer, sanitizedOriginal);
   } finally {
-    try {
-      fs.unlinkSync(file.path);
-    } catch (_) {}
+    try { fs.unlinkSync(file.path); } catch (_) {}
   }
 }
 
-// -------------------- ROUTES --------------------
-// ✅ RESET PASSWORD PAGE
+/* -------------------- Page routes -------------------- */
 app.get("/reset-password", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/reset-password.html"));
 });
-app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../frontend/Homepage/home.html")));
-app.get("/verified", (req, res) => res.sendFile(path.join(__dirname, "../frontend/verified.html")));
-// Tutor verification landing page (pending review)
+app.get("/verified", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/verified.html"));
+});
 app.get("/tutor-review", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "../frontend", "Tutor Page", "pending-review.html")
-  );
+  res.sendFile(path.join(__dirname, "../frontend", "Tutor Page", "pending-review.html"));
 });
 
-
-// ✅ Check if tutor exists by email
-app.get("/api/tutor-exists", async (req, res) => {
-  const email = req.query.email;
-  if (!email) return res.json({ found: false });
-
-  const { data, error } = await supabase
-    .from("tutors")
-    .select("id")
-    .eq("email", email)
-    .maybeSingle();
-
-  if (error || !data) return res.json({ found: false });
-  res.json({ found: true });
+/* -------------------- Auth flows -------------------- */
+// Google OAuth
+app.get("/auth/google", (req, res) => {
+  const redirectTo = `${FRONTEND_ORIGIN || "https://tutor-match-n8a7.onrender.com"}/auth/callback`;
+  const prompt = req.query.prompt || "none";
+  const url = `${process.env.SUPABASE_URL}/auth/v1/authorize?provider=google&prompt=${prompt}&redirect_to=${encodeURIComponent(
+    redirectTo
+  )}`;
+  console.log("Redirecting to:", url);
+  res.redirect(url);
 });
-// ❌ Delete unauthorized Google user (requires service_role on server)
+
+app.get("/auth/callback", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/auth-callback.html"));
+});
+
+// Delete unauthorized Google user (server-side only)
 app.post("/api/delete-auth-user", async (req, res) => {
   try {
     const { id } = req.body;
     if (!id) return res.status(400).json({ error: "Missing user ID" });
-
     const { error } = await supabase.auth.admin.deleteUser(id);
     if (error) throw error;
-
     res.json({ message: "Unauthorized user deleted" });
   } catch (err) {
     console.error("Auth user deletion failed:", err);
@@ -630,53 +214,33 @@ app.post("/api/delete-auth-user", async (req, res) => {
   }
 });
 
-
-// ✅ 1) Start Google OAuth
-app.get("/auth/google", (req, res) => {
-  const redirectTo = "https://tutor-match-n8a7.onrender.com/auth/callback";
-  const prompt = req.query.prompt || "none"; // default = none
-  const url = `${process.env.SUPABASE_URL}/auth/v1/authorize?provider=google&prompt=${prompt}&redirect_to=${encodeURIComponent(redirectTo)}`;
-  console.log("Redirecting to:", url);
-  res.redirect(url);
-});
-
-// ✅ 2) Serve the callback page
-app.get("/auth/callback", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/auth-callback.html"));
-});
-
-// -------------------- STUDENT SIGNUP --------------------
+/* -------------------- Signup -------------------- */
+// STUDENT SIGNUP
 app.post("/api/signup/student", async (req, res) => {
   try {
     const { email, password, firstName, lastName, birthdate, phone, studentId, currentYear, major, gpa } = req.body;
 
-    // 1️⃣ Create Auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { role: "student", firstName, lastName, birthdate, phone, studentId, currentYear, major, gpa },
-        emailRedirectTo: "https://tutor-match-n8a7.onrender.com/verified"
-,
+        emailRedirectTo: `${FRONTEND_ORIGIN || "https://tutor-match-n8a7.onrender.com"}/verified`,
       },
     });
-
     if (authError) return res.status(400).json({ error: authError.message });
 
     const userId = authData.user?.id;
     if (!userId) return res.status(500).json({ error: "User ID not returned from Supabase Auth" });
 
-    // 2️⃣ Insert into users table
-    const { error: userError } = await supabase.from("users").insert([
-      { id: userId, email, role: "student", firstName, lastName, birthdate, phone },
-    ]);
-    if (userError) console.error("❌ Error inserting into users table:", userError);
+    await supabase.from("users").insert([{ id: userId, email, role: "student", firstName, lastName, birthdate, phone }]).catch((e) =>
+      console.error("❌ Error inserting into users table:", e)
+    );
 
-    // 3️⃣ Insert into students table
-    const { error: studentError } = await supabase.from("students").insert([
-      { id: userId, studentId, currentYear, major, gpa, firstName, lastName, birthdate, phone },
-    ]);
-    if (studentError) console.error("❌ Error inserting into students table:", studentError);
+    await supabase
+      .from("students")
+      .insert([{ id: userId, studentId, currentYear, major, gpa, firstName, lastName, birthdate, phone }])
+      .catch((e) => console.error("❌ Error inserting into students table:", e));
 
     res.status(200).json({ message: "Student account created. Check your email to verify.", data: authData });
   } catch (err) {
@@ -685,14 +249,12 @@ app.post("/api/signup/student", async (req, res) => {
   }
 });
 
-
-// -------------------- TUTOR SIGNUP --------------------
+// TUTOR SIGNUP (multipart)
 app.post(
   "/api/signup/tutor",
   upload.fields([{ name: "passportPhoto" }, { name: "certificate" }]),
   async (req, res) => {
     try {
-      // ✅ Text fields (multipart -> strings)
       const {
         email,
         password,
@@ -709,21 +271,15 @@ app.post(
         availability,
       } = req.body;
 
-      // ✅ Parse subjects from JSON string
       let subjects = [];
-      try {
-        subjects = JSON.parse(req.body.subjects || "[]");
-      } catch {}
+      try { subjects = JSON.parse(req.body.subjects || "[]"); } catch {}
 
-      // ✅ Handle uploaded files
       const passportFile = req.files?.passportPhoto?.[0];
       const certificateFile = req.files?.certificate?.[0];
-
       if (!passportFile || !certificateFile) {
         return res.status(400).json({ error: "Passport and certificate are required." });
       }
 
-      // ✅ 1️⃣ Create Auth user in Supabase
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -742,95 +298,68 @@ app.post(
             motivation,
             format,
             availability,
+            tutorApproved: false,
           },
-          // After verifying email, send tutors to a pending review page
-          emailRedirectTo: "https://tutor-match-n8a7.onrender.com/tutor-review",
+          emailRedirectTo: `${FRONTEND_ORIGIN || "https://tutor-match-n8a7.onrender.com"}/tutor-review`,
         },
       });
-
       if (error) return res.status(400).json({ error: error.message });
 
       const userId = data.user?.id;
-      if (!userId)
-        return res.status(500).json({ error: "User ID not returned from Supabase Auth" });
+      if (!userId) return res.status(500).json({ error: "User ID not returned from Supabase Auth" });
 
-      // ✅ 2️⃣ Upload files to Supabase Storage
-      let passportUrl = null;
-      let certificateUrl = null;
+      let passportUrl = await uploadToSupabaseStorage(passportFile, `passport/${userId}`);
+      let certificateUrl = await uploadToSupabaseStorage(certificateFile, `certificate/${userId}`);
 
-      try {
-        passportUrl = await uploadToSupabaseStorage(passportFile, "passport");
-        certificateUrl = await uploadToSupabaseStorage(certificateFile, "certificate");
-      } catch (uploadErr) {
-        console.error("Upload error:", uploadErr);
-        return res.status(500).json({ error: "File upload failed." });
-      }
+      await supabase.from("users").insert([{ id: userId, email, role: "tutor", firstName, lastName, birthdate, phone }]).catch((e) =>
+        console.error("❌ Error inserting into users table:", e)
+      );
 
-      // ✅ 3️⃣ Insert into users table
-      const { error: userError } = await supabase.from("users").insert([
-        {
-          id: userId,
-          email,
-          role: "tutor",
-          firstName,
-          lastName,
-          birthdate,
-          phone,
-        },
-      ]);
-      if (userError) console.error("❌ Error inserting into users table:", userError);
+      // NOTE: Use camelCase columns to match your inserts everywhere
+      await supabase
+        .from("tutors")
+        .insert([
+          {
+            id: userId,
+            email,
+            major,
+            degree,
+            gpa: gpa || null,
+            subjects,
+            experience: experience || null,
+            motivation,
+            format,
+            availability,
+            firstName,
+            lastName,
+            birthdate,
+            phone,
+            passportPhoto: passportUrl,
+            certificate: certificateUrl,
+            approved: false,
+          },
+        ])
+        .catch((e) => console.error("❌ Error inserting into tutors table:", e));
 
-      // ✅ 4️⃣ Insert into tutors table with file URLs
-      const { error: tutorError } = await supabase.from("tutors").insert([
-        {
-          id: userId,
-          email,
-          major,
-          degree,
-          gpa: gpa || null,
-          subjects,
-          experience: experience || null,
-          motivation,
-          format,
-          availability,
-          firstName,
-          lastName,
-          birthdate,
-          phone,
-          passportPhoto: passportUrl,  // ✅ Save URLs
-          certificate: certificateUrl, // ✅ Save URLs
-          approved: false,            // ✅ start as pending
-        },
-      ]);
-      if (tutorError) console.error("❌ Error inserting into tutors table:", tutorError);
-
-      // ✅ Success response
-      res.status(200).json({
-        message: "Tutor account created. Check your email to verify.",
-        data,
-      });
+      res.status(200).json({ message: "Tutor account created. Check your email to verify.", data });
     } catch (err) {
       console.error("Signup error:", err);
       res.status(500).json({ error: "Server error" });
     }
   }
 );
-// -------------------- LOGIN (ADMIN + STUDENT + TUTOR) --------------------
+
+/* -------------------- Login -------------------- */
 app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    // 1️⃣ Try to sign in with Supabase Auth
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error || !data?.user) {
-      return res.status(401).json({ error: "Invalid email or password." });
-    }
+    if (error || !data?.user) return res.status(401).json({ error: "Invalid email or password." });
 
     const user = data.user;
 
-    // 2️⃣ ADMIN SHORTCUT
-    if (user.email === "admintm01@proton.me") {
+    // Admin shortcut
+    if ((user.email || "").toLowerCase() === ADMIN_EMAIL) {
       return res.status(200).json({
         message: "Admin login successful",
         role: "admin",
@@ -839,24 +368,27 @@ app.post("/api/login", async (req, res) => {
       });
     }
 
-    // 3️⃣ Block unverified non-admin accounts
-    if (!user.email_confirmed_at) {
-      return res.status(403).json({ error: "Please verify your email first." });
-    }
+    if (!user.email_confirmed_at) return res.status(403).json({ error: "Please verify your email first." });
 
-    // 4️⃣ Normal user (tutor/student)
-    // Blocked account check
-    if (user.user_metadata && user.user_metadata.blocked === true) {
-      const reason = user.user_metadata.blocked_reason || "Your account has been blocked by an administrator.";
+    if (user.user_metadata?.blocked === true) {
+      const reason = user.user_metadata?.blocked_reason || "Your account has been blocked by an administrator.";
       return res.status(403).json({ error: reason });
     }
+
     const role = user.user_metadata?.role || "unknown";
 
-    // ✅ Tutors must be approved by admin first
-if (role === "tutor" && user.user_metadata?.tutorApproved !== true) {
-  return res.status(403).json({ error: "Your tutor application is pending admin approval." });
-}
-
+    // Tutors must be approved: either user_metadata.tutorApproved OR tutors table says approved
+    if (role === "tutor") {
+      const approvedMeta = user.user_metadata?.tutorApproved === true;
+      let approvedTable = false;
+      if (!approvedMeta) {
+        const { data: trow } = await supabase.from("tutors").select("approved").eq("id", user.id).maybeSingle();
+        approvedTable = !!trow?.approved;
+      }
+      if (!(approvedMeta || approvedTable)) {
+        return res.status(403).json({ error: "Your tutor application is pending admin approval." });
+      }
+    }
 
     res.status(200).json({
       message: "Login successful!",
@@ -887,99 +419,44 @@ if (role === "tutor" && user.user_metadata?.tutorApproved !== true) {
   }
 });
 
-// -------------------- CHANGE PASSWORD --------------------
+/* -------------------- Change password -------------------- */
 app.post("/api/change-password", async (req, res) => {
   const { userId, email, currentPassword, newPassword } = req.body || {};
-
-  if (
-    !userId ||
-    !email ||
-    typeof currentPassword !== "string" ||
-    typeof newPassword !== "string"
-  ) {
+  if (!userId || !email || typeof currentPassword !== "string" || typeof newPassword !== "string") {
     return res.status(400).json({ error: "Missing required fields." });
   }
-
-  if (newPassword.length < 8) {
-    return res
-      .status(400)
-      .json({ error: "Password must be at least 8 characters long." });
-  }
-
+  if (newPassword.length < 8) return res.status(400).json({ error: "Password must be at least 8 characters long." });
   if (currentPassword === newPassword) {
-    return res
-      .status(400)
-      .json({ error: "New password must be different from current password." });
+    return res.status(400).json({ error: "New password must be different from current password." });
   }
 
-  const authClient = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
-  );
-
+  const authClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
   try {
-    const { error: verifyError } = await authClient.auth.signInWithPassword({
-      email,
-      password: currentPassword,
-    });
+    const { error: verifyError } = await authClient.auth.signInWithPassword({ email, password: currentPassword });
+    if (verifyError) return res.status(401).json({ error: "Current password is incorrect." });
 
-    if (verifyError) {
-      return res
-        .status(401)
-        .json({ error: "Current password is incorrect." });
-    }
-
-    const { error: updateError } = await supabase.auth.admin.updateUserById(
-      userId,
-      { password: newPassword }
-    );
-
+    const { error: updateError } = await supabase.auth.admin.updateUserById(userId, { password: newPassword });
     if (updateError) {
       console.error("Password update failed:", updateError);
       return res.status(500).json({ error: "Unable to update password." });
     }
-
     const passwordUpdatedAt = new Date().toISOString();
-
-    return res.json({
-      message: "Password updated successfully.",
-      passwordUpdatedAt,
-    });
+    return res.json({ message: "Password updated successfully.", passwordUpdatedAt });
   } catch (err) {
     console.error("change-password error:", err);
-    return res
-      .status(500)
-      .json({ error: "Server error while updating password." });
+    return res.status(500).json({ error: "Server error while updating password." });
   } finally {
-    try {
-      await authClient.auth.signOut();
-    } catch (signOutErr) {
-      console.warn(
-        "Unable to clear auth session after password change",
-        signOutErr
-      );
-    }
+    try { await authClient.auth.signOut(); } catch (e) { /* noop */ }
   }
 });
 
-// Simpler password change (no current password required) for logged-in users
 app.post("/api/change-password/simple", async (req, res) => {
   try {
     const { userId, newPassword } = req.body || {};
-    if (!userId || typeof newPassword !== "string") {
-      return res.status(400).json({ error: "Missing required fields." });
-    }
-    if (newPassword.length < 8) {
-      return res
-        .status(400)
-        .json({ error: "Password must be at least 8 characters long." });
-    }
+    if (!userId || typeof newPassword !== "string") return res.status(400).json({ error: "Missing required fields." });
+    if (newPassword.length < 8) return res.status(400).json({ error: "Password must be at least 8 characters long." });
 
-    const { error: updateError } = await supabase.auth.admin.updateUserById(
-      userId,
-      { password: newPassword }
-    );
-
+    const { error: updateError } = await supabase.auth.admin.updateUserById(userId, { password: newPassword });
     if (updateError) {
       console.error("Password update failed:", updateError);
       return res.status(500).json({ error: "Unable to update password." });
@@ -993,239 +470,141 @@ app.post("/api/change-password/simple", async (req, res) => {
   }
 });
 
-// Update phone number for either student or tutor
+/* -------------------- Profile updates -------------------- */
 app.post("/api/profile/phone", async (req, res) => {
   try {
     const { userId, email, phone } = req.body || {};
-    if (!userId || !email || typeof phone !== "string") {
-      return res.status(400).json({ error: "Missing required fields." });
-    }
+    if (!userId || !email || typeof phone !== "string") return res.status(400).json({ error: "Missing required fields." });
 
     const trimmedPhone = phone.trim();
     if (!trimmedPhone) return res.status(400).json({ error: "Invalid phone number." });
 
-    // Fetch user to determine role
     const { data: userLookup, error: lookupErr } = await supabase.auth.admin.getUserById(userId);
     if (lookupErr || !userLookup?.user) return res.status(404).json({ error: "User not found" });
-    const role = userLookup.user.user_metadata?.role;
 
-    // Update auth metadata
+    const role = userLookup.user.user_metadata?.role;
     const updatedMetadata = { ...(userLookup.user.user_metadata || {}), phone: trimmedPhone };
-    const { error: authErr } = await supabase.auth.admin.updateUserById(userId, {
-      email,
-      user_metadata: updatedMetadata,
-    });
+    const { error: authErr } = await supabase.auth.admin.updateUserById(userId, { email, user_metadata: updatedMetadata });
     if (authErr) return res.status(500).json({ error: "Failed to update auth profile" });
 
-    // Update users table
-    try { await supabase.from('users').update({ phone: trimmedPhone }).eq('id', userId); } catch (_) {}
-
-    // Update role table
-    if (role === 'student') {
-      try { await supabase.from('students').update({ phone: trimmedPhone }).eq('id', userId); } catch (_) {}
-    } else if (role === 'tutor') {
-      try { await supabase.from('tutors').update({ phone: trimmedPhone }).eq('id', userId); } catch (_) {}
-    }
-
+    await supabase.from("users").update({ phone: trimmedPhone }).eq("id", userId).catch(() => {});
+    if (role === "student") await supabase.from("students").update({ phone: trimmedPhone }).eq("id", userId).catch(() => {});
+    if (role === "tutor") await supabase.from("tutors").update({ phone: trimmedPhone }).eq("id", userId).catch(() => {});
     return res.json({ success: true, phone: trimmedPhone });
   } catch (err) {
-    console.error('update phone error:', err);
-    return res.status(500).json({ error: 'Server error' });
+    console.error("update phone error:", err);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 
-// -------------------- UPDATE STUDENT PROFILE PHOTO --------------------
-app.post(
-  "/api/students/profile/photo",
-  upload.single("photo"),
-  async (req, res) => {
-    try {
-      const userId = (req.body?.userId || "").trim();
-      if (!userId) {
-        return res.status(400).json({ error: "Missing user ID." });
-      }
+// Update student profile photo
+app.post("/api/students/profile/photo", upload.single("photo"), async (req, res) => {
+  try {
+    const userId = (req.body?.userId || "").trim();
+    if (!userId) return res.status(400).json({ error: "Missing user ID." });
 
-      const photoFile = req.file;
-      if (!photoFile) {
-        return res.status(400).json({ error: "No photo provided." });
-      }
+    const photoFile = req.file;
+    if (!photoFile) return res.status(400).json({ error: "No photo provided." });
+    if (!photoFile.mimetype?.startsWith("image/")) return res.status(400).json({ error: "Only image uploads are supported." });
 
-      if (!photoFile.mimetype || !photoFile.mimetype.startsWith("image/")) {
-        return res
-          .status(400)
-          .json({ error: "Only image uploads are supported." });
-      }
+    const { data: userLookup, error: lookupError } = await supabase.auth.admin.getUserById(userId);
+    if (lookupError || !userLookup?.user) return res.status(404).json({ error: "Student not found." });
 
-      const { data: userLookup, error: lookupError } =
-        await supabase.auth.admin.getUserById(userId);
-      if (lookupError || !userLookup?.user) {
-        console.error("Unable to fetch user for photo update:", lookupError);
-        return res.status(404).json({ error: "Student not found." });
-      }
+    const authUser = userLookup.user;
+    const metadata = authUser.user_metadata || {};
+    const previousAvatar = typeof metadata.avatarUrl === "string" ? metadata.avatarUrl.trim() : "";
+    if (metadata.role && metadata.role !== "student") return res.status(403).json({ error: "Only students can update this photo." });
 
-      const authUser = userLookup.user;
-      const metadata = authUser.user_metadata || {};
-      const previousAvatar =
-        typeof metadata.avatarUrl === "string" ? metadata.avatarUrl.trim() : "";
-      if (metadata.role && metadata.role !== "student") {
-        return res
-          .status(403)
-          .json({ error: "Only students can update this photo." });
-      }
+    const photoUrl = await uploadToSupabaseStorage(photoFile, `students/${userId}`);
 
-      let photoUrl;
-      try {
-        photoUrl = await uploadToSupabaseStorage(photoFile, `students/${userId}`);
-      } catch (uploadErr) {
-        console.error("Photo upload failed:", uploadErr);
-        return res.status(500).json({ error: "Unable to store profile photo." });
-      }
+    const updatedMetadata = { ...metadata, avatarUrl: photoUrl };
+    const { error: updateError } = await supabase.auth.admin.updateUserById(userId, { user_metadata: updatedMetadata });
+    if (updateError) return res.status(500).json({ error: "Unable to update profile photo metadata." });
 
-      const updatedMetadata = {
-        ...metadata,
-        avatarUrl: photoUrl,
-      };
-
-      const { error: updateError } = await supabase.auth.admin.updateUserById(
-        userId,
-        { user_metadata: updatedMetadata }
-      );
-
-      if (updateError) {
-        console.error("Failed to persist photo metadata:", updateError);
-        return res
-          .status(500)
-          .json({ error: "Unable to update profile photo metadata." });
-      }
-
-      if (previousAvatar && previousAvatar !== photoUrl) {
-        try {
-          await deleteLocalProfilePhoto(previousAvatar);
-        } catch (cleanupErr) {
-          console.warn(
-            "Unable to clean up previous local profile photo:",
-            cleanupErr
-          );
-        }
-      }
-
-      return res.json({
-        message: "Profile photo updated successfully.",
-        photoUrl,
-      });
-    } catch (err) {
-      console.error("Profile photo update error:", err);
-      return res
-        .status(500)
-        .json({ error: "Unexpected error while updating photo." });
+    if (previousAvatar && previousAvatar !== photoUrl) {
+      try { await deleteLocalProfilePhoto(previousAvatar); } catch (e) { /* noop */ }
     }
+
+    return res.json({ message: "Profile photo updated successfully.", photoUrl });
+  } catch (err) {
+    console.error("Profile photo update error:", err);
+    return res.status(500).json({ error: "Unexpected error while updating photo." });
   }
-);
+});
 
-// -------------------- GENERATE AND SEND LOGIN OTP --------------------
-import crypto from "crypto";
-
+/* -------------------- OTP Login -------------------- */
 const otpStore = new Map(); // temp in-memory store (email -> code)
 
-// -------------------- GENERATE AND SEND LOGIN OTP --------------------
 app.post("/api/login-otp", async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: "Email required" });
 
-    // Generate OTP
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     otpStore.set(email, code);
     setTimeout(() => otpStore.delete(email), 5 * 60 * 1000);
 
     await apiInstance.sendTransacEmail({
-  sender: { name: "Tutor Match", email: "marjehahmad@gmail.com" },
-  to: [{ email }],
-  subject: "Tutor Match Login Verification Code",
-  htmlContent: `
-    <div style="font-family:Arial;line-height:1.5">
-      <h2>Your Tutor Match Code</h2>
-      <p>Your code is <b>${code}</b>.</p>
-      <p>This code expires in 5 minutes.</p>
-    </div>
-  `,
-  textContent: `Your Tutor Match code is ${code}.`,
-});
-
+      sender: { name: "Tutor Match", email: "marjehahmad@gmail.com" },
+      to: [{ email }],
+      subject: "Tutor Match Login Verification Code",
+      htmlContent: `
+        <div style="font-family:Arial;line-height:1.5">
+          <h2>Your Tutor Match Code</h2>
+          <p>Your code is <b>${code}</b>.</p>
+          <p>This code expires in 5 minutes.</p>
+        </div>
+      `,
+      textContent: `Your Tutor Match code is ${code}.`,
+    });
 
     console.log(`✔️ OTP sent to ${email}: ${code}`);
     res.status(200).json({ message: "Code sent successfully" });
-
   } catch (err) {
     console.error("OTP send error:", err);
     res.status(500).json({ error: "Failed to send code" });
   }
 });
 
-
-// -------------------- VERIFY LOGIN OTP --------------------
 app.post("/api/verify-otp", (req, res) => {
   const { email, code } = req.body;
   if (!email || !code) return res.status(400).json({ error: "Missing fields" });
-
   const stored = otpStore.get(email);
   if (!stored) return res.status(400).json({ error: "Code expired or not found" });
   if (stored !== code) return res.status(401).json({ error: "Incorrect code" });
-
   otpStore.delete(email);
   res.status(200).json({ message: "OTP verified" });
 });
 
-// -------------------- FETCH STUDENT PROFILE --------------------
+/* -------------------- Student profile read/update -------------------- */
 app.get("/api/students/profile/:userId", async (req, res) => {
   try {
     const userId = (req.params.userId || "").trim();
-    if (!userId) {
-      return res.status(400).json({ error: "Missing user ID." });
-    }
+    if (!userId) return res.status(400).json({ error: "Missing user ID." });
 
     const { data: userLookup, error: userLookupError } = await supabase.auth.admin.getUserById(userId);
-    if (userLookupError || !userLookup?.user) {
-      console.error("Failed to fetch auth user for profile lookup:", userLookupError);
-      return res.status(404).json({ error: "Student not found." });
-    }
+    if (userLookupError || !userLookup?.user) return res.status(404).json({ error: "Student not found." });
 
     const authUser = userLookup.user;
     const metadata = authUser.user_metadata || {};
+    if (metadata.role && metadata.role !== "student") return res.status(403).json({ error: "Only students can access this profile." });
 
-    if (metadata.role && metadata.role !== "student") {
-      return res.status(403).json({ error: "Only students can access this profile." });
-    }
-
-    const { data: userRow, error: userRowError } = await supabase
+    const { data: userRow } = await supabase
       .from("users")
       .select("firstName,lastName,birthdate,phone")
       .eq("id", userId)
       .maybeSingle();
 
-    if (userRowError) {
-      console.warn("Unable to read users table for profile:", userRowError);
-    }
-
-    const { data: studentRow, error: studentRowError } = await supabase
+    const { data: studentRow } = await supabase
       .from("students")
       .select("studentId,currentYear,major,gpa,phone,firstName,lastName,birthdate")
       .eq("id", userId)
       .maybeSingle();
 
-    if (studentRowError) {
-      console.warn("Unable to read students table for profile:", studentRowError);
-    }
-
     const pickFirstString = (...values) => {
-      for (const value of values) {
-        if (typeof value === "string" && value.trim()) {
-          return value.trim();
-        }
-      }
+      for (const v of values) if (typeof v === "string" && v.trim()) return v.trim();
       return "";
     };
-
     const resolveGpa = () => {
       const candidates = [metadata.gpa, studentRow?.gpa];
       for (const value of candidates) {
@@ -1238,11 +617,8 @@ app.get("/api/students/profile/:userId", async (req, res) => {
       }
       return "";
     };
-
     const normalizeSubjects = Array.isArray(metadata.subjects)
-      ? metadata.subjects
-          .map((subject) => (typeof subject === "string" ? subject.trim() : ""))
-          .filter(Boolean)
+      ? metadata.subjects.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean)
       : [];
 
     const profile = {
@@ -1271,56 +647,26 @@ app.get("/api/students/profile/:userId", async (req, res) => {
   }
 });
 
-// -------------------- UPDATE STUDENT PROFILE --------------------
 app.put("/api/students/profile", async (req, res) => {
   try {
-    const {
-      userId,
-      email,
-      firstName,
-      lastName,
-      phone,
-      university,
-      major,
-      currentYear,
-      studentId,
-      subjects,
-    } = req.body || {};
-
-    if (!userId) {
-      return res.status(401).json({ error: "Missing user ID." });
-    }
+    const { userId, email, firstName, lastName, phone, university, major, currentYear, studentId, subjects } = req.body || {};
+    if (!userId) return res.status(401).json({ error: "Missing user ID." });
 
     const trimmedEmail = typeof email === "string" ? email.trim() : "";
-    if (!trimmedEmail) {
-      return res.status(400).json({ error: "Email is required." });
-    }
+    if (!trimmedEmail) return res.status(400).json({ error: "Email is required." });
 
     const resolvedFirst = typeof firstName === "string" ? firstName.trim() : "";
     const resolvedLast = typeof lastName === "string" ? lastName.trim() : "";
-    if (!resolvedFirst) {
-      return res.status(400).json({ error: "First name is required." });
-    }
+    if (!resolvedFirst) return res.status(400).json({ error: "First name is required." });
 
     const { data: existingUser, error: fetchError } = await supabase.auth.admin.getUserById(userId);
-    if (fetchError || !existingUser?.user) {
-      console.error("Unable to fetch user before update:", fetchError);
-      return res.status(404).json({ error: "Student not found." });
-    }
+    if (fetchError || !existingUser?.user) return res.status(404).json({ error: "Student not found." });
 
     const currentMetadata = existingUser.user.user_metadata || {};
-    if (currentMetadata.role && currentMetadata.role !== "student") {
-      return res.status(403).json({ error: "Only students can update this profile." });
-    }
+    if (currentMetadata.role && currentMetadata.role !== "student") return res.status(403).json({ error: "Only students can update this profile." });
 
     const normalizedSubjects = Array.isArray(subjects)
-      ? Array.from(
-          new Set(
-            subjects
-              .map((subj) => (typeof subj === "string" ? subj.trim() : ""))
-              .filter(Boolean)
-          )
-        )
+      ? Array.from(new Set(subjects.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean)))
       : [];
 
     const updatedMetadata = {
@@ -1335,16 +681,11 @@ app.put("/api/students/profile", async (req, res) => {
       subjects: normalizedSubjects,
     };
 
-    const adminPayload = {
+    const { error: adminError } = await supabase.auth.admin.updateUserById(userId, {
       email: trimmedEmail,
       user_metadata: updatedMetadata,
-    };
-
-    const { error: adminError } = await supabase.auth.admin.updateUserById(userId, adminPayload);
-    if (adminError) {
-      console.error("Failed to update auth user:", adminError);
-      return res.status(500).json({ error: "Failed to update authentication profile." });
-    }
+    });
+    if (adminError) return res.status(500).json({ error: "Failed to update authentication profile." });
 
     const userUpdates = {};
     if (trimmedEmail) userUpdates.email = trimmedEmail;
@@ -1354,10 +695,7 @@ app.put("/api/students/profile", async (req, res) => {
 
     if (Object.keys(userUpdates).length > 0) {
       const { error: userTableError } = await supabase.from("users").update(userUpdates).eq("id", userId);
-      if (userTableError) {
-        console.error("Failed to update users table:", userTableError);
-        return res.status(500).json({ error: "Failed to update user record." });
-      }
+      if (userTableError) return res.status(500).json({ error: "Failed to update user record." });
     }
 
     const studentUpdates = {};
@@ -1366,16 +704,11 @@ app.put("/api/students/profile", async (req, res) => {
     if (typeof phone === "string") studentUpdates.phone = phone.trim();
     if (typeof major === "string") studentUpdates.major = major.trim();
     if (typeof currentYear === "string") studentUpdates.currentYear = currentYear.trim();
-    if (typeof studentId === "string" && studentId.trim()) {
-      studentUpdates.studentId = studentId.trim();
-    }
+    if (typeof studentId === "string" && studentId.trim()) studentUpdates.studentId = studentId.trim();
 
     if (Object.keys(studentUpdates).length > 0) {
       const { error: studentTableError } = await supabase.from("students").update(studentUpdates).eq("id", userId);
-      if (studentTableError) {
-        console.error("Failed to update students table:", studentTableError);
-        return res.status(500).json({ error: "Failed to update academic record." });
-      }
+      if (studentTableError) return res.status(500).json({ error: "Failed to update academic record." });
     }
 
     const mergedProfile = {
@@ -1392,97 +725,58 @@ app.put("/api/students/profile", async (req, res) => {
       avatarUrl: updatedMetadata.avatarUrl || "",
     };
 
-    return res.status(200).json({
-      message: "Profile updated successfully.",
-      userId,
-      email: trimmedEmail,
-      profile: mergedProfile,
-    });
+    return res.status(200).json({ message: "Profile updated successfully.", userId, email: trimmedEmail, profile: mergedProfile });
   } catch (err) {
     console.error("Unexpected profile update error:", err);
     res.status(500).json({ error: "Unexpected server error." });
   }
 });
 
-// ✅✅✅ ADD THIS BLOCK — PUBLIC TUTORS BROWSING (students) ✅✅✅
-
-// PUBLIC: list tutors with optional filters (subjects as jsonb array)
-app.get('/api/tutors', async (req, res) => {
+/* -------------------- Public tutors -------------------- */
+app.get("/api/tutors", async (req, res) => {
   try {
     const { subject, search } = req.query;
+    let q = supabase.from("tutors").select("*").eq("approved", true);
 
-let q = supabase.from('tutors').select('*');
-
-// ✅ Only show approved tutors publicly
-q = q.eq('approved', true);
-
-    // If you have an 'approved' column and want to show only approved tutors:
-    // q = q.eq('approved', true);
-
-    // SUBJECT filter (expects tutors.subjects to be jsonb array)
-    if (subject && String(subject).trim()) {
-      q = q.contains('subjects', [String(subject).trim()]);
-    }
+    if (subject && String(subject).trim()) q = q.contains("subjects", [String(subject).trim()]);
 
     const { data, error } = await q;
     if (error) return res.status(400).json({ error: error.message });
 
     let tutors = data || [];
-
-    // free-text search over name or subjects
     if (search && String(search).trim()) {
       const s = String(search).trim().toLowerCase();
-      tutors = tutors.filter(t => {
-        const name = `${t.firstName || ''} ${t.lastName || ''}`.toLowerCase();
-        const subs = Array.isArray(t.subjects)
-          ? t.subjects.join(', ').toLowerCase()
-          : String(t.subjects || '').toLowerCase();
+      tutors = tutors.filter((t) => {
+        const name = `${t.firstName || ""} ${t.lastName || ""}`.toLowerCase();
+        const subs = Array.isArray(t.subjects) ? t.subjects.join(", ").toLowerCase() : String(t.subjects || "").toLowerCase();
         return name.includes(s) || subs.includes(s);
       });
     }
-
     res.json({ tutors });
   } catch (err) {
-    console.error('list tutors error:', err);
-    return res.status(500).json({ error: 'Failed to load tutors' });
+    console.error("list tutors error:", err);
+    return res.status(500).json({ error: "Failed to load tutors" });
   }
 });
 
-
-// GET /api/tutors/:id -> tutor profile details
-app.get('/api/tutors/:id', async (req, res) => {
+app.get("/api/tutors/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { data, error } = await supabase
-      .from('tutors')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) return res.status(404).json({ error: 'Tutor not found' });
-
+    const { data, error } = await supabase.from("tutors").select("*").eq("id", id).single();
+    if (error) return res.status(404).json({ error: "Tutor not found" });
     res.json({ tutor: data });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to load tutor' });
+    res.status(500).json({ error: "Failed to load tutor" });
   }
 });
 
-// -------------------- FETCH TUTOR PROFILE --------------------
 app.get("/api/tutors/profile/:userId", async (req, res) => {
   try {
     const userId = (req.params.userId || "").trim();
     if (!userId) return res.status(400).json({ error: "Missing user ID." });
 
-    const { data, error } = await supabase
-      .from("tutors")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (error || !data) {
-      console.error("Tutor lookup error:", error);
-      return res.status(404).json({ error: "Tutor not found." });
-    }
+    const { data, error } = await supabase.from("tutors").select("*").eq("id", userId).maybeSingle();
+    if (error || !data) return res.status(404).json({ error: "Tutor not found." });
 
     res.status(200).json({ tutor: data });
   } catch (err) {
@@ -1491,7 +785,277 @@ app.get("/api/tutors/profile/:userId", async (req, res) => {
   }
 });
 
-// -------------------- EMAIL VERIFIED WEBHOOK --------------------
+/* -------------------- Admin API (protected) -------------------- */
+// Users list
+app.get("/api/admin/users", adminOnly, async (req, res) => {
+  try {
+    const { data: allUsers, error } = await supabase.auth.admin.listUsers();
+    if (error) {
+      console.error("Error listing users:", error);
+      return res.status(500).json({ error: "Failed to fetch users" });
+    }
+    const rawUsers = allUsers.users || [];
+    const users = rawUsers.map((u) => ({
+      id: u.id,
+      email: u.email,
+      username: (u.user_metadata && (u.user_metadata.username || u.user_metadata.name)) || (u.email ? u.email.split("@")[0] : ""),
+      role: (u.user_metadata && u.user_metadata.role) || "user",
+      created_at: u.created_at,
+      email_confirmed_at: u.email_confirmed_at,
+      raw: u,
+    }));
+    return res.json({ users });
+  } catch (err) {
+    console.error("Admin users route error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Delete a user
+app.delete("/api/admin/delete-user", adminOnly, async (req, res) => {
+  try {
+    const { userEmail } = req.body;
+    if (!userEmail) return res.status(400).json({ error: "User email is required" });
+    if (userEmail.toLowerCase() === ADMIN_EMAIL) return res.status(403).json({ error: "Cannot delete admin user" });
+
+    const { data: allUsers, error: listError } = await supabase.auth.admin.listUsers();
+    if (listError) return res.status(500).json({ error: "Failed to fetch users" });
+
+    const userToDelete = (allUsers.users || []).find((u) => (u.email || "").toLowerCase() === userEmail.toLowerCase());
+    if (!userToDelete) return res.status(404).json({ error: "User not found" });
+
+    const userId = userToDelete.id;
+    const userRole = userToDelete.user_metadata?.role || "user";
+
+    try {
+      if (userRole === "student") await supabase.from("students").delete().eq("id", userId);
+      else if (userRole === "tutor") await supabase.from("tutors").delete().eq("id", userId);
+    } catch (e) {
+      console.warn("Warning: Could not delete from role tables:", e?.message || e);
+    }
+
+    try { await supabase.from("users").delete().eq("id", userId); } catch (e) { console.warn("Warning: users table delete:", e?.message || e); }
+
+    const { error: deleteError } = await supabase.auth.admin.deleteUser(userId);
+    if (deleteError) return res.status(500).json({ error: "Failed to delete user: " + deleteError.message });
+
+    console.log(`✅ User ${userEmail} deleted successfully`);
+    return res.json({ success: true, message: `User ${userEmail} has been deleted` });
+  } catch (err) {
+    console.error("Delete user error:", err);
+    return res.status(500).json({ error: "Server error: " + err.message });
+  }
+});
+
+// Tutor requests (pending only)
+app.get("/api/admin/tutor-requests", adminOnly, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("tutors")
+      .select(
+        "id, firstName, lastName, email, created_at, approved, major, degree, gpa, subjects, experience, motivation, format, availability, passportPhoto, certificate"
+      )
+      .eq("approved", false)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const requests = (data || []).map((r) => ({
+      id: r.id,
+      firstName: r.firstName || "",
+      lastName: r.lastName || "",
+      email: r.email || "",
+      submittedAt: r.created_at,
+      profile: {
+        major: r.major || "",
+        degree: r.degree || "",
+        gpa: r.gpa ?? null,
+        subjects: Array.isArray(r.subjects)
+          ? r.subjects
+          : typeof r.subjects === "string"
+          ? (() => {
+              try {
+                return JSON.parse(r.subjects);
+              } catch {
+                return [r.subjects];
+              }
+            })()
+          : r.subjects || [],
+        experience: r.experience || "",
+        motivation: r.motivation || "",
+        format: r.format || "",
+        availability: r.availability || "",
+        passportPhoto: r.passportPhoto || "",
+        certificate: r.certificate || "",
+      },
+    }));
+
+    res.json({ requests });
+  } catch (err) {
+    console.error("GET /api/admin/tutor-requests:", err);
+    res.status(500).json({ error: "Failed to load tutor requests" });
+  }
+});
+
+app.post("/api/admin/tutor-requests/accept", adminOnly, async (req, res) => {
+  try {
+    const { userId } = req.body || {};
+    if (!userId) return res.status(400).json({ error: "userId required" });
+
+    const { data, error } = await supabase
+      .from("tutors")
+      .update({ approved: true, approved_at: new Date().toISOString() })
+      .eq("id", userId)
+      .select("id")
+      .single();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json({ error: "Tutor not found" });
+
+    // Also set user_metadata.tutorApproved = true to allow login immediately
+    await supabase.auth.admin.updateUserById(userId, {
+      user_metadata: { tutorApproved: true },
+    });
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("POST /api/admin/tutor-requests/accept:", err);
+    res.status(500).json({ error: "Approve failed" });
+  }
+});
+
+app.post("/api/admin/tutor-requests/reject", adminOnly, async (req, res) => {
+  try {
+    const { userId } = req.body || {};
+    if (!userId) return res.status(400).json({ error: "userId required" });
+
+    await supabase.from("tutors").delete().eq("id", userId);
+
+    // Optionally also remove the auth user (uncomment if desired):
+    // await supabase.auth.admin.deleteUser(userId);
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("POST /api/admin/tutor-requests/reject:", err);
+    res.status(500).json({ error: "Reject failed" });
+  }
+});
+
+// Admin stats
+app.get("/api/admin/stats", adminOnly, async (req, res) => {
+  try {
+    const { data: allUsers } = await supabase.auth.admin.listUsers();
+    const all = allUsers?.users || [];
+    const totalUsers = all.length;
+    const blockedUsers = all.filter((u) => u.user_metadata?.blocked === true).length;
+    res.json({ totalUsers, blockedUsers, totalPosts: 0, removedPosts: 0 });
+  } catch (err) {
+    console.error("stats error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Block / Unblock
+app.post("/api/admin/block-user", adminOnly, async (req, res) => {
+  try {
+    const { userEmail, reason } = req.body || {};
+    if (!userEmail || typeof userEmail !== "string") return res.status(400).json({ error: "Missing userEmail" });
+
+    const targetEmail = userEmail.trim().toLowerCase();
+    const { data: listData, error: listErr } = await supabase.auth.admin.listUsers();
+    if (listErr) return res.status(500).json({ error: "Failed to query users" });
+    const authUser = (listData?.users || []).find((u) => (u.email || "").toLowerCase() === targetEmail);
+    if (!authUser) return res.status(404).json({ error: "User not found" });
+
+    const newMeta = {
+      ...(authUser.user_metadata || {}),
+      blocked: true,
+      blocked_reason: typeof reason === "string" && reason.trim() ? reason.trim() : undefined,
+      blocked_at: new Date().toISOString(),
+    };
+
+    const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, { user_metadata: newMeta });
+    if (updateError) return res.status(500).json({ error: "Unable to block user" });
+
+    await supabase
+      .from("users")
+      .update({ blocked: true, blocked_reason: newMeta.blocked_reason, blocked_at: newMeta.blocked_at })
+      .eq("id", authUser.id)
+      .catch(() => {});
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("block-user error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.post("/api/admin/unblock-user", adminOnly, async (req, res) => {
+  try {
+    const { userEmail } = req.body || {};
+    if (!userEmail || typeof userEmail !== "string") return res.status(400).json({ error: "Missing userEmail" });
+
+    const targetEmail = userEmail.trim().toLowerCase();
+    const { data: listData, error: listErr } = await supabase.auth.admin.listUsers();
+    if (listErr) return res.status(500).json({ error: "Failed to query users" });
+    const authUser = (listData?.users || []).find((u) => (u.email || "").toLowerCase() === targetEmail);
+    if (!authUser) return res.status(404).json({ error: "User not found" });
+
+    const newMeta = { ...(authUser.user_metadata || {}), blocked: false, blocked_reason: null, blocked_at: null };
+    const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, { user_metadata: newMeta });
+    if (updateError) return res.status(500).json({ error: "Unable to unblock user" });
+
+    await supabase
+      .from("users")
+      .update({ blocked: false, blocked_reason: null, blocked_at: null })
+      .eq("id", authUser.id)
+      .catch(() => {});
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("unblock-user error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+/* -------------------- Account self-delete -------------------- */
+app.post("/api/account/delete", async (req, res) => {
+  try {
+    const { userId } = req.body || {};
+    if (!userId || typeof userId !== "string" || !userId.trim()) {
+      return res.status(400).json({ error: "Missing or invalid userId" });
+    }
+
+    try { await supabase.from("students").delete().eq("id", userId); } catch (e) { console.warn("students del:", e?.message || e); }
+    try { await supabase.from("tutors").delete().eq("id", userId); } catch (e) { console.warn("tutors del:", e?.message || e); }
+    try { await supabase.from("users").delete().eq("id", userId); } catch (e) { console.warn("users del:", e?.message || e); }
+
+    const { error } = await supabase.auth.admin.deleteUser(userId);
+    if (error) return res.status(500).json({ error: "Failed to delete account: " + error.message });
+
+    return res.json({ success: true, message: "Account deleted" });
+  } catch (err) {
+    console.error("Self account delete error:", err);
+    return res.status(500).json({ error: "Server error: " + (err?.message || String(err)) });
+  }
+});
+
+/* -------------------- Account status -------------------- */
+app.get("/api/account/status", async (req, res) => {
+  try {
+    const userId = (req.query?.userId || "").toString().trim();
+    if (!userId) return res.status(400).json({ error: "Missing userId" });
+    const { data, error } = await supabase.auth.admin.getUserById(userId);
+    if (error || !data?.user) return res.status(404).json({ error: "User not found" });
+    const u = data.user;
+    const blocked = u.user_metadata?.blocked === true;
+    const reason = u.user_metadata?.blocked_reason || null;
+    return res.json({ blocked, reason });
+  } catch (err) {
+    console.error("account status error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+/* -------------------- Webhook: email verified -------------------- */
 app.post("/api/webhook/auth", async (req, res) => {
   try {
     const event = req.body;
@@ -1499,61 +1063,41 @@ app.post("/api/webhook/auth", async (req, res) => {
 
     if (event.type === "USER_UPDATED" && event.user?.email_confirmed_at) {
       const user = event.user;
-      const meta = user.user_metadata;
+      const meta = user.user_metadata || {};
       const role = meta.role;
 
-      // Insert into users table
-      const { error: userError } = await supabase.from("users").upsert([
-        {
-          id: user.id,
-          email: user.email,
-          role,
-          firstName: meta.firstName,
-          lastName: meta.lastName,
-          birthdate: meta.birthdate,
-          phone: meta.phone,
-        },
-      ]);
-      if (userError) console.error("❌ Error inserting into users:", userError);
+      await supabase
+        .from("users")
+        .upsert([{ id: user.id, email: user.email, role, firstName: meta.firstName, lastName: meta.lastName, birthdate: meta.birthdate, phone: meta.phone }])
+        .catch((e) => console.error("❌ Error inserting into users:", e));
 
-      // Role-specific inserts
-      const commonData = {
-        id: user.id,
-        firstName: meta.firstName,
-        lastName: meta.lastName,
-        birthdate: meta.birthdate,
-        phone: meta.phone,
-      };
+      const commonData = { id: user.id, firstName: meta.firstName, lastName: meta.lastName, birthdate: meta.birthdate, phone: meta.phone };
 
       if (role === "student") {
-        const { error } = await supabase.from("students").upsert([
-          {
-            ...commonData,
-            studentId: meta.studentId,
-            currentYear: meta.currentYear,
-            major: meta.major,
-            gpa: meta.gpa,
-          },
-        ]);
-        if (error) console.error("❌ Error inserting student:", error);
+        await supabase
+          .from("students")
+          .upsert([{ ...commonData, studentId: meta.studentId, currentYear: meta.currentYear, major: meta.major, gpa: meta.gpa }])
+          .catch((e) => console.error("❌ Error inserting student:", e));
       }
 
       if (role === "tutor") {
-        const { error } = await supabase.from("tutors").upsert([
-          {
-            ...commonData,
-            email: user.email,
-            major: meta.major,
-            degree: meta.degree,
-            gpa: meta.gpa,
-            subjects: meta.subjects,
-            experience: meta.experience,
-            motivation: meta.motivation,
-            format: meta.format,
-            availability: meta.availability,
-          },
-        ]);
-        if (error) console.error("❌ Error inserting tutor:", error);
+        await supabase
+          .from("tutors")
+          .upsert([
+            {
+              ...commonData,
+              email: user.email,
+              major: meta.major,
+              degree: meta.degree,
+              gpa: meta.gpa,
+              subjects: meta.subjects,
+              experience: meta.experience,
+              motivation: meta.motivation,
+              format: meta.format,
+              availability: meta.availability,
+            },
+          ])
+          .catch((e) => console.error("❌ Error inserting tutor:", e));
       }
     }
 
@@ -1564,27 +1108,14 @@ app.post("/api/webhook/auth", async (req, res) => {
   }
 });
 
-// -------------------- RATINGS & REVIEWS --------------------
-
-// Submit a rating for a tutor
+/* -------------------- Ratings & Reviews -------------------- */
 app.post("/api/ratings", async (req, res) => {
   try {
     const { tutorId, studentId, rating, feedback, subject, recommend } = req.body;
+    if (!tutorId || !studentId) return res.status(400).json({ error: "Tutor ID and Student ID are required" });
+    if (!rating || rating < 1 || rating > 5) return res.status(400).json({ error: "Rating must be between 1 and 5" });
+    if (!feedback || feedback.trim().length < 20) return res.status(400).json({ error: "Feedback must be at least 20 characters" });
 
-    // Validation
-    if (!tutorId || !studentId) {
-      return res.status(400).json({ error: "Tutor ID and Student ID are required" });
-    }
-
-    if (!rating || rating < 1 || rating > 5) {
-      return res.status(400).json({ error: "Rating must be between 1 and 5" });
-    }
-
-    if (!feedback || feedback.trim().length < 20) {
-      return res.status(400).json({ error: "Feedback must be at least 20 characters" });
-    }
-
-    // Check if student already rated this tutor
     const { data: existing, error: checkError } = await supabase
       .from("ratings")
       .select("id")
@@ -1592,74 +1123,34 @@ app.post("/api/ratings", async (req, res) => {
       .eq("student_id", studentId)
       .maybeSingle();
 
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error("Error checking existing rating:", checkError);
-      return res.status(500).json({ error: "Database error" });
-    }
+    if (checkError && checkError.code !== "PGRST116") return res.status(500).json({ error: "Database error" });
+    if (existing) return res.status(400).json({ error: "You have already rated this tutor" });
 
-    if (existing) {
-      return res.status(400).json({ error: "You have already rated this tutor" });
-    }
-
-    // Insert the rating
     const { data: newRating, error: insertError } = await supabase
       .from("ratings")
-      .insert([
-        {
-          tutor_id: tutorId,
-          student_id: studentId,
-          rating: parseInt(rating),
-          feedback: feedback.trim(),
-          subject: subject?.trim() || null,
-          recommend: recommend === true,
-          created_at: new Date().toISOString()
-        }
-      ])
+      .insert([{ tutor_id: tutorId, student_id: studentId, rating: parseInt(rating), feedback: feedback.trim(), subject: subject?.trim() || null, recommend: recommend === true, created_at: new Date().toISOString() }])
       .select()
       .single();
 
-    if (insertError) {
-      console.error("Error inserting rating:", insertError);
-      return res.status(500).json({ error: "Failed to submit rating" });
-    }
+    if (insertError) return res.status(500).json({ error: "Failed to submit rating" });
 
-    // Update tutor's average rating
-    const { data: allRatings, error: ratingsError } = await supabase
-      .from("ratings")
-      .select("rating")
-      .eq("tutor_id", tutorId);
-
+    const { data: allRatings, error: ratingsError } = await supabase.from("ratings").select("rating").eq("tutor_id", tutorId);
     if (!ratingsError && allRatings && allRatings.length > 0) {
       const avgRating = allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length;
-      
-      await supabase
-        .from("tutors")
-        .update({ 
-          rating: parseFloat(avgRating.toFixed(2)),
-          reviews: allRatings.length
-        })
-        .eq("id", tutorId);
+      await supabase.from("tutors").update({ rating: parseFloat(avgRating.toFixed(2)), reviews: allRatings.length }).eq("id", tutorId);
     }
 
-    res.status(201).json({ 
-      message: "Rating submitted successfully", 
-      rating: newRating 
-    });
-
+    res.status(201).json({ message: "Rating submitted successfully", rating: newRating });
   } catch (err) {
     console.error("Error submitting rating:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// Get all ratings for a specific tutor
 app.get("/api/ratings/:tutorId", async (req, res) => {
   try {
     const { tutorId } = req.params;
-
-    if (!tutorId) {
-      return res.status(400).json({ error: "Tutor ID is required" });
-    }
+    if (!tutorId) return res.status(400).json({ error: "Tutor ID is required" });
 
     const { data: ratings, error } = await supabase
       .from("ratings")
@@ -1671,120 +1162,81 @@ app.get("/api/ratings/:tutorId", async (req, res) => {
         recommend,
         created_at,
         student_id,
-        students:student_id (
-          firstName,
-          lastName
-        )
+        students:student_id ( firstName, lastName )
       `)
       .eq("tutor_id", tutorId)
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching ratings:", error);
-      return res.status(500).json({ error: "Failed to fetch ratings" });
-    }
+    if (error) return res.status(500).json({ error: "Failed to fetch ratings" });
 
-    // Format the response
-    const formattedRatings = ratings.map(r => ({
+    const formattedRatings = (ratings || []).map((r) => ({
       id: r.id,
       rating: r.rating,
       feedback: r.feedback,
       subject: r.subject,
       recommend: r.recommend,
       createdAt: r.created_at,
-      studentName: r.students ? `${r.students.firstName} ${r.students.lastName}` : "Anonymous"
+      studentName: r.students ? `${r.students.firstName} ${r.students.lastName}` : "Anonymous",
     }));
 
     res.status(200).json({ ratings: formattedRatings });
-
   } catch (err) {
     console.error("Error fetching ratings:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// Get rating statistics for a tutor
 app.get("/api/ratings/:tutorId/stats", async (req, res) => {
   try {
     const { tutorId } = req.params;
-
-    const { data: ratings, error } = await supabase
-      .from("ratings")
-      .select("rating, recommend")
-      .eq("tutor_id", tutorId);
-
-    if (error) {
-      console.error("Error fetching rating stats:", error);
-      return res.status(500).json({ error: "Failed to fetch statistics" });
-    }
+    const { data: ratings, error } = await supabase.from("ratings").select("rating, recommend").eq("tutor_id", tutorId);
+    if (error) return res.status(500).json({ error: "Failed to fetch statistics" });
 
     if (!ratings || ratings.length === 0) {
       return res.status(200).json({
         totalRatings: 0,
         averageRating: 0,
         recommendPercentage: 0,
-        ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+        ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
       });
     }
 
     const totalRatings = ratings.length;
     const averageRating = ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings;
-    const recommendCount = ratings.filter(r => r.recommend).length;
+    const recommendCount = ratings.filter((r) => r.recommend).length;
     const recommendPercentage = (recommendCount / totalRatings) * 100;
 
     const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    ratings.forEach(r => {
-      ratingDistribution[r.rating]++;
-    });
+    ratings.forEach((r) => { ratingDistribution[r.rating]++; });
 
     res.status(200).json({
       totalRatings,
       averageRating: parseFloat(averageRating.toFixed(2)),
       recommendPercentage: parseFloat(recommendPercentage.toFixed(1)),
-      ratingDistribution
+      ratingDistribution,
     });
-
   } catch (err) {
     console.error("Error fetching rating stats:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
-
-
-
-
-// -------------------- CLEANUP UNVERIFIED USERS --------------------
+/* -------------------- Cleanup job -------------------- */
 async function deleteUnverifiedUsers() {
   try {
-    // Fetch all users via admin API
     const { data: allUsers, error } = await supabase.auth.admin.listUsers();
-    if (error) {
-      console.error("Error fetching users:", error);
-      return;
-    }
+    if (error) return console.error("Error fetching users:", error);
 
-    // Filter unverified users older than 1 minute (for testing)
-    const unverifiedUsers = allUsers.users.filter(
-      user =>
-        !user.email_confirmed_at &&
-        new Date(user.created_at) < new Date(Date.now() - 1 * 60 * 1000)
+    const unverifiedUsers = (allUsers.users || []).filter(
+      (user) => !user.email_confirmed_at && new Date(user.created_at) < new Date(Date.now() - 1 * 60 * 1000)
     );
 
-    console.log("Unverified users to delete:", unverifiedUsers);
-
+    console.log("Unverified users to delete:", unverifiedUsers.map((u) => u.email));
     for (const user of unverifiedUsers) {
       const role = user.user_metadata?.role;
-
-      // Delete role-specific table rows
       if (role === "student") await supabase.from("students").delete().eq("id", user.id);
       if (role === "tutor") await supabase.from("tutors").delete().eq("id", user.id);
-
-      // Delete from users table
       await supabase.from("users").delete().eq("id", user.id);
-
-      // Delete from Supabase Auth
       const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
       if (deleteError) console.error("Error deleting user from auth:", deleteError);
       else console.log("Deleted user from auth:", user.email);
@@ -1794,8 +1246,11 @@ async function deleteUnverifiedUsers() {
   }
 }
 
-// Schedule to run every minute (for testing)
+// Run hourly in production
 cron.schedule("0 * * * *", () => {
   console.log("Running cleanup job for unverified users...");
   deleteUnverifiedUsers();
 });
+
+/* -------------------- Start server -------------------- */
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));

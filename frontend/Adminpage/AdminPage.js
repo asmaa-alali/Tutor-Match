@@ -1,8 +1,10 @@
-﻿/* AdminPage.js — fixed */
+﻿/* AdminPage.js — fixed for deployment + single-header middleware */
 
 lucide.createIcons();
 
 const ADMIN_EMAIL = "admintm01@proton.me";
+const API_BASE = (typeof window !== "undefined" && window.__API_BASE__) || "";
+const api = (p) => `${API_BASE}${p}`;
 
 /* -------------------- session helpers -------------------- */
 function getAdminEmailForRequests() {
@@ -12,16 +14,16 @@ function getAdminEmailForRequests() {
     const session = JSON.parse(sessionData);
     if (!session || typeof session !== "object") return "";
     let email = typeof session.email === "string" ? session.email.trim() : "";
-    const role =
-      typeof session.role === "string" ? session.role.trim().toLowerCase() : "";
+    const role = typeof session.role === "string" ? session.role.trim().toLowerCase() : "";
 
+    // Keep this fallback if your session lacks an email but role is admin
     if (role === "admin" && email !== ADMIN_EMAIL) {
       email = ADMIN_EMAIL;
       session.email = ADMIN_EMAIL;
       try {
         localStorage.setItem("tmUserSession", JSON.stringify(session));
-      } catch (storageErr) {
-        console.warn("Failed to persist admin email:", storageErr);
+      } catch (e) {
+        console.warn("Failed to persist admin email:", e);
       }
     }
     return email;
@@ -41,14 +43,14 @@ function requireAdminEmail() {
   return email;
 }
 
-/* One helper to build headers for all admin routes */
+/* One helper to build headers for all admin routes (canonicalize to x-admin-email) */
 function adminHeaders(extra = {}) {
   const email = requireAdminEmail();
   if (!email) return null;
-  return { "Content-Type": "application/json", "x-user-email": email, ...extra };
+  return { "Content-Type": "application/json", "x-admin-email": email, ...extra };
 }
 
-/* -------------------- UI-only guard (kept minimal) -------------------- */
+/* -------------------- UI-only guard -------------------- */
 (function enforceAdminSession() {
   const sessionData = localStorage.getItem("tmUserSession");
   if (!sessionData) {
@@ -59,16 +61,15 @@ function adminHeaders(extra = {}) {
   try {
     const session = JSON.parse(sessionData);
     let userEmail = typeof session.email === "string" ? session.email.trim() : "";
-    const userRole = (session.role || "").toString();
-    const normalizedRole = userRole.toLowerCase();
+    const normalizedRole = (session.role || "").toString().toLowerCase();
 
     if (!userEmail && normalizedRole === "admin") {
       userEmail = ADMIN_EMAIL;
       session.email = ADMIN_EMAIL;
       try {
         localStorage.setItem("tmUserSession", JSON.stringify(session));
-      } catch (storageErr) {
-        console.warn("Failed to persist admin email:", storageErr);
+      } catch (e) {
+        console.warn("Failed to persist admin email:", e);
       }
     }
 
@@ -141,10 +142,12 @@ async function fetchDashboardStats() {
   try {
     const headers = adminHeaders();
     if (!headers) return;
-    const res = await fetch("/api/admin/stats", { method: "GET", headers });
-    if (!res.ok) throw new Error((await res.json()).error || "Failed to load stats");
-    const body = await res.json();
-    const { totalUsers = 0, blockedUsers = 0, totalPosts = 0, removedPosts = 0 } = body || {};
+
+    const res = await fetch(api("/api/admin/stats"), { method: "GET", headers });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || "Failed to load stats");
+
+    const { totalUsers = 0, blockedUsers = 0, totalPosts = 0, removedPosts = 0 } = json || {};
     const setText = (id, val) => {
       const el = document.getElementById(id);
       if (el) el.textContent = String(val);
@@ -164,19 +167,11 @@ async function fetchUsers() {
     const headers = adminHeaders();
     if (!headers) return;
 
-    const res = await fetch("/api/admin/users", {
-      method: "GET",
-      headers,
-    });
+    const res = await fetch(api("/api/admin/users"), { method: "GET", headers });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || "Failed to fetch users");
 
-    if (!res.ok) {
-      const errorBody = await res.json().catch(() => ({}));
-      throw new Error(errorBody.error || "Failed to fetch users");
-    }
-
-    const body = await res.json();
-    const remote = body.users || [];
-
+    const remote = json.users || [];
     users = remote.map((u) => {
       const meta = u.raw?.user_metadata || u.user_metadata || {};
       const isBlocked = !!(meta.blocked === true) || !!u.banned_until;
@@ -243,6 +238,8 @@ function loadUsers() {
     `;
     tbody.appendChild(row);
   });
+
+  try { lucide.createIcons(); } catch {}
 }
 
 function filterUsers() {
@@ -263,9 +260,12 @@ function filterUsers() {
 }
 
 function resetUserFilters() {
-  if (document.getElementById("userSearch")) document.getElementById("userSearch").value = "";
-  if (document.getElementById("userStatusFilter")) document.getElementById("userStatusFilter").value = "";
-  if (document.getElementById("userRoleFilter")) document.getElementById("userRoleFilter").value = "";
+  const us = document.getElementById("userSearch");
+  const st = document.getElementById("userStatusFilter");
+  const rf = document.getElementById("userRoleFilter");
+  if (us) us.value = "";
+  if (st) st.value = "";
+  if (rf) rf.value = "";
   filteredUsers = [...users];
   loadUsers();
 }
@@ -283,15 +283,15 @@ async function blockUser(userEmail) {
       try {
         const headers = adminHeaders();
         if (!headers) return;
-        const res = await fetch("/api/admin/block-user", {
+
+        const res = await fetch(api("/api/admin/block-user"), {
           method: "POST",
           headers,
           body: JSON.stringify({ userEmail: user.email, reason }),
         });
-        if (!res.ok) {
-          const e = await res.json().catch(() => ({}));
-          return showNotification(e.error || "Failed to block user", "error");
-        }
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) return showNotification(json.error || "Failed to block user", "error");
+
         user.status = "blocked";
         try {
           user.raw = user.raw || {};
@@ -323,15 +323,15 @@ async function unblockUser(userEmail) {
       try {
         const headers = adminHeaders();
         if (!headers) return;
-        const res = await fetch("/api/admin/unblock-user", {
+
+        const res = await fetch(api("/api/admin/unblock-user"), {
           method: "POST",
           headers,
           body: JSON.stringify({ userEmail: user.email }),
         });
-        if (!res.ok) {
-          const e = await res.json().catch(() => ({}));
-          return showNotification(e.error || "Failed to unblock user", "error");
-        }
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) return showNotification(json.error || "Failed to unblock user", "error");
+
         user.status = "active";
         try {
           if (user.raw && user.raw.user_metadata) {
@@ -363,15 +363,15 @@ function deleteUser(userEmail) {
       try {
         const headers = adminHeaders();
         if (!headers) return;
-        const res = await fetch("/api/admin/delete-user", {
+
+        const res = await fetch(api("/api/admin/delete-user"), {
           method: "DELETE",
           headers,
           body: JSON.stringify({ userEmail: user.email }),
         });
-        if (!res.ok) {
-          const error = await res.json().catch(() => ({}));
-          return showNotification(error.error || "Failed to delete user", "error");
-        }
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) return showNotification(json.error || "Failed to delete user", "error");
+
         const index = users.findIndex((u) => u.email === user.email);
         if (index > -1) users.splice(index, 1);
         filteredUsers = [...users];
@@ -391,16 +391,12 @@ async function fetchTutorRequests() {
   try {
     const headers = adminHeaders();
     if (!headers) return;
-    const res = await fetch("/api/admin/tutor-requests", {
-      method: "GET",
-      headers,
-    });
-    if (!res.ok) {
-      const errorBody = await res.json().catch(() => ({}));
-      throw new Error(errorBody.error || "Failed to fetch tutor requests");
-    }
-    const body = await res.json();
-    tutorRequests = Array.isArray(body.requests) ? body.requests : [];
+
+    const res = await fetch(api("/api/admin/tutor-requests"), { method: "GET", headers });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || "Failed to fetch tutor requests");
+
+    tutorRequests = Array.isArray(json.requests) ? json.requests : [];
     filteredRequests = [...tutorRequests];
     loadTutorRequests();
   } catch (err) {
@@ -448,6 +444,8 @@ function loadTutorRequests() {
       </td>`;
     tbody.appendChild(row);
   });
+
+  try { lucide.createIcons(); } catch {}
 }
 
 function findRequestById(id) {
@@ -482,7 +480,7 @@ function viewTutorRequest(id) {
     if (hasPassport) {
       const url = profile.passportPhoto;
       lines.push(`
-        <div class="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 cursor-zoom-in" onclick="previewDoc('${url.replace(/"/g, "&quot;")}', 'Passport Photo')">
+        <div class="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 cursor-zoom-in" onclick="previewDoc('${url.replace(/"/g, "&quot;")}')">
           <img src="${url}" alt="Passport Photo" style="width:100%;max-height:240px;object-fit:cover;display:block;"/>
           <div class="px-3 py-2 text-sm text-gray-600 dark:text-gray-300">Passport Photo (click to view)</div>
         </div>`);
@@ -492,7 +490,7 @@ function viewTutorRequest(id) {
       const isImage = /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(url);
       if (isImage) {
         lines.push(`
-          <div class="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 cursor-zoom-in" onclick="previewDoc('${url.replace(/"/g, "&quot;")}', 'Certificate / CV')">
+          <div class="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 cursor-zoom-in" onclick="previewDoc('${url.replace(/"/g, "&quot;")}')">
             <img src="${url}" alt="Certificate/CV" style="width:100%;max-height:240px;object-fit:cover;display:block;"/>
             <div class="px-3 py-2 text-sm text-gray-600 dark:text-gray-300">Certificate / CV (click to view)</div>
           </div>`);
@@ -530,12 +528,15 @@ async function acceptTutorRequest(id) {
   try {
     const headers = adminHeaders();
     if (!headers) return;
-    const res = await fetch("/api/admin/tutor-requests/accept", {
+
+    const res = await fetch(api("/api/admin/tutor-requests/accept"), {
       method: "POST",
       headers,
       body: JSON.stringify({ userId: id }),
     });
-    if (!res.ok) throw new Error((await res.json()).error || "Approve failed");
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || "Approve failed");
+
     showNotification("Tutor approved", "success");
     tutorRequests = tutorRequests.filter((r) => r.id !== id);
     filterRequests();
@@ -554,12 +555,15 @@ async function rejectTutorRequest(id) {
       try {
         const headers = adminHeaders();
         if (!headers) return;
-        const res = await fetch("/api/admin/tutor-requests/reject", {
+
+        const res = await fetch(api("/api/admin/tutor-requests/reject"), {
           method: "POST",
           headers,
           body: JSON.stringify({ userId: id }),
         });
-        if (!res.ok) throw new Error((await res.json()).error || "Reject failed");
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json.error || "Reject failed");
+
         showNotification("Tutor rejected and removed", "success");
         tutorRequests = tutorRequests.filter((r) => r.id !== id);
         filterRequests();
@@ -677,6 +681,8 @@ function loadPosts() {
     `;
     grid.appendChild(card);
   });
+
+  try { lucide.createIcons(); } catch {}
 }
 
 function filterPosts() {
@@ -696,9 +702,12 @@ function filterPosts() {
 }
 
 function resetPostFilters() {
-  if (document.getElementById("postSearch")) document.getElementById("postSearch").value = "";
-  if (document.getElementById("postTypeFilter")) document.getElementById("postTypeFilter").value = "";
-  if (document.getElementById("postStatusFilter")) document.getElementById("postStatusFilter").value = "";
+  const ps = document.getElementById("postSearch");
+  const pt = document.getElementById("postTypeFilter");
+  const psf = document.getElementById("postStatusFilter");
+  if (ps) ps.value = "";
+  if (pt) pt.value = "";
+  if (psf) psf.value = "";
   filteredPosts = [...posts];
   loadPosts();
 }
@@ -760,7 +769,7 @@ function loadActivityLog() {
     container.appendChild(entry);
   });
 
-  lucide.createIcons();
+  try { lucide.createIcons(); } catch {}
 }
 
 function logActivity(action, details) {
@@ -820,21 +829,14 @@ function loadRecentActions() {
     let icon = "settings";
     let color = "gray";
     const a = (log.action || "").toLowerCase();
-    if (a.includes("blocked user")) {
-      icon = "user-x";
-      color = "red";
-    } else if (a.includes("unblocked user")) {
-      icon = "user-check";
-      color = "green";
-    } else if (a.includes("post removed") || a.includes("removed post")) {
-      icon = "trash-2";
-      color = "yellow";
-    }
+    if (a.includes("blocked user")) { icon = "user-x"; color = "red"; }
+    else if (a.includes("unblocked user")) { icon = "user-check"; color = "green"; }
+    else if (a.includes("post removed") || a.includes("removed post")) { icon = "trash-2"; color = "yellow"; }
 
     const details = String(log.details || "");
     const emailMatch = details.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
     const handleMatch = details.match(/@([a-zA-Z0-9_]+)/);
-    const subject = emailMatch ? emailMatch[0] : handleMatch ? `@${handleMatch[1]}` : "";
+    const subject = emailMatch ? emailMatch[0] : (handleMatch ? `@${handleMatch[1]}` : "");
     const title = subject ? `${log.action} (${subject})` : `${log.action}`;
     const by = log.admin ? `by ${log.admin}` : "";
 
@@ -849,9 +851,7 @@ function loadRecentActions() {
     container.appendChild(li);
   });
 
-  try {
-    lucide.createIcons();
-  } catch {}
+  try { lucide.createIcons(); } catch {}
 }
 
 /* -------------------- modals & notifications -------------------- */
@@ -861,10 +861,7 @@ function showConfirmModal(message, onConfirm) {
   const modal = document.getElementById("confirmModal");
   if (!msg || !btn || !modal) return;
   msg.textContent = message;
-  btn.onclick = () => {
-    onConfirm();
-    closeModal();
-  };
+  btn.onclick = () => { onConfirm(); closeModal(); };
   modal.classList.add("show");
 }
 
@@ -882,11 +879,7 @@ function showPromptModal(message, placeholder, onConfirm) {
   msg.textContent = message || "Provide details";
   input.value = "";
   input.placeholder = placeholder || "";
-  btn.onclick = () => {
-    const v = input.value || "";
-    onConfirm(v);
-    closePromptModal();
-  };
+  btn.onclick = () => { const v = input.value || ""; onConfirm(v); closePromptModal(); };
   modal.classList.add("show");
 }
 
@@ -905,9 +898,7 @@ function showNotification(message, type = "success") {
   text.textContent = message;
   notification.className = `notification ${type}`;
   notification.classList.add("show");
-  setTimeout(() => {
-    notification.classList.remove("show");
-  }, 3000);
+  setTimeout(() => { notification.classList.remove("show"); }, 3000);
 }
 
 /* -------------------- layout helpers -------------------- */
@@ -933,13 +924,9 @@ function toggleSidebar() {
 /* -------------------- auth -------------------- */
 function adminLogout() {
   if (confirm("Are you sure you want to logout?")) {
-    try {
-      localStorage.removeItem("tmUserSession");
-    } catch {}
+    try { localStorage.removeItem("tmUserSession"); } catch {}
     showNotification("Logged out successfully", "success");
-    setTimeout(() => {
-      window.location.href = "/Homepage/home.html";
-    }, 600);
+    setTimeout(() => { window.location.href = "/Homepage/home.html"; }, 600);
   }
 }
 window.adminLogout = adminLogout;
@@ -969,10 +956,7 @@ window.adminLogout = adminLogout;
     else if (window.addEventListener) document.addEventListener("DOMContentLoaded", c);
     else {
       var e = document.onreadystatechange || function () {};
-      document.onreadystatechange = function (b) {
-        e(b);
-        "loading" !== document.readyState && ((document.onreadystatechange = e), c());
-      };
+      document.onreadystatechange = function (b) { e(b); "loading" !== document.readyState && ((document.onreadystatechange = e), c()); };
     }
   }
 })();
