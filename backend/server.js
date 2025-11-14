@@ -1589,9 +1589,193 @@ app.post("/api/webhook/auth", async (req, res) => {
   }
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`✅ Server running on port ${PORT}`);
+// -------------------- RATINGS & REVIEWS --------------------
+
+// Submit a rating for a tutor
+app.post("/api/ratings", async (req, res) => {
+  try {
+    const { tutorId, studentId, rating, feedback, subject, recommend } = req.body;
+
+    // Validation
+    if (!tutorId || !studentId) {
+      return res.status(400).json({ error: "Tutor ID and Student ID are required" });
+    }
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: "Rating must be between 1 and 5" });
+    }
+
+    if (!feedback || feedback.trim().length < 20) {
+      return res.status(400).json({ error: "Feedback must be at least 20 characters" });
+    }
+
+    // Check if student already rated this tutor
+    const { data: existing, error: checkError } = await supabase
+      .from("ratings")
+      .select("id")
+      .eq("tutor_id", tutorId)
+      .eq("student_id", studentId)
+      .maybeSingle();
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error("Error checking existing rating:", checkError);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    if (existing) {
+      return res.status(400).json({ error: "You have already rated this tutor" });
+    }
+
+    // Insert the rating
+    const { data: newRating, error: insertError } = await supabase
+      .from("ratings")
+      .insert([
+        {
+          tutor_id: tutorId,
+          student_id: studentId,
+          rating: parseInt(rating),
+          feedback: feedback.trim(),
+          subject: subject?.trim() || null,
+          recommend: recommend === true,
+          created_at: new Date().toISOString()
+        }
+      ])
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error("Error inserting rating:", insertError);
+      return res.status(500).json({ error: "Failed to submit rating" });
+    }
+
+    // Update tutor's average rating
+    const { data: allRatings, error: ratingsError } = await supabase
+      .from("ratings")
+      .select("rating")
+      .eq("tutor_id", tutorId);
+
+    if (!ratingsError && allRatings && allRatings.length > 0) {
+      const avgRating = allRatings.reduce((sum, r) => sum + r.rating, 0) / allRatings.length;
+      
+      await supabase
+        .from("tutors")
+        .update({ 
+          rating: parseFloat(avgRating.toFixed(2)),
+          reviews: allRatings.length
+        })
+        .eq("id", tutorId);
+    }
+
+    res.status(201).json({ 
+      message: "Rating submitted successfully", 
+      rating: newRating 
+    });
+
+  } catch (err) {
+    console.error("Error submitting rating:", err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
+
+// Get all ratings for a specific tutor
+app.get("/api/ratings/:tutorId", async (req, res) => {
+  try {
+    const { tutorId } = req.params;
+
+    if (!tutorId) {
+      return res.status(400).json({ error: "Tutor ID is required" });
+    }
+
+    const { data: ratings, error } = await supabase
+      .from("ratings")
+      .select(`
+        id,
+        rating,
+        feedback,
+        subject,
+        recommend,
+        created_at,
+        student_id,
+        students:student_id (
+          firstName,
+          lastName
+        )
+      `)
+      .eq("tutor_id", tutorId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching ratings:", error);
+      return res.status(500).json({ error: "Failed to fetch ratings" });
+    }
+
+    // Format the response
+    const formattedRatings = ratings.map(r => ({
+      id: r.id,
+      rating: r.rating,
+      feedback: r.feedback,
+      subject: r.subject,
+      recommend: r.recommend,
+      createdAt: r.created_at,
+      studentName: r.students ? `${r.students.firstName} ${r.students.lastName}` : "Anonymous"
+    }));
+
+    res.status(200).json({ ratings: formattedRatings });
+
+  } catch (err) {
+    console.error("Error fetching ratings:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Get rating statistics for a tutor
+app.get("/api/ratings/:tutorId/stats", async (req, res) => {
+  try {
+    const { tutorId } = req.params;
+
+    const { data: ratings, error } = await supabase
+      .from("ratings")
+      .select("rating, recommend")
+      .eq("tutor_id", tutorId);
+
+    if (error) {
+      console.error("Error fetching rating stats:", error);
+      return res.status(500).json({ error: "Failed to fetch statistics" });
+    }
+
+    if (!ratings || ratings.length === 0) {
+      return res.status(200).json({
+        totalRatings: 0,
+        averageRating: 0,
+        recommendPercentage: 0,
+        ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+      });
+    }
+
+    const totalRatings = ratings.length;
+    const averageRating = ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings;
+    const recommendCount = ratings.filter(r => r.recommend).length;
+    const recommendPercentage = (recommendCount / totalRatings) * 100;
+
+    const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    ratings.forEach(r => {
+      ratingDistribution[r.rating]++;
+    });
+
+    res.status(200).json({
+      totalRatings,
+      averageRating: parseFloat(averageRating.toFixed(2)),
+      recommendPercentage: parseFloat(recommendPercentage.toFixed(1)),
+      ratingDistribution
+    });
+
+  } catch (err) {
+    console.error("Error fetching rating stats:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
 
 
 
