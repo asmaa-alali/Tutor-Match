@@ -55,20 +55,19 @@ app.get("/", (req, res) => {
 
 // -------------------- ADMIN MIDDLEWARE --------------------
 // Admin authentication middleware - use on admin-only routes
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admintm01@proton.me";
+
+// KEEP THIS (slightly improved)
 function requireAdmin(req, res, next) {
   try {
-    const bodyEmail = (req.body && typeof req.body === 'object' && req.body.email) || null;
-    const queryEmail = (req.query && typeof req.query === 'object' && req.query.email) || null;
-    const headerEmail = req.headers && req.headers['x-user-email'] ? String(req.headers['x-user-email']).trim() : null;
-    
-    const email = bodyEmail || queryEmail || headerEmail || '';
-    
-    if (!email || email !== "admintm01@proton.me") {
-      return res.status(403).json({
-        error: "Access denied. Admin privileges required."
-      });
+    const bodyEmail   = req.body?.email || null;
+    const queryEmail  = req.query?.email || null;
+    const headerEmail = req.headers?.['x-user-email'] ? String(req.headers['x-user-email']).trim() : null;
+    const email = (bodyEmail || queryEmail || headerEmail || '').toLowerCase();
+
+    if (!email || email !== ADMIN_EMAIL.toLowerCase()) {
+      return res.status(403).json({ error: "Access denied. Admin privileges required." });
     }
-    
     next();
   } catch (err) {
     console.error('requireAdmin error:', err);
@@ -205,137 +204,113 @@ app.delete('/api/admin/delete-user', requireAdmin, async (req, res) => {
 });
 
 // List verified tutor requests for admin review
-app.get('/api/admin/tutor-requests', requireAdmin, async (req, res) => {
+
+// ===== Tutor Requests (pending = approved=false) =====
+
+app.get("/api/admin/tutor-requests", async (req, res) => {
+  if (!requireAdmin(req, res)) return;
+
   try {
-    const { data: allUsers, error } = await supabase.auth.admin.listUsers();
-    if (error) return res.status(500).json({ error: 'Failed to fetch users' });
+    const { data, error } = await supabase
+      .from("tutors")
+      .select(`
+        id,
+        first_name,
+        last_name,
+        email,
+        created_at,
+        approved,
+        major,
+        degree,
+        gpa,
+        subjects,
+        experience,
+        motivation,
+        format,
+        availability,
+        passport_photo_url,
+        certificate_url
+      `)
+      .eq("approved", false)
+      .order("created_at", { ascending: false });
 
-    const tutors = (allUsers?.users || []).filter((u) => {
-      const role = u.user_metadata?.role;
-      return role === 'tutor' && !!(u.email_confirmed_at || u.raw_user_meta_data?.email_confirmed_at);
-    });
+    if (error) throw error;
 
-    const tutorIds = tutors.map((t) => t.id);
-    let tutorRows = [];
-    if (tutorIds.length) {
-      try {
-        const { data: rows } = await supabase.from('tutors').select('*').in('id', tutorIds);
-        tutorRows = rows || [];
-      } catch (_) {
-        tutorRows = [];
-      }
-    }
-
-    const rowsById = Object.fromEntries(tutorRows.map((r) => [r.id, r]));
-    const payload = tutors.map((u) => ({
-      id: u.id,
-      email: u.email,
-      firstName: u.user_metadata?.firstName || null,
-      lastName: u.user_metadata?.lastName || null,
-      submittedAt: u.email_confirmed_at || u.created_at,
-      profile: rowsById[u.id] || null,
+    const requests = (data || []).map((r) => ({
+      id: r.id,
+      firstName: r.first_name || "",
+      lastName: r.last_name || "",
+      email: r.email || "",
+      submittedAt: r.created_at,
+      profile: {
+        major: r.major || "",
+        degree: r.degree || "",
+        gpa: r.gpa ?? null,
+        subjects: Array.isArray(r.subjects)
+          ? r.subjects
+          : (typeof r.subjects === "string"
+              ? (() => { try { return JSON.parse(r.subjects) } catch { return [r.subjects] } })()
+              : (r.subjects || [])),
+        experience: r.experience || "",
+        motivation: r.motivation || "",
+        format: r.format || "",
+        availability: r.availability || "",
+        passportPhoto: r.passport_photo_url || "",
+        certificate: r.certificate_url || "",
+      },
     }));
 
-    res.json({ requests: payload });
+    res.json({ requests });
   } catch (err) {
-    console.error('tutor-requests error:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("GET /api/admin/tutor-requests:", err);
+    res.status(500).json({ error: "Failed to load tutor requests" });
   }
 });
 
-// Reject a tutor request (delete from tables + auth)
-app.post('/api/admin/tutor-requests/reject', requireAdmin, async (req, res) => {
+app.post("/api/admin/tutor-requests/accept", async (req, res) => {
+  if (!requireAdmin(req, res)) return;
+
   try {
     const { userId } = req.body || {};
-    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+    if (!userId) return res.status(400).json({ error: "userId required" });
 
-    // Fetch email and name first
-    let toEmail = null, firstName = '';
-    try {
-      const { data: listData } = await supabase.auth.admin.listUsers();
-      const authUser = (listData?.users || []).find(u => u.id === userId);
-      toEmail = authUser?.email || null;
-      firstName = authUser?.user_metadata?.firstName || '';
-    } catch (_) {}
+    const { data, error } = await supabase
+      .from("tutors")
+      .update({ approved: true, approved_at: new Date().toISOString() })
+      .eq("id", userId)
+      .select("id")
+      .single();
 
-    // Send rejection email before deletion
-    if (toEmail) {
-      const subj = 'Tutor Match Application Update';
-      const html = `
-        <div style="font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.6">
-          <h2 style=\"margin:0 0 8px;color:#111827\">Application Update</h2>
-          <p>Dear ${firstName || 'Applicant'},</p>
-          <p>Thank you for your interest in joining Tutor Match as a tutor. After careful review, we’re unable to move forward with your application at this time.</p>
-          <p>We truly appreciate the time you took to apply. You’re welcome to strengthen your profile and reapply in the future.</p>
-          <p>Wishing you all the best,<br/>Tutor Match Team</p>
-        </div>`;
-      const text = `Dear ${firstName || 'Applicant'},\n\nThank you for your interest in joining Tutor Match. After review, we’re unable to move forward at this time.\n\nWe appreciate your time. You’re welcome to reapply in the future.\n\nBest regards,\nTutor Match Team`;
-      await sendAdminEmail(toEmail, subj, html, text);
-    }
+    if (error) throw error;
+    if (!data) return res.status(404).json({ error: "Tutor not found" });
 
-    // Delete from tables + auth
-    try { await supabase.from('tutors').delete().eq('id', userId); } catch (_) {}
-    try { await supabase.from('users').delete().eq('id', userId); } catch (_) {}
-    const { error } = await supabase.auth.admin.deleteUser(userId);
-    if (error) return res.status(500).json({ error: 'Failed to delete auth user: ' + error.message });
-
-    res.json({ success: true });
+    res.json({ ok: true });
   } catch (err) {
-    console.error('reject tutor error:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("POST /api/admin/tutor-requests/accept:", err);
+    res.status(500).json({ error: "Approve failed" });
   }
 });
 
-// Accept a tutor request (mark as approved in auth metadata; optional no-op)
-app.post('/api/admin/tutor-requests/accept', requireAdmin, async (req, res) => {
+app.post("/api/admin/tutor-requests/reject", async (req, res) => {
+  if (!requireAdmin(req, res)) return;
+
   try {
     const { userId } = req.body || {};
-    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+    if (!userId) return res.status(400).json({ error: "userId required" });
 
-    try {
-      const { error } = await supabase.auth.admin.updateUserById(userId, {
-        user_metadata: { tutorApproved: true },
-      });
-      if (error) console.warn('Failed to set tutorApproved metadata:', error.message);
-    } catch (e) {
-      console.warn('Could not update auth metadata for approval:', e?.message || e);
-    }
+    // If you also want to delete the auth user, store their auth id in tutors.auth_user_id and call:
+    // await supabase.auth.admin.deleteUser(auth_user_id);
 
-    // Best-effort: also reflect in app tables if column exists
-    try { await supabase.from('tutors').update({ approved: true }).eq('id', userId); } catch (_) {}
-    try { await supabase.from('users').update({ approved: true }).eq('id', userId); } catch (_) {}
+    const { error } = await supabase.from("tutors").delete().eq("id", userId);
+    if (error) throw error;
 
-    // Send approval email with login link
-    try {
-      const { data: listData } = await supabase.auth.admin.listUsers();
-      const authUser = (listData?.users || []).find(u => u.id === userId);
-      const toEmail = authUser?.email || null;
-      const firstName = authUser?.user_metadata?.firstName || '';
-      if (toEmail) {
-        const subj = 'Welcome to Tutor Match — Application Approved';
-        const signinUrl =  'https://tutor-match-n8a7.onrender.com/Sign%20in/signin.html';
-
-        const html = `
-          <div style="font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.6">
-            <h2 style=\"margin:0 0 8px;color:#111827\">Congratulations!</h2>
-            <p>Dear ${firstName || 'Tutor'},</p>
-            <p>Your tutor application has been approved. You can now log in and access your account.</p>
-            <p><a href=\"${signinUrl}\" style=\"display:inline-block;background:#2563eb;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none\">Log In</a></p>
-            <p>We’re excited to have you on board!<br/>Tutor Match Team</p>
-          </div>`;
-        const text = `Dear ${firstName || 'Tutor'},\n\nYour tutor application has been approved. You can now log in at: ${signinUrl}\n\nWelcome aboard!\nTutor Match Team`;
-        await sendAdminEmail(toEmail, subj, html, text);
-      }
-    } catch (e) {
-      console.warn('Approval email failed:', e?.message || e);
-    }
-
-    res.json({ success: true });
+    res.json({ ok: true });
   } catch (err) {
-    console.error('accept tutor error:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("POST /api/admin/tutor-requests/reject:", err);
+    res.status(500).json({ error: "Reject failed" });
   }
 });
+
 
 // Admin dashboard stats: total users and unverified users
 app.get('/api/admin/stats', requireAdmin, async (req, res) => {
