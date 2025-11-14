@@ -161,6 +161,12 @@ console.log("✅ findtutor.js loaded!");
             </button>
           </div>
         </div>
+
+        <button class="w-full glass dark:glass-dark px-4 py-2 rounded-xl text-white hover:bg-white/20 transition-all"
+  data-action="rate" data-id="${t.id || ''}" data-name="${name}">
+  <i data-lucide="star" class="w-4 h-4 inline mr-2"></i> Rate This Tutor
+</button>
+
         
       </div>
     `;
@@ -359,293 +365,201 @@ console.log("✅ findtutor.js loaded!");
       window.location.href = `/Student%20Page/tutor-profile.html?id=${encodeURIComponent(id)}`;
     };
 
+
     const openRatingModal = (tutorId, tutorName) => {
-      if (!tutorId) {
-        alert("Unable to rate this tutor at the moment.");
-        return;
-      }
-      
-      // Create modal overlay
-      const overlay = document.createElement('div');
-      overlay.id = 'rating-modal-overlay';
-      overlay.className = 'fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4';
-      
-      overlay.innerHTML = `
-        <div class="glass dark:glass-dark rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-3xl font-bold text-white">Rate ${tutorName || 'Tutor'}</h2>
-            <button id="close-rating-modal" class="p-2 rounded-xl hover:bg-white/10 text-white">
-              <i data-lucide="x" class="w-6 h-6"></i>
-            </button>
+  if (!tutorId) {
+    alert("Unable to rate this tutor at the moment.");
+    return;
+  }
+
+  // Create modal overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'rating-modal-overlay';
+  overlay.className = 'fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4';
+
+  overlay.innerHTML = `
+    <div class="glass dark:glass-dark rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+         onclick="event.stopPropagation()">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-white">Rate ${tutorName || 'Tutor'}</h2>
+        <button id="close-rating-modal" class="p-2 rounded-xl hover:bg-white/10 text-white">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <form id="rating-form" class="space-y-6">
+        <!-- Star Rating -->
+        <div>
+          <label class="block text-white font-medium mb-3 text-lg">Overall Rating</label>
+          <div class="flex gap-2" id="star-rating-input">
+            ${[1, 2, 3, 4, 5].map(i => `
+              <button type="button"
+                      class="star-btn text-5xl transition-all hover:scale-110"
+                      data-rating="${i}">
+                <span class="star-empty text-gray-400">☆</span>
+                <span class="star-filled text-yellow-400 hidden">★</span>
+              </button>
+            `).join('')}
           </div>
-          
-          <form id="rating-form" class="space-y-6">
-            <!-- Star Rating -->
-            <div>
-              <label class="block text-white font-medium mb-3 text-lg">Overall Rating</label>
-              <div class="flex gap-2" id="star-rating-input">
-                ${[1, 2, 3, 4, 5].map(i => `
-                  <button type="button" class="star-btn text-5xl transition-all hover:scale-110" data-rating="${i}">
-                    <span class="star-empty text-gray-400">☆</span>
-                    <span class="star-filled text-yellow-400 hidden">★</span>
-                  </button>
-                `).join('')}
-              </div>
-              <p class="text-white/60 text-sm mt-2">Click to rate (1-5 stars)</p>
-              <input type="hidden" id="rating-value" name="rating" required>
-            </div>
-            
-            <!-- Feedback Text -->
-            <div>
-              <label class="block text-white font-medium mb-3 text-lg">Your Feedback</label>
-              <textarea 
-                id="feedback-text" 
-                name="feedback" 
-                rows="5" 
-                class="w-full px-4 py-3 rounded-xl bg-white/10 border-2 border-white/20 text-white placeholder-white/50 focus:border-blue-500 focus:outline-none resize-none"
-                placeholder="Share your experience with this tutor... What did you like? How did they help you?"
-                required
-              ></textarea>
-              <p class="text-white/60 text-sm mt-2">Minimum 20 characters</p>
-            </div>
-            
-            <!-- Subject Taught -->
-            <div>
-              <label class="block text-white font-medium mb-3 text-lg">Subject(s) Taught</label>
-              <input 
-                type="text" 
-                id="subject-taught" 
-                name="subject" 
-                class="w-full px-4 py-3 rounded-xl bg-white/10 border-2 border-white/20 text-white placeholder-white/50 focus:border-blue-500 focus:outline-none"
-                placeholder="e.g., CMPS 200, Mathematics, Physics"
-              >
-            </div>
-            
-            <!-- Would Recommend -->
-            <div>
-              <label class="block text-white font-medium mb-3 text-lg">Would you recommend this tutor?</label>
-              <div class="flex gap-4">
-                <label class="flex items-center gap-3 glass dark:glass-dark px-6 py-3 rounded-xl cursor-pointer hover:bg-white/20 transition-all">
-                  <input type="radio" name="recommend" value="yes" class="w-5 h-5" required>
-                  <span class="text-white">Yes 👍</span>
-                </label>
-                <label class="flex items-center gap-3 glass dark:glass-dark px-6 py-3 rounded-xl cursor-pointer hover:bg-white/20 transition-all">
-                  <input type="radio" name="recommend" value="no" class="w-5 h-5" required>
-                  <span class="text-white">No 👎</span>
-                </label>
-              </div>
-            </div>
-            
-            <!-- Submit Button -->
-            <div class="flex gap-4 pt-4">
-              <button 
-                type="submit" 
-                class="btn-premium flex-1 py-4 text-lg font-semibold"
-              >
-                <i data-lucide="send" class="w-5 h-5 inline mr-2"></i>
-                Submit Rating
-              </button>
-              <button 
-                type="button" 
-                id="cancel-rating" 
-                class="glass dark:glass-dark px-8 py-4 rounded-full text-white font-semibold hover:bg-white/20"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+          <p class="text-white/60 text-sm mt-2">Click to rate (1–5 stars)</p>
+          <input type="hidden" id="rating-value" name="rating" required>
+        </div>
+
+        <!-- Feedback -->
+        <div>
+          <label class="block text-white font-medium mb-3 text-lg">Your Feedback</label>
+          <textarea id="feedback-text" name="feedback" rows="5"
+            class="w-full px-4 py-3 rounded-xl bg-white/10 border-2 border-white/20 
+                   text-white placeholder-white/50 focus:border-blue-500 focus:outline-none resize-none"
+            placeholder="Share your experience with this tutor..."
+            required></textarea>
+          <p class="text-white/60 text-sm mt-2">Minimum 20 characters</p>
+        </div>
+
+        <!-- Subject -->
+        <div>
+          <label class="block text-white font-medium mb-3 text-lg">Subject(s) Taught</label>
+          <input type="text" id="subject-taught" name="subject"
+            class="w-full px-4 py-3 rounded-xl bg-white/10 border-2 border-white/20 
+                   text-white placeholder-white/50 focus:border-blue-500 focus:outline-none"
+            placeholder="e.g., CMPS 200, Mathematics">
+        </div>
+
+        <!-- Recommend -->
+        <div>
+          <label class="block text-white font-medium mb-3 text-lg">Would you recommend this tutor?</label>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-3 glass dark:glass-dark px-6 py-3 rounded-xl cursor-pointer hover:bg-white/20">
+              <input type="radio" name="recommend" value="yes" class="w-5 h-5" required>
+              <span class="text-white">Yes 👍</span>
+            </label>
+            <label class="flex items-center gap-3 glass dark:glass-dark px-6 py-3 rounded-xl cursor-pointer hover:bg-white/20">
+              <input type="radio" name="recommend" value="no" class="w-5 h-5" required>
+              <span class="text-white">No 👎</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Submit / Cancel -->
+        <div class="flex gap-4 pt-4">
+          <button type="submit" class="btn-premium flex-1 py-4 text-lg font-semibold">
+            <i data-lucide="send" class="w-5 h-5 inline mr-2"></i>
+            Submit Rating
+          </button>
+          <button type="button" id="cancel-rating"
+            class="glass dark:glass-dark px-8 py-4 rounded-full text-white font-semibold hover:bg-white/20">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  refreshIcons();
+
+  // Star system
+  let selectedRating = 0;
+  const starBtns = overlay.querySelectorAll('.star-btn');
+  const ratingInput = overlay.querySelector('#rating-value');
+
+  starBtns.forEach((btn, idx) => {
+    btn.addEventListener('click', () => {
+      selectedRating = idx + 1;
+      ratingInput.value = selectedRating;
+
+      starBtns.forEach((b, i) => {
+        const empty = b.querySelector('.star-empty');
+        const filled = b.querySelector('.star-filled');
+        if (i < selectedRating) {
+          empty.classList.add('hidden');
+          filled.classList.remove('hidden');
+        } else {
+          empty.classList.remove('hidden');
+          filled.classList.add('hidden');
+        }
+      });
+    });
+  });
+
+  // Close modal
+  const closeModal = () => overlay.remove();
+  overlay.addEventListener('click', closeModal);
+  overlay.querySelector('#close-rating-modal').addEventListener('click', closeModal);
+  overlay.querySelector('#cancel-rating').addEventListener('click', closeModal);
+
+  // Submit
+  overlay.querySelector('#rating-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const rating = parseInt(ratingInput.value);
+    const feedback = overlay.querySelector('#feedback-text').value.trim();
+    const subject = overlay.querySelector('#subject-taught').value.trim();
+    const recommend = overlay.querySelector('input[name="recommend"]:checked')?.value;
+
+    if (!rating) return alert('Select a rating');
+    if (feedback.length < 20) return alert('Feedback must be at least 20 characters');
+
+    // Fix for session
+    let rawSession = localStorage.getItem('tmUserSession') || localStorage.getItem('session');
+    const session = rawSession ? JSON.parse(rawSession) : {};
+    const studentId = session.userId;
+
+    if (!studentId) return alert('Please log in to submit a rating');
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<div class="loading-spinner inline-block w-6 h-6 mr-3"></div>Submitting...';
+    submitBtn.disabled = true;
+
+    try {
+      const response = await fetch('/api/ratings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tutorId,
+          studentId,
+          rating,
+          feedback,
+          subject,
+          recommend: recommend === 'yes'
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || 'Failed to submit rating');
+      }
+
+      closeModal();
+
+      // Success message
+      const successMsg = document.createElement('div');
+      successMsg.className =
+        'fixed top-20 left-1/2 transform -translate-x-1/2 z-50 glass dark:glass-dark rounded-2xl p-6 shadow-2xl';
+      successMsg.innerHTML = `
+        <div class="flex items-center gap-4 text-white">
+          <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+            <i data-lucide="check" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <p class="font-bold text-lg">Rating Submitted!</p>
+            <p class="text-white/80">Thank you for your feedback</p>
+          </div>
         </div>
       `;
-      
-      document.body.appendChild(overlay);
+      document.body.appendChild(successMsg);
       refreshIcons();
-      
-      // Star rating interaction
-      let selectedRating = 0;
-      const starBtns = overlay.querySelectorAll('.star-btn');
-      const ratingInput = overlay.querySelector('#rating-value');
-      
-      starBtns.forEach((btn, idx) => {
-        btn.addEventListener('click', () => {
-          selectedRating = idx + 1;
-          ratingInput.value = selectedRating;
-          
-          starBtns.forEach((b, i) => {
-            const empty = b.querySelector('.star-empty');
-            const filled = b.querySelector('.star-filled');
-            if (i < selectedRating) {
-              empty.classList.add('hidden');
-              filled.classList.remove('hidden');
-            } else {
-              empty.classList.remove('hidden');
-              filled.classList.add('hidden');
-            }
-          });
-        });
-        
-        // Hover effect
-        btn.addEventListener('mouseenter', () => {
-          starBtns.forEach((b, i) => {
-            const empty = b.querySelector('.star-empty');
-            const filled = b.querySelector('.star-filled');
-            if (i <= idx) {
-              empty.classList.add('opacity-50');
-              filled.classList.remove('opacity-50');
-            }
-          });
-        });
-        
-        btn.addEventListener('mouseleave', () => {
-          starBtns.forEach(b => {
-            b.querySelector('.star-empty').classList.remove('opacity-50');
-            b.querySelector('.star-filled').classList.remove('opacity-50');
-          });
-        });
-      });
-      
-      // Close modal handlers
-      const closeModal = () => {
-        overlay.remove();
-      };
-      
-      overlay.addEventListener('click', closeModal);
-      overlay.querySelector('#close-rating-modal').addEventListener('click', closeModal);
-      overlay.querySelector('#cancel-rating').addEventListener('click', closeModal);
-      
-      // Form submission
-      overlay.querySelector('#rating-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const rating = parseInt(ratingInput.value);
-        const feedback = overlay.querySelector('#feedback-text').value.trim();
-        const subject = overlay.querySelector('#subject-taught').value.trim();
-        const recommend = overlay.querySelector('input[name="recommend"]:checked')?.value;
-        
-        // Validation
-        if (!rating || rating < 1 || rating > 5) {
-          alert('Please select a star rating');
-          return;
-        }
-        
-        if (feedback.length < 20) {
-          alert('Please provide more detailed feedback (minimum 20 characters)');
-          return;
-        }
-        
-        if (!recommend) {
-          alert('Please indicate if you would recommend this tutor');
-          return;
-        }
-        
-        // Show loading state
-        const submitBtn = e.target.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<div class="loading-spinner inline-block w-6 h-6 mr-3"></div>Submitting...';
-        submitBtn.disabled = true;
-        
-        try {
-          // Get student info from stored session (supports legacy and tmUserSession keys)
-          let rawSession = localStorage.getItem('tmUserSession') || localStorage.getItem('session');
-          const session = rawSession ? JSON.parse(rawSession) : {};
-          const studentId = session.userId;
 
-          if (!studentId) {
-            throw new Error('Please log in to submit a rating');
-          }
-          
-          const response = await fetch('/api/ratings', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              tutorId,
-              studentId,
-              rating,
-              feedback,
-              subject,
-              recommend: recommend === 'yes'
-            })
-          });
-          
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Failed to submit rating');
-          }
-          
-          // Success!
-          closeModal();
-          
-          // Show success message
-          const successMsg = document.createElement('div');
-          successMsg.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-50 glass dark:glass-dark rounded-2xl p-6 shadow-2xl';
-          successMsg.innerHTML = `
-            <div class="flex items-center gap-4 text-white">
-              <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
-                <i data-lucide="check" class="w-6 h-6"></i>
-              </div>
-              <div>
-                <p class="font-bold text-lg">Rating Submitted!</p>
-                <p class="text-white/80">Thank you for your feedback</p>
-              </div>
-            </div>
-          `;
-          document.body.appendChild(successMsg);
-          refreshIcons();
-          
-          setTimeout(() => {
-            successMsg.remove();
-          }, 3000);
-          
-        } catch (error) {
-          console.error('Rating submission error:', error);
-          alert(`Error: ${error.message}`);
-          submitBtn.innerHTML = originalText;
-          submitBtn.disabled = false;
-        }
-      });
-    };
+      setTimeout(() => successMsg.remove(), 3000);
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    }
+  });
+};
 
-    tutorsGrid?.addEventListener('click', (e) => {
-      const btn = e.target.closest('button');
-      if (btn) {
-        const action = btn.dataset.action;
-        const id = btn.dataset.id;
-        if (action === 'view') {
-          e.stopPropagation();
-          openTutorProfile(id);
-        } else if (action === 'message') {
-          e.stopPropagation();
-          const card = btn.closest('.tutor-card');
-          const name = card?.querySelector('h3')?.textContent || 'Tutor';
-          alert(`💬 Opening chat with ${name}...\n\n(Stub) Implement chat UI later.`);
-        } else if (action === 'rate') {
-          e.stopPropagation();
-          const name = btn.dataset.name;
-          openRatingModal(id, name);
-        }
-        return;
-      }
-
-      const card = e.target.closest('.tutor-card');
-      if (card?.dataset.profileId) {
-        openTutorProfile(card.dataset.profileId);
-      }
-    });
-
-    $('#cta-find')?.addEventListener('click', () => tutorsGrid?.scrollIntoView({ behavior: 'smooth' }));
-    $('#cta-demo')?.addEventListener('click', () => alert('🎥 Demo coming soon'));
-
-    // Hover lift on all buttons
-    document.addEventListener('mouseover', (e) => {
-      const b = e.target.closest('button'); if (!b || b.disabled) return;
-      b.style.transform = 'translateY(-3px) scale(1.05)';
-    });
-    document.addEventListener('mouseout', (e) => {
-      const b = e.target.closest('button'); if (!b || b.disabled) return;
-      b.style.transform = 'translateY(0) scale(1)';
-    });
-  }
 
   // ------- Scroll animation observer -------
   function setupScrollObserver() {
