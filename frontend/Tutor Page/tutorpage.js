@@ -3,6 +3,13 @@
 document.addEventListener("DOMContentLoaded", async () => {
   lucide.createIcons();
 
+  // >>> ENABLE PHOTO UPLOAD LISTENER <<<
+  const photoInput = document.getElementById("photoInput");
+  if (photoInput) {
+    photoInput.addEventListener("change", handlePhotoUpload);
+  }
+  // >>> END <<<
+
   const tutorId = localStorage.getItem("tutorId");
   if (!tutorId) {
     alert("No tutor logged in. Redirecting...");
@@ -66,9 +73,14 @@ async function loadTutorProfile(tutorId) {
 
   const avatar = document.getElementById("profilePhotoPreview");
   if (avatar) {
-    const initials =
-      (t.firstName?.[0] || "?") + (t.lastName?.[0] || "?");
-    avatar.textContent = initials.toUpperCase();
+    if (t.profilePhotoUrl) {
+      avatar.style.backgroundImage = `url(${t.profilePhotoUrl})`;
+      avatar.textContent = "";
+    } else {
+      const initials =
+        (t.firstName?.[0] || "?") + (t.lastName?.[0] || "?");
+      avatar.textContent = initials.toUpperCase();
+    }
   }
 
   // AVAILABILITY
@@ -83,7 +95,6 @@ async function loadTutorProfile(tutorId) {
 
 // ======================= HELPERS =======================
 
-// SUBJECT NORMALIZER
 function normalizeSubjects(subjects) {
   if (Array.isArray(subjects)) {
     return subjects.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean);
@@ -95,25 +106,20 @@ function normalizeSubjects(subjects) {
       if (Array.isArray(parsed)) {
         return parsed.map((s) => s.trim()).filter(Boolean);
       }
-    } catch (e) { }
-
-    return subjects
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+    } catch (e) {}
+    return subjects.split(",").map((s) => s.trim()).filter(Boolean);
   }
 
   return [];
 }
 
-// CREATE DEFAULT SCHEDULE IF DB EMPTY
 function buildDefaultScheduleFromUI() {
   const schedule = {};
   document.querySelectorAll(".availability-day-slot").forEach((slot) => {
     const dayLabel = slot.querySelector(".day-label");
     if (!dayLabel) return;
-
     const key = dayLabel.textContent.trim().toLowerCase();
+
     const timeInputs = slot.querySelectorAll('input[type="time"]');
     const toggle = slot.querySelector('input[type="checkbox"]');
 
@@ -126,7 +132,6 @@ function buildDefaultScheduleFromUI() {
   return schedule;
 }
 
-// LOAD SCHEDULE INTO UI
 function renderAvailabilityGrid(schedule) {
   document.querySelectorAll(".availability-day-slot").forEach((slot) => {
     const dayLabel = slot.querySelector(".day-label");
@@ -144,12 +149,12 @@ function renderAvailabilityGrid(schedule) {
   });
 }
 
-// COLLECT UPDATED SCHEDULE
 function collectAvailabilitySchedule() {
   const schedule = {};
   document.querySelectorAll(".availability-day-slot").forEach((slot) => {
     const dayLabel = slot.querySelector(".day-label");
     const key = dayLabel.textContent.trim().toLowerCase();
+
     const timeInputs = slot.querySelectorAll('input[type="time"]');
     const toggle = slot.querySelector('input[type="checkbox"]');
 
@@ -163,6 +168,43 @@ function collectAvailabilitySchedule() {
 }
 
 
+// ======================= PHOTO FUNCTIONS =======================
+
+window.handlePhotoClick = function () {
+  if (!document.body.classList.contains("editing")) {
+    showToast("Enable edit mode to change photo", "info");
+    return;
+  }
+  document.getElementById("photoInput")?.click();
+};
+
+window.handlePhotoUpload = function (event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const preview = document.getElementById("profilePhotoPreview");
+  const url = URL.createObjectURL(file);
+
+  preview.style.backgroundImage = `url(${url})`;
+  preview.style.backgroundSize = "cover";
+  preview.style.backgroundPosition = "center";
+  preview.textContent = "";
+};
+
+window.removePhoto = function () {
+  const preview = document.getElementById("profilePhotoPreview");
+  preview.style.backgroundImage = "";
+
+  const nameInput = document.querySelector('.editable-field[type="text"]');
+  if (nameInput) {
+    const parts = nameInput.value.trim().split(/\s+/);
+    const initials =
+      (parts[0]?.[0] || "?") + (parts[1]?.[0] || "");
+    preview.textContent = initials.toUpperCase();
+  }
+};
+
+
 // ======================= UI & TOASTS =======================
 
 function initUIHandlers() {
@@ -171,22 +213,8 @@ function initUIHandlers() {
     document.querySelector(".sidebar-overlay")?.classList.toggle("active");
   };
 
-  window.toggleDarkMode = function (toggle) {
+  window.toggleDarkMode = function () {
     document.body.classList.toggle("dark-mode");
-
-    document.querySelectorAll(".dark-mode-toggle").forEach((t) => {
-      t.classList.toggle("active");
-      const icon = t.querySelector("i");
-      icon.setAttribute(
-        "data-lucide",
-        t.classList.contains("active") ? "moon" : "sun"
-      );
-    });
-
-    lucide.createIcons();
-    showToast(document.body.classList.contains("dark-mode")
-      ? "Dark mode activated"
-      : "Light mode activated");
   };
 
   window.showToast = function (message, type = "info") {
@@ -196,7 +224,7 @@ function initUIHandlers() {
       : type === "error" ? "bg-red-500"
       : "bg-blue-500";
 
-    toast.className = `fixed top-6 right-6 ${bg} text-white px-6 py-4 rounded-2xl shadow-xl z-50 transition-all`;
+    toast.className = `fixed top-6 right-6 ${bg} text-white px-6 py-4 rounded-2xl shadow-xl z-50`;
     toast.innerHTML = `
       <div class="flex items-center gap-3">
         <i data-lucide="info" class="w-5 h-5"></i>
@@ -209,7 +237,6 @@ function initUIHandlers() {
     setTimeout(() => toast.remove(), 2500);
   };
 }
-
 
 
 // ======================= EDIT / SAVE =======================
@@ -227,92 +254,105 @@ function initUIHandlers() {
     window.location.reload();
   };
 
-
-  // ---------- FIXED SAVE ----------
   window.saveProfile = async function () {
-    try {
-      const tutorId = localStorage.getItem("tutorId");
-      if (!tutorId) return showToast("No tutor ID found.", "error");
+  try {
+    const tutorId = localStorage.getItem("tutorId");
+    if (!tutorId) return showToast("No tutor ID found.", "error");
 
-      const inputs = document.querySelectorAll(".form-input.editable-field");
-      const rateInput = inputs[2];
-      const subjectsInput = inputs[3];
-      const bioTextarea = document.querySelector("textarea.editable-field");
+    const inputs = document.querySelectorAll(".form-input.editable-field");
+    const rateInput = inputs[2];
+    const subjectsInput = inputs[3];
+    const bioTextarea = document.querySelector("textarea.editable-field");
 
-      // HOURLY RATE FIXED VALIDATION
-      let hourlyRateRaw = (rateInput?.value || "").trim();
-      hourlyRateRaw = hourlyRateRaw.replace(/[^0-9.]/g, "");
+    let hourlyRateRaw = (rateInput?.value || "").trim();
+    hourlyRateRaw = hourlyRateRaw.replace(/[^0-9.]/g, "");
+    const hourlyRate = hourlyRateRaw === "" ? null : Number(hourlyRateRaw);
 
-      const hourlyRate = hourlyRateRaw === "" ? null : Number(hourlyRateRaw);
+    const subjects = (subjectsInput?.value || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
 
-      if (hourlyRate !== null && (!Number.isFinite(hourlyRate) || hourlyRate <= 0)) {
-        showToast("Hourly rate must be a valid positive number.", "error");
-        return;
+    const availabilitySchedule = collectAvailabilitySchedule();
+    const motivation = bioTextarea?.value || null;
+
+    // -------------------------
+    // ⬇️ NEW: Build FormData
+    // -------------------------
+    const formData = new FormData();
+    formData.append("userId", tutorId);
+    formData.append("hourlyRate", hourlyRate ?? "");
+    formData.append("motivation", motivation);
+    formData.append("availabilitySchedule", JSON.stringify(availabilitySchedule));
+    formData.append("subjects", JSON.stringify(subjects));
+
+    // ⬇️ Attach file if selected
+     const photoInput = document.getElementById("photoInput");
+     if (photoInput && photoInput.files.length > 0) {
+     formData.append("profilePhoto", photoInput.files[0]);
+}
+
+
+    const res = await fetch(
+      "https://tutor-match-n8a7.onrender.com/api/tutors/profile",
+      {
+        method: "PUT",
+        body: formData,  // <-- NO HEADERS, browser sets automatically
       }
+    );
 
-      const subjects = (subjectsInput?.value || "")
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
+    const data = await res.json();
 
-      const availabilitySchedule = collectAvailabilitySchedule();
-      const motivation = bioTextarea?.value || null;
-
-      const payload = {
-        userId: tutorId,
-        hourlyRate,
-        availabilitySchedule,
-        motivation,
-        subjects,
-        experience: null,
-        format: null,
-      };
-
-      const res = await fetch(
-        "https://tutor-match-n8a7.onrender.com/api/tutors/profile",
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.error(data);
-        showToast(data.error || "Failed to update profile", "error");
-        return;
-      }
-
-      showToast("Profile updated successfully", "success");
-      setEditMode(false);
-
-    } catch (err) {
-      console.error(err);
-      showToast("Failed to save changes", "error");
+    if (!res.ok) {
+      showToast(data.error || "Failed to update profile", "error");
+      return;
     }
-  };
+
+    showToast("Profile updated successfully", "success");
+    await loadTutorProfile(tutorId);
+
+    setEditMode(false);
+
+  } catch (err) {
+    console.error(err);
+    showToast("Failed to save changes", "error");
+  }
+};
 
 
   function setEditMode(isEditing) {
-    document.body.classList.toggle("editing", isEditing);
+  document.body.classList.toggle("editing", isEditing);
 
-    document.querySelectorAll(".editable-field").forEach((el) => {
-      const type = el.getAttribute("type");
-      if (type === "email") {
-        el.readOnly = true;
-      } else if (type === "checkbox") {
-        el.disabled = !isEditing;
-      } else {
-        el.readOnly = !isEditing;
-      }
-    });
+  document.querySelectorAll(".editable-field").forEach((el) => {
+    const type = el.getAttribute("type");
+    if (type === "email") {
+      el.readOnly = true;
+    } else if (type === "checkbox") {
+      el.disabled = !isEditing;
+    } else {
+      el.readOnly = !isEditing;
+    }
+  });
 
-    document.getElementById("editBtn").style.display = isEditing ? "none" : "";
-    document.getElementById("saveBtn").style.display = isEditing ? "" : "none";
-    document.getElementById("cancelBtn").style.display = isEditing ? "" : "none";
+  // ENABLE / DISABLE PHOTO BUTTON
+  const uploadBtn = document.getElementById("photoUploadBtn");
+  const removeBtn = document.getElementById("removePhotoBtn");
 
-    lucide.createIcons();
+  if (uploadBtn) {
+    uploadBtn.disabled = !isEditing;
+    uploadBtn.classList.toggle("opacity-50", !isEditing);
+    uploadBtn.classList.toggle("cursor-not-allowed", !isEditing);
   }
+
+  if (removeBtn) {
+    removeBtn.style.display = isEditing ? "" : "none";
+  }
+
+  document.getElementById("editBtn").style.display = isEditing ? "none" : "";
+  document.getElementById("saveBtn").style.display = isEditing ? "" : "none";
+  document.getElementById("cancelBtn").style.display = isEditing ? "" : "none";
+
+  lucide.createIcons();
+}
+
 })();

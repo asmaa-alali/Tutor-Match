@@ -1776,51 +1776,79 @@ app.get("/api/ratings/:tutorId/stats", async (req, res) => {
 });
 
 // -------------------- UPDATE TUTOR PROFILE --------------------
-app.put("/api/tutors/profile", async (req, res) => {
-  try {
-    const {
-      userId,
-      hourlyRate,
-      availabilitySchedule,
-      motivation,
-      experience,
-      subjects,
-      format
-    } = req.body;
+// -------------------- UPDATE TUTOR PROFILE (with photo) --------------------
+app.put(
+  "/api/tutors/profile",
+  upload.single("profilePhoto"),
+  async (req, res) => {
+    try {
+      const {
+        userId,
+        hourlyRate,
+        availabilitySchedule,
+        motivation,
+        experience,
+        subjects,
+        format
+      } = req.body;
 
-    if (!userId)
-      return res.status(400).json({ error: "Missing userId" });
+      if (!userId)
+        return res.status(400).json({ error: "Missing userId" });
 
-    const normalizedSubjects = Array.isArray(subjects)
-      ? subjects.map(s => s.trim()).filter(Boolean)
-      : [];
+      // Parse subjects
+      const normalizedSubjects = Array.isArray(subjects)
+        ? subjects.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean)
+        : [];
 
-    const updates = {
-      hourlyRate: hourlyRate ?? null,
-      availabilitySchedule: availabilitySchedule ?? null,
-      motivation: motivation ?? null,
-      experience: experience ?? null,
-      subjects: normalizedSubjects,
-      format: format ?? null,
-    };
+      // Handle profile photo (optional)
+      let profilePhotoUrl = null;
+      if (req.file) {
+        try {
+          profilePhotoUrl = await uploadToSupabaseStorage(
+            req.file,
+            `profile/${userId}`
+          );
+        } catch (uploadErr) {
+          console.error("Profile photo upload failed:", uploadErr);
+          return res.status(500).json({ error: "Failed to upload profile photo." });
+        }
+      }
 
-    const { error } = await supabase
-      .from("tutors")
-      .update(updates)
-      .eq("id", userId);
+      // Build update payload
+      const updates = {
+        hourlyRate: hourlyRate ?? null,
+        availabilitySchedule: availabilitySchedule ?? null,
+        motivation: motivation ?? null,
+        experience: experience ?? null,
+        subjects: normalizedSubjects,
+        format: format ?? null,
+      };
 
-    if (error) {
-      console.error("Tutor update failed:", error);
-      return res.status(500).json({ error: "Failed to update tutor profile" });
+      // Only update profilePhotoUrl if a new file was uploaded
+      if (profilePhotoUrl) updates.profilePhotoUrl = profilePhotoUrl;
+
+      const { error } = await supabase
+        .from("tutors")
+        .update(updates)
+        .eq("id", userId);
+
+      if (error) {
+        console.error("Tutor update failed:", error);
+        return res
+          .status(500)
+          .json({ error: "Failed to update tutor profile" });
+      }
+
+      return res.status(200).json({
+        message: "Profile updated successfully",
+        profilePhotoUrl,
+      });
+    } catch (err) {
+      console.error("Tutor update exception:", err);
+      return res.status(500).json({ error: "Server error" });
     }
-
-    return res.status(200).json({ message: "Profile updated successfully" });
-
-  } catch (err) {
-    console.error("Tutor update exception:", err);
-    return res.status(500).json({ error: "Server error" });
   }
-});
+);
 
 
 app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
