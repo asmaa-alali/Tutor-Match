@@ -281,7 +281,11 @@ function initUIHandlers() {
     // -------------------------
     const formData = new FormData();
     formData.append("userId", tutorId);
-    formData.append("hourlyRate", hourlyRate ?? "");
+    if (hourlyRate !== null) {
+  formData.append("hourlyRate", hourlyRate);
+}
+
+
     formData.append("motivation", motivation);
     formData.append("availabilitySchedule", JSON.stringify(availabilitySchedule));
     formData.append("subjects", JSON.stringify(subjects));

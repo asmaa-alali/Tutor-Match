@@ -1828,7 +1828,8 @@ app.put(
       // FIX 3 — Prepare update payload
       // -----------------------------
       const updates = {
-        hourlyRate: hourlyRate ?? null,
+        hourlyRate: hourlyRate === "" || hourlyRate === undefined ? null : Number(hourlyRate),
+
         motivation: motivation ?? null,
         experience: experience ?? null,
         format: format ?? null,
