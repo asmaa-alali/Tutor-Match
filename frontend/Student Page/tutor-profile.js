@@ -170,6 +170,9 @@
       }
 
       const isEnabled = !!cfg.enabled && !!cfg.from && !!cfg.to;
+
+      // For student view: hide days that are turned off
+      slot.style.display = isEnabled ? "" : "none";
       slot.classList.toggle("disabled", !isEnabled);
       if (isEnabled) anyEnabled = true;
     });
