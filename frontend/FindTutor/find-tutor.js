@@ -3,6 +3,7 @@ console.log("✅ findtutor.js loaded!");
 
 (() => {
   'use strict';
+  const DEFAULT_AVATAR_SRC = '/assets/default-avatar.svg';
 
   // ------- Helpers -------
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -123,7 +124,13 @@ console.log("✅ findtutor.js loaded!");
 
   function renderTutorCard(t) {
     const name = [t.firstName || '', t.lastName || ''].join(' ').trim() || 'Tutor';
-    const avatar = t.avatarUrl || t.passportPhoto || 'https://placehold.co/96x96';
+    const avatar =
+      t.profilePhotoUrl ||
+      t.avatarUrl ||
+      t.profilePhoto ||
+      t.photoUrl ||
+      t.passportPhoto ||
+      DEFAULT_AVATAR_SRC;
     const subs = Array.isArray(t.subjects) ? t.subjects : (t.subjects ? [t.subjects] : []);
     const subjectsHtml = subs.map(s =>
       `<span class="subject-tag" data-subject="${String(s).toLowerCase()}">${String(s)}</span>`
@@ -136,7 +143,7 @@ console.log("✅ findtutor.js loaded!");
     return `
       <div class="tutor-card p-6" data-name="${name.toLowerCase()}" data-rate="${rate}" data-rating="${rating}" data-format="${String(fmt).toLowerCase()}" data-profile-id="${t.id || ''}">
         <div class="flex items-center gap-4 mb-4">
-          <img src="${avatar}" alt="${name}" class="w-16 h-16 rounded-full object-cover"/>
+          <img src="${avatar}" alt="${name}" class="w-16 h-16 rounded-full object-cover" loading="lazy" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR_SRC}';"/>
           <div>
             <h3 class="text-xl font-semibold text-white">${name}</h3>
             <div class="star-rating text-sm">★ ${rating} <span class="text-white/60">(${reviews})</span></div>

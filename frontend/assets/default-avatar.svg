@@ -1,0 +1,7 @@
+<svg width="360" height="360" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Default profile silhouette">
+  <rect width="360" height="360" fill="#f8fafc" />
+  <g fill="#5b6fa9">
+    <circle cx="180" cy="128" r="74" />
+    <path d="M82 300c0-68.9 44.5-114 98-114h0c53.5 0 98 45.1 98 114v28H82z" />
+  </g>
+</svg>

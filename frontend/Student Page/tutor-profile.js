@@ -1,4 +1,5 @@
 (function () {
+  const DEFAULT_AVATAR_SRC = "/assets/default-avatar.svg";
   const $ = (sel) => document.querySelector(sel);
   const elements = {
     status: $("#statusBadge"),
@@ -223,27 +224,24 @@
     setText(elements.headline, [tutor.degree, tutor.major].filter(Boolean).join(" • "));
     setText(elements.university, tutor.university || "Tutor Match");
     if (elements.avatar) {
-      // Prefer the dedicated profile photo URL used on the tutor account page.
       const photoUrl =
         tutor.profilePhotoUrl ||
         tutor.avatarUrl ||
         tutor.profilePhoto ||
         tutor.passportPhoto ||
         "";
+      const resolvedSrc = photoUrl || DEFAULT_AVATAR_SRC;
 
-      if (photoUrl) {
-        elements.avatar.onload = () => {
-          elements.avatar.style.display = "";
-        };
-        elements.avatar.onerror = () => {
-          // If the image fails to load (bad URL, permissions, etc.), hide it
-          elements.avatar.style.display = "none";
-        };
-        elements.avatar.src = photoUrl;
-        elements.avatar.alt = `${fullName} avatar`;
-      } else {
-        elements.avatar.style.display = "none";
-      }
+      elements.avatar.style.display = "";
+      elements.avatar.onload = () => {
+        elements.avatar.style.display = "";
+      };
+      elements.avatar.onerror = () => {
+        elements.avatar.onerror = null;
+        elements.avatar.src = DEFAULT_AVATAR_SRC;
+      };
+      elements.avatar.src = resolvedSrc;
+      elements.avatar.alt = `${fullName} avatar`;
     }
     let rate = Number(tutor.rate || tutor.hourlyRate);
 

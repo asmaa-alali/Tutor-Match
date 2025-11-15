@@ -1,5 +1,7 @@
 // tutorpage.js
 
+const DEFAULT_AVATAR_SRC = "/assets/default-avatar.svg";
+
 document.addEventListener("DOMContentLoaded", async () => {
   if (typeof lucide !== "undefined" && lucide.createIcons) {
     lucide.createIcons();
@@ -73,16 +75,18 @@ async function loadTutorProfile(tutorId) {
 
   const avatar = document.getElementById("profilePhotoPreview");
   if (avatar) {
-    if (t.profilePhotoUrl) {
-      avatar.style.backgroundImage = `url(${t.profilePhotoUrl})`;
+    const photoUrl =
+      typeof t.profilePhotoUrl === "string" ? t.profilePhotoUrl.trim() : "";
+    if (photoUrl) {
+      avatar.style.backgroundImage = `url(${photoUrl})`;
       avatar.style.backgroundSize = "cover";
       avatar.style.backgroundPosition = "center";
       avatar.textContent = "";
     } else {
-      const initials =
-        (t.firstName?.[0] || "?") + (t.lastName?.[0] || "?");
-      avatar.style.backgroundImage = "";
-      avatar.textContent = initials.toUpperCase();
+      avatar.style.backgroundImage = `url(${DEFAULT_AVATAR_SRC})`;
+      avatar.style.backgroundSize = "cover";
+      avatar.style.backgroundPosition = "center";
+      avatar.textContent = "";
     }
   }
 
@@ -206,21 +210,16 @@ window.handlePhotoUpload = function (event) {
 
 window.removePhoto = function () {
   const preview = document.getElementById("profilePhotoPreview");
-  preview.style.backgroundImage = "";
+  preview.style.backgroundImage = `url(${DEFAULT_AVATAR_SRC})`;
+  preview.style.backgroundSize = "cover";
+  preview.style.backgroundPosition = "center";
   removePhotoRequested = true;
 
   const photoInput = document.getElementById("photoInput");
   if (photoInput) {
     photoInput.value = "";
   }
-
-  const nameInput = document.querySelector('.editable-field[type="text"]');
-  if (nameInput) {
-    const parts = nameInput.value.trim().split(/\s+/);
-    const initials =
-      (parts[0]?.[0] || "?") + (parts[1]?.[0] || "");
-    preview.textContent = initials.toUpperCase();
-  }
+  preview.textContent = "";
 };
 
 
@@ -398,4 +397,3 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 });
-
