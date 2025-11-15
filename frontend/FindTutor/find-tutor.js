@@ -161,6 +161,7 @@ console.log("✅ findtutor.js loaded!");
             </button>
           </div>
         </div>
+<<<<<<< HEAD
 
         <button class="w-full glass dark:glass-dark px-4 py-2 rounded-xl text-white hover:bg-white/20 transition-all"
   data-action="rate" data-id="${t.id || ''}" data-name="${name}">
@@ -168,6 +169,11 @@ console.log("✅ findtutor.js loaded!");
 </button>
 
         
+=======
+        <button class="w-full glass dark:glass-dark px-4 py-2 rounded-xl text-white hover:bg-white/20 transition-all" data-action="rate" data-id="${t.id || ''}" data-name="${name}">
+          <i data-lucide="star" class="w-4 h-4 inline mr-2"></i> Rate This Tutor
+        </button>
+>>>>>>> parent of 85188fc (Merge branch 'main' of https://github.com/asmaa-alali/Tutor-Match)
       </div>
     `;
   }
@@ -550,6 +556,7 @@ console.log("✅ findtutor.js loaded!");
       `;
       document.body.appendChild(successMsg);
       refreshIcons();
+<<<<<<< HEAD
 
       setTimeout(() => successMsg.remove(), 3000);
     } catch (err) {
@@ -559,6 +566,153 @@ console.log("✅ findtutor.js loaded!");
     }
   });
 };
+=======
+      
+      // Star rating interaction
+      let selectedRating = 0;
+      const starBtns = overlay.querySelectorAll('.star-btn');
+      const ratingInput = overlay.querySelector('#rating-value');
+      
+      starBtns.forEach((btn, idx) => {
+        btn.addEventListener('click', () => {
+          selectedRating = idx + 1;
+          ratingInput.value = selectedRating;
+          
+          starBtns.forEach((b, i) => {
+            const empty = b.querySelector('.star-empty');
+            const filled = b.querySelector('.star-filled');
+            if (i < selectedRating) {
+              empty.classList.add('hidden');
+              filled.classList.remove('hidden');
+            } else {
+              empty.classList.remove('hidden');
+              filled.classList.add('hidden');
+            }
+          });
+        });
+        
+        // Hover effect
+        btn.addEventListener('mouseenter', () => {
+          starBtns.forEach((b, i) => {
+            const empty = b.querySelector('.star-empty');
+            const filled = b.querySelector('.star-filled');
+            if (i <= idx) {
+              empty.classList.add('opacity-50');
+              filled.classList.remove('opacity-50');
+            }
+          });
+        });
+        
+        btn.addEventListener('mouseleave', () => {
+          starBtns.forEach(b => {
+            b.querySelector('.star-empty').classList.remove('opacity-50');
+            b.querySelector('.star-filled').classList.remove('opacity-50');
+          });
+        });
+      });
+      
+      // Close modal handlers
+      const closeModal = () => {
+        overlay.remove();
+      };
+      
+      overlay.addEventListener('click', closeModal);
+      overlay.querySelector('#close-rating-modal').addEventListener('click', closeModal);
+      overlay.querySelector('#cancel-rating').addEventListener('click', closeModal);
+      
+      // Form submission
+      overlay.querySelector('#rating-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const rating = parseInt(ratingInput.value);
+        const feedback = overlay.querySelector('#feedback-text').value.trim();
+        const subject = overlay.querySelector('#subject-taught').value.trim();
+        const recommend = overlay.querySelector('input[name="recommend"]:checked')?.value;
+        
+        // Validation
+        if (!rating || rating < 1 || rating > 5) {
+          alert('Please select a star rating');
+          return;
+        }
+        
+        if (feedback.length < 20) {
+          alert('Please provide more detailed feedback (minimum 20 characters)');
+          return;
+        }
+        
+        if (!recommend) {
+          alert('Please indicate if you would recommend this tutor');
+          return;
+        }
+        
+        // Show loading state
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<div class="loading-spinner inline-block w-6 h-6 mr-3"></div>Submitting...';
+        submitBtn.disabled = true;
+        
+        try {
+          // Get student info from localStorage
+          const session = JSON.parse(localStorage.getItem('session') || '{}');
+          const studentId = session.userId;
+          
+          if (!studentId) {
+            throw new Error('Please log in to submit a rating');
+          }
+          
+          const response = await fetch('/api/ratings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              tutorId,
+              studentId,
+              rating,
+              feedback,
+              subject,
+              recommend: recommend === 'yes'
+            })
+          });
+          
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to submit rating');
+          }
+          
+          // Success!
+          closeModal();
+          
+          // Show success message
+          const successMsg = document.createElement('div');
+          successMsg.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-50 glass dark:glass-dark rounded-2xl p-6 shadow-2xl';
+          successMsg.innerHTML = `
+            <div class="flex items-center gap-4 text-white">
+              <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                <i data-lucide="check" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <p class="font-bold text-lg">Rating Submitted!</p>
+                <p class="text-white/80">Thank you for your feedback</p>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(successMsg);
+          refreshIcons();
+          
+          setTimeout(() => {
+            successMsg.remove();
+          }, 3000);
+          
+        } catch (error) {
+          console.error('Rating submission error:', error);
+          alert(`Error: ${error.message}`);
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+        }
+      });
+    };
+>>>>>>> parent of 85188fc (Merge branch 'main' of https://github.com/asmaa-alali/Tutor-Match)
 
 
   // ------- Scroll animation observer -------
