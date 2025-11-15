@@ -12,6 +12,8 @@
     gpa: $("#profileGpa"),
     experience: $("#profileExperience"),
     availabilitySummary: $("#profileAvailabilitySummary"),
+    availabilityGrid: $("#availabilityGrid"),
+    availabilityEmpty: $("#availabilityEmpty"),
     bio: $("#profileBio"),
     academic: $("#profileAcademic"),
     formatDetails: $("#profileFormatDetails"),
@@ -88,6 +90,95 @@
       .join("");
   }
 
+  function parseAvailabilitySchedule(raw) {
+    if (!raw) return null;
+    if (typeof raw === "object") return raw;
+    if (typeof raw === "string") {
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : null;
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  function formatTimeLabel(value) {
+    if (!value || typeof value !== "string") return "";
+    const [h, m] = value.split(":").map((n) => Number(n));
+    if (!Number.isFinite(h)) return value;
+    const minutes = Number.isFinite(m) ? m : 0;
+    const suffix = h >= 12 ? "PM" : "AM";
+    const hour12 = ((h + 11) % 12) + 1;
+    const hh = hour12.toString().padStart(2, "0");
+    const mm = minutes.toString().padStart(2, "0");
+    return `${hh}:${mm} ${suffix}`;
+  }
+
+  function buildAvailabilitySummary(schedule) {
+    if (!schedule || typeof schedule !== "object") return "";
+    const order = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+    const enabled = order.filter((key) => schedule[key]?.enabled);
+    if (!enabled.length) return "";
+
+    const labelForDay = (d) => d.charAt(0).toUpperCase() + d.slice(1);
+    const firstCfg = schedule[enabled[0]];
+
+    const sameHours =
+      firstCfg &&
+      enabled.every((key) => {
+        const cfg = schedule[key];
+        return cfg && cfg.from === firstCfg.from && cfg.to === firstCfg.to;
+      });
+
+    const daysLabel =
+      enabled.length === 7
+        ? "Every day"
+        : enabled.map(labelForDay).join(", ");
+
+    if (sameHours && firstCfg.from && firstCfg.to) {
+      return `${daysLabel} • ${formatTimeLabel(firstCfg.from)}–${formatTimeLabel(firstCfg.to)}`;
+    }
+
+    return daysLabel;
+  }
+
+  function renderAvailabilityGrid(schedule) {
+    const grid = elements.availabilityGrid;
+    const emptyMsg = elements.availabilityEmpty;
+    if (!grid) return;
+
+    const slots = grid.querySelectorAll(".availability-day-slot");
+    let anyEnabled = false;
+
+    slots.forEach((slot) => {
+      const dayLabel = slot.querySelector(".day-label");
+      if (!dayLabel) return;
+
+      const key = dayLabel.textContent.trim().toLowerCase();
+      const cfg = (schedule && schedule[key]) || {};
+
+      const timeInputs = slot.querySelectorAll('input[type="time"]');
+      const toggle = slot.querySelector('input[type="checkbox"]');
+
+      if (timeInputs[0]) timeInputs[0].value = cfg.from || "";
+      if (timeInputs[1]) timeInputs[1].value = cfg.to || "";
+      if (toggle) {
+        toggle.checked = !!cfg.enabled;
+        toggle.disabled = true;
+      }
+
+      const isEnabled = !!cfg.enabled && !!cfg.from && !!cfg.to;
+      slot.classList.toggle("disabled", !isEnabled);
+      if (isEnabled) anyEnabled = true;
+    });
+
+    if (emptyMsg) {
+      emptyMsg.style.display = anyEnabled ? "none" : "";
+    }
+  }
+
   async function loadTutor() {
     if (!tutorId) {
       alert("Missing tutor id. Please return to Find Tutors and try again.");
@@ -131,7 +222,15 @@
     );
     setText(elements.gpa, tutor.gpa);
     setText(elements.experience, tutor.experience);
-    setText(elements.availabilitySummary, tutor.availability || "Flexible");
+    const schedule = parseAvailabilitySchedule(tutor.availabilitySchedule);
+    if (schedule) {
+      renderAvailabilityGrid(schedule);
+      const summary = buildAvailabilitySummary(schedule) || tutor.availability || "Flexible";
+      setText(elements.availabilitySummary, summary);
+    } else {
+      renderAvailabilityGrid(null);
+      setText(elements.availabilitySummary, tutor.availability || "Flexible");
+    }
     setText(elements.bio, tutor.motivation || tutor.bio, elements.bio?.textContent);
     setText(elements.academic, tutor.major || tutor.experience);
     setText(elements.formatDetails, tutor.format || "Online & In-person");
