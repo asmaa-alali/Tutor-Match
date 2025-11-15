@@ -32,7 +32,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const TUTOR_UPLOAD_BUCKET = "tutor_uploads";
+const TUTOR_UPLOAD_BUCKET = "avatars";
 const LOCAL_PROFILE_DIR = path.join(__dirname, "uploads", "profile");
 
 app.use(express.json());
@@ -548,10 +548,10 @@ async function uploadToSupabaseStorage(file, folder) {
 
   const attemptSupabaseUpload = async () => {
     const result = await supabase.storage
-      .from(TUTOR_UPLOAD_BUCKET)
+      .from("avatars")
       .upload(uniqueName, buffer, {
         contentType: file.mimetype || "application/octet-stream",
-        upsert: false,
+        upsert: true,
       });
 
     if (result.error) {
