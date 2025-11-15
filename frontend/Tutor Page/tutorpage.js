@@ -356,7 +356,21 @@ function initUIHandlers() {
   document.getElementById("saveBtn").style.display = isEditing ? "" : "none";
   document.getElementById("cancelBtn").style.display = isEditing ? "" : "none";
 
+
+  
   lucide.createIcons();
 }
 
+
 })();
+
+
+// ======================= VIEW ALL FEEDBACK =======================
+document.addEventListener("DOMContentLoaded", () => {
+  const viewBtn = document.getElementById("viewAllFeedbackBtn");
+  if (viewBtn) {
+    viewBtn.addEventListener("click", () => {
+      window.location.href = "./feedback.html"; 
+    });
+  }
+});
