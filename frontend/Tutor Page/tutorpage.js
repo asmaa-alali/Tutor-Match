@@ -1,14 +1,14 @@
 // tutorpage.js
 
 document.addEventListener("DOMContentLoaded", async () => {
-  lucide.createIcons();
+  if (typeof lucide !== "undefined" && lucide.createIcons) {
+    lucide.createIcons();
+  }
 
-  // >>> ENABLE PHOTO UPLOAD LISTENER <<<
   const photoInput = document.getElementById("photoInput");
   if (photoInput) {
     photoInput.addEventListener("change", handlePhotoUpload);
   }
-  // >>> END <<<
 
   const tutorId = localStorage.getItem("tutorId");
   if (!tutorId) {
@@ -61,11 +61,9 @@ async function loadTutorProfile(tutorId) {
     inputs[0].value = `${firstName} ${lastName}`.trim();
     inputs[1].value = t.email || "";
 
-    // HOURLY RATE
     const rate = Number(t.hourlyRate);
     inputs[2].value = Number.isFinite(rate) ? rate : "";
 
-    // SUBJECTS
     const subjectsArray = normalizeSubjects(t.subjects);
     inputs[3].value = subjectsArray.join(", ");
   }
@@ -77,17 +75,19 @@ async function loadTutorProfile(tutorId) {
   if (avatar) {
     if (t.profilePhotoUrl) {
       avatar.style.backgroundImage = `url(${t.profilePhotoUrl})`;
+      avatar.style.backgroundSize = "cover";
+      avatar.style.backgroundPosition = "center";
       avatar.textContent = "";
     } else {
       const initials =
         (t.firstName?.[0] || "?") + (t.lastName?.[0] || "?");
+      avatar.style.backgroundImage = "";
       avatar.textContent = initials.toUpperCase();
     }
   }
 
-  // AVAILABILITY
   const schedule =
-    (t.availabilitySchedule && typeof t.availabilitySchedule === "object")
+    t.availabilitySchedule && typeof t.availabilitySchedule === "object"
       ? t.availabilitySchedule
       : buildDefaultScheduleFromUI();
 
@@ -97,12 +97,13 @@ async function loadTutorProfile(tutorId) {
 
 // ======================= HELPERS =======================
 
-// Track if the user has explicitly requested to remove their profile photo
 let removePhotoRequested = false;
 
 function normalizeSubjects(subjects) {
   if (Array.isArray(subjects)) {
-    return subjects.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean);
+    return subjects
+      .map((s) => (typeof s === "string" ? s.trim() : ""))
+      .filter(Boolean);
   }
 
   if (typeof subjects === "string") {
@@ -111,8 +112,13 @@ function normalizeSubjects(subjects) {
       if (Array.isArray(parsed)) {
         return parsed.map((s) => s.trim()).filter(Boolean);
       }
-    } catch (e) {}
-    return subjects.split(",").map((s) => s.trim()).filter(Boolean);
+    } catch (e) {
+      // ignore JSON parse error, fall back to split
+    }
+    return subjects
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
 
   return [];
@@ -164,7 +170,7 @@ function collectAvailabilitySchedule() {
     const toggle = slot.querySelector('input[type="checkbox"]');
 
     schedule[key] = {
-      enabled: toggle.checked,
+      enabled: !!toggle && toggle.checked,
       from: timeInputs[0]?.value || null,
       to: timeInputs[1]?.value || null,
     };
@@ -187,7 +193,6 @@ window.handlePhotoUpload = function (event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  // A new upload cancels any previous "remove photo" request
   removePhotoRequested = false;
 
   const preview = document.getElementById("profilePhotoPreview");
@@ -204,7 +209,6 @@ window.removePhoto = function () {
   preview.style.backgroundImage = "";
   removePhotoRequested = true;
 
-  // Clear any selected file so it isn't re-uploaded
   const photoInput = document.getElementById("photoInput");
   if (photoInput) {
     photoInput.value = "";
@@ -235,9 +239,11 @@ function initUIHandlers() {
   window.showToast = function (message, type = "info") {
     const toast = document.createElement("div");
     const bg =
-      type === "success" ? "bg-green-500"
-      : type === "error" ? "bg-red-500"
-      : "bg-blue-500";
+      type === "success"
+        ? "bg-green-500"
+        : type === "error"
+        ? "bg-red-500"
+        : "bg-blue-500";
 
     toast.className = `fixed top-6 right-6 ${bg} text-white px-6 py-4 rounded-2xl shadow-xl z-50`;
     toast.innerHTML = `
@@ -247,7 +253,9 @@ function initUIHandlers() {
       </div>
     `;
     document.body.appendChild(toast);
-    lucide.createIcons();
+    if (typeof lucide !== "undefined" && lucide.createIcons) {
+      lucide.createIcons();
+    }
 
     setTimeout(() => toast.remove(), 2500);
   };
@@ -270,118 +278,123 @@ function initUIHandlers() {
   };
 
   window.saveProfile = async function () {
-  try {
-    const tutorId = localStorage.getItem("tutorId");
-    if (!tutorId) return showToast("No tutor ID found.", "error");
+    try {
+      const tutorId = localStorage.getItem("tutorId");
+      if (!tutorId) return showToast("No tutor ID found.", "error");
 
-    const inputs = Array.from(
-      document.querySelectorAll(".form-input.editable-field")
-    ).filter((el) => el.tagName === "INPUT");
-    const rateInput = inputs[2];
-    const subjectsInput = inputs[3];
-    const bioTextarea = document.querySelector("textarea.editable-field");
+      const inputs = Array.from(
+        document.querySelectorAll(".form-input.editable-field")
+      ).filter((el) => el.tagName === "INPUT");
 
-    let hourlyRateRaw = (rateInput?.value || "").trim();
-    hourlyRateRaw = hourlyRateRaw.replace(/[^0-9.]/g, "");
-    const hourlyRate = hourlyRateRaw === "" ? null : Number(hourlyRateRaw);
+      const rateInput = inputs[2];
+      const subjectsInput = inputs[3];
+      const bioTextarea = document.querySelector("textarea.editable-field");
 
-    const subjects = (subjectsInput?.value || "")
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+      let hourlyRateRaw = (rateInput?.value || "").trim();
+      hourlyRateRaw = hourlyRateRaw.replace(/[^0-9.]/g, "");
+      const hourlyRate =
+        hourlyRateRaw === "" ? null : Number(hourlyRateRaw);
 
-    const availabilitySchedule = collectAvailabilitySchedule();
-    const motivation = bioTextarea?.value || null;
+      const subjects = (subjectsInput?.value || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
 
-    // -------------------------
-    // ⬇️ NEW: Build FormData
-    // -------------------------
-    const formData = new FormData();
-    formData.append("userId", tutorId);
-    if (hourlyRate !== null) {
-  formData.append("hourlyRate", hourlyRate);
-}
+      const availabilitySchedule = collectAvailabilitySchedule();
+      const motivation = bioTextarea?.value || null;
 
-
-    formData.append("motivation", motivation);
-    formData.append("availabilitySchedule", JSON.stringify(availabilitySchedule));
-    formData.append("subjects", JSON.stringify(subjects));
-
-    // ⬇️ Attach file if selected
-     const photoInput = document.getElementById("photoInput");
-     if (photoInput && photoInput.files.length > 0) {
-     formData.append("profilePhoto", photoInput.files[0]);
-}
-
-
-    const res = await fetch(
-      "https://tutor-match-n8a7.onrender.com/api/tutors/profile",
-      {
-        method: "PUT",
-        body: formData,  // <-- NO HEADERS, browser sets automatically
+      const formData = new FormData();
+      formData.append("userId", tutorId);
+      if (hourlyRate !== null) {
+        formData.append("hourlyRate", hourlyRate);
       }
-    );
 
-    const data = await res.json();
+      formData.append("motivation", motivation);
+      formData.append(
+        "availabilitySchedule",
+        JSON.stringify(availabilitySchedule)
+      );
+      formData.append("subjects", JSON.stringify(subjects));
 
-    if (!res.ok) {
-      showToast(data.error || "Failed to update profile", "error");
-      return;
+      // Indicate whether to clear the existing profile photo
+      formData.append("removePhoto", removePhotoRequested ? "true" : "false");
+
+      const photoInput = document.getElementById("photoInput");
+      if (!removePhotoRequested && photoInput && photoInput.files.length > 0) {
+        formData.append("profilePhoto", photoInput.files[0]);
+      }
+
+      const res = await fetch(
+        "https://tutor-match-n8a7.onrender.com/api/tutors/profile",
+        {
+          method: "PUT",
+          body: formData,
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast(data.error || "Failed to update profile", "error");
+        return;
+      }
+
+      showToast("Profile updated successfully", "success");
+      await loadTutorProfile(tutorId);
+
+      setEditMode(false);
+      // Reset flag after successful save
+      removePhotoRequested = false;
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to save changes", "error");
     }
-
-    showToast("Profile updated successfully", "success");
-    await loadTutorProfile(tutorId);
-
-    setEditMode(false);
-
-  } catch (err) {
-    console.error(err);
-    showToast("Failed to save changes", "error");
-  }
-};
-
+  };
 
   function setEditMode(isEditing) {
-  document.body.classList.toggle("editing", isEditing);
+    document.body.classList.toggle("editing", isEditing);
 
-  document.querySelectorAll(".editable-field").forEach((el) => {
-    const type = el.getAttribute("type");
-    if (type === "email") {
-      el.readOnly = true;
-    } else if (type === "checkbox") {
-      el.disabled = !isEditing;
-    } else {
-      el.readOnly = !isEditing;
+    document.querySelectorAll(".editable-field").forEach((el) => {
+      const type = el.getAttribute("type");
+      if (type === "email") {
+        el.readOnly = true;
+      } else if (type === "checkbox") {
+        el.disabled = !isEditing;
+      } else {
+        el.readOnly = !isEditing;
+      }
+    });
+
+    const uploadBtn = document.getElementById("photoUploadBtn");
+    const removeBtn = document.getElementById("removePhotoBtn");
+
+    if (uploadBtn) {
+      uploadBtn.disabled = !isEditing;
+      uploadBtn.classList.toggle("opacity-50", !isEditing);
+      uploadBtn.classList.toggle("cursor-not-allowed", !isEditing);
     }
-  });
 
-  // ENABLE / DISABLE PHOTO BUTTON
-  const uploadBtn = document.getElementById("photoUploadBtn");
-  const removeBtn = document.getElementById("removePhotoBtn");
+    if (removeBtn) {
+      removeBtn.style.display = isEditing ? "" : "none";
+    }
 
-  if (uploadBtn) {
-    uploadBtn.disabled = !isEditing;
-    uploadBtn.classList.toggle("opacity-50", !isEditing);
-    uploadBtn.classList.toggle("cursor-not-allowed", !isEditing);
+    document.getElementById("editBtn").style.display = isEditing ? "none" : "";
+    document.getElementById("saveBtn").style.display = isEditing ? "" : "none";
+    document.getElementById("cancelBtn").style.display = isEditing
+      ? ""
+      : "none";
+
+    if (typeof lucide !== "undefined" && lucide.createIcons) {
+      lucide.createIcons();
+    }
   }
-
-  if (removeBtn) {
-    removeBtn.style.display = isEditing ? "" : "none";
-  }
-
-  document.getElementById("editBtn").style.display = isEditing ? "none" : "";
-  document.getElementById("saveBtn").style.display = isEditing ? "" : "none";
-  document.getElementById("cancelBtn").style.display = isEditing ? "" : "none";
-
-  lucide.createIcons();
-}
-
 })();
+
 document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("viewAllFeedbackBtn");
   if (btn) {
     btn.onclick = () => {
-      window.location.href = "feedback.html"; 
+      window.location.href = "feedback.html";
     };
   }
 });
