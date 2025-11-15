@@ -363,8 +363,9 @@ function initUIHandlers() {
 document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("viewAllFeedbackBtn");
   if (btn) {
-    btn.addEventListener("click", () => {
+    btn.onclick = () => {
       window.location.href = "feedback.html"; 
-    });
+    };
   }
 });
+
