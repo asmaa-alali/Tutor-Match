@@ -338,16 +338,16 @@
    </div><!-- Overall Stats -->
    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
     <div class="card p-6 text-center">
-     <div class="text-5xl font-bold gradient-text mb-2">
-      4.8
+     <div id="overallRatingValue" class="text-5xl font-bold gradient-text mb-2">
+      0.0
      </div>
      <div class="rating-stars justify-center mb-2"><i data-lucide="star" class="w-5 h-5 fill-current"></i> <i data-lucide="star" class="w-5 h-5 fill-current"></i> <i data-lucide="star" class="w-5 h-5 fill-current"></i> <i data-lucide="star" class="w-5 h-5 fill-current"></i> <i data-lucide="star" class="w-5 h-5 fill-current"></i>
      </div>
      <p class="text-sm text-gray-600 dark-mode-text">Overall Rating</p>
     </div>
     <div class="card p-6 text-center">
-     <div class="text-5xl font-bold gradient-text mb-2">
-      98%
+     <div id="positivePercentValue" class="text-5xl font-bold gradient-text mb-2">
+      0%
      </div>
      <p class="text-sm text-gray-600 dark-mode-text">Positive Feedback</p>
     </div>
@@ -359,36 +359,36 @@
       <div class="flex items-center gap-2 w-24"><span class="font-semibold text-gray-700 dark-mode-text">5</span> <i data-lucide="star" class="w-4 h-4 text-yellow-500 fill-current"></i>
       </div>
       <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-       <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full" style="width: 85%"></div>
-      </div><span class="font-semibold text-gray-700 dark-mode-text w-16 text-right">108</span>
+       <div id="bar5" class="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full" style="width: 0%"></div>
+      </div><span id="count5" class="font-semibold text-gray-700 dark-mode-text w-16 text-right">0</span>
      </div>
      <div class="flex items-center gap-4">
       <div class="flex items-center gap-2 w-24"><span class="font-semibold text-gray-700 dark-mode-text">4</span> <i data-lucide="star" class="w-4 h-4 text-yellow-500 fill-current"></i>
       </div>
       <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-       <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full" style="width: 12%"></div>
-      </div><span class="font-semibold text-gray-700 dark-mode-text w-16 text-right">15</span>
+       <div id="bar4" class="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full" style="width: 0%"></div>
+      </div><span id="count4" class="font-semibold text-gray-700 dark-mode-text w-16 text-right">0</span>
      </div>
      <div class="flex items-center gap-4">
       <div class="flex items-center gap-2 w-24"><span class="font-semibold text-gray-700 dark-mode-text">3</span> <i data-lucide="star" class="w-4 h-4 text-yellow-500 fill-current"></i>
       </div>
       <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-       <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full" style="width: 2%"></div>
-      </div><span class="font-semibold text-gray-700 dark-mode-text w-16 text-right">3</span>
+       <div id="bar3" class="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full" style="width: 0%"></div>
+      </div><span id="count3" class="font-semibold text-gray-700 dark-mode-text w-16 text-right">0</span>
      </div>
      <div class="flex items-center gap-4">
       <div class="flex items-center gap-2 w-24"><span class="font-semibold text-gray-700 dark-mode-text">2</span> <i data-lucide="star" class="w-4 h-4 text-yellow-500 fill-current"></i>
       </div>
       <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-       <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full" style="width: 1%"></div>
-      </div><span class="font-semibold text-gray-700 dark-mode-text w-16 text-right">1</span>
+       <div id="bar2" class="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full" style="width: 0%"></div>
+      </div><span id="count2" class="font-semibold text-gray-700 dark-mode-text w-16 text-right">0</span>
      </div>
      <div class="flex items-center gap-4">
       <div class="flex items-center gap-2 w-24"><span class="font-semibold text-gray-700 dark-mode-text">1</span> <i data-lucide="star" class="w-4 h-4 text-yellow-500 fill-current"></i>
       </div>
       <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-       <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full" style="width: 0%"></div>
-      </div><span class="font-semibold text-gray-700 dark-mode-text w-16 text-right">0</span>
+       <div id="bar1" class="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full" style="width: 0%"></div>
+      </div><span id="count1" class="font-semibold text-gray-700 dark-mode-text w-16 text-right">0</span>
      </div>
     </div>
    </div><!-- Filter and Search -->
@@ -411,7 +411,7 @@
 
         function toggleDarkMode(toggle) {
             document.body.classList.toggle('dark-mode');
-            
+
             document.querySelectorAll('.dark-mode-toggle').forEach(t => {
                 t.classList.toggle('active');
                 const icon = t.querySelector('i');
@@ -421,182 +421,198 @@
                     icon.setAttribute('data-lucide', 'sun');
                 }
             });
-            
+
             lucide.createIcons();
         }
 
-        // All feedback data
-        const allFeedbackData = [
-            { name: "Sarah Hassan", initials: "SH", subject: "Calculus", date: "Oct 28, 2024", rating: 5, comment: "Excellent explanation of derivatives! Very patient and clear. Highly recommend!", color: "linear-gradient(135deg, #3b82f6, #1e40af)" },
-            { name: "Ahmed Khalil", initials: "AK", subject: "Algebra", date: "Oct 26, 2024", rating: 5, comment: "Made complex equations easy to understand. Best tutor I've had!", color: "linear-gradient(135deg, #8b5cf6, #ec4899)" },
-            { name: "Layla Mansour", initials: "LM", subject: "Statistics", date: "Oct 24, 2024", rating: 4, comment: "Great tutor! Helped me ace my statistics exam. Very knowledgeable.", color: "linear-gradient(135deg, #10b981, #059669)" },
-            { name: "Omar Ali", initials: "OA", subject: "Geometry", date: "Oct 22, 2024", rating: 5, comment: "Very knowledgeable and supportive. Explains concepts clearly!", color: "linear-gradient(135deg, #f59e0b, #d97706)" },
-            { name: "Fatima Nasser", initials: "FN", subject: "Calculus", date: "Oct 20, 2024", rating: 5, comment: "Outstanding tutor! Made calculus so much easier to understand. Highly professional.", color: "linear-gradient(135deg, #ef4444, #dc2626)" },
-            { name: "Karim Youssef", initials: "KY", subject: "Algebra", date: "Oct 18, 2024", rating: 4, comment: "Good explanations and patient teaching style. Would recommend!", color: "linear-gradient(135deg, #06b6d4, #0891b2)" },
-            { name: "Nour Saleh", initials: "NS", subject: "Statistics", date: "Oct 16, 2024", rating: 5, comment: "Amazing tutor! Helped me understand probability and distributions perfectly.", color: "linear-gradient(135deg, #a855f7, #9333ea)" },
-            { name: "Hassan Ibrahim", initials: "HI", subject: "Geometry", date: "Oct 14, 2024", rating: 5, comment: "Clear explanations and great examples. Really helped with my geometry proofs.", color: "linear-gradient(135deg, #14b8a6, #0d9488)" },
-            { name: "Rania Khoury", initials: "RK", subject: "Calculus", date: "Oct 12, 2024", rating: 4, comment: "Very helpful with integration techniques. Patient and understanding.", color: "linear-gradient(135deg, #f97316, #ea580c)" },
-            { name: "Ziad Farah", initials: "ZF", subject: "Algebra", date: "Oct 10, 2024", rating: 5, comment: "Best math tutor I've ever had! Makes everything so clear and easy.", color: "linear-gradient(135deg, #84cc16, #65a30d)" },
-            { name: "Maya Haddad", initials: "MH", subject: "Statistics", date: "Oct 8, 2024", rating: 3, comment: "Good tutor, but sometimes explanations were a bit rushed. Overall helpful though.", color: "linear-gradient(135deg, #ec4899, #db2777)" },
-            { name: "Ali Mahmoud", initials: "AM", subject: "Geometry", date: "Oct 6, 2024", rating: 5, comment: "Excellent teaching methods! Really helped me visualize geometric concepts.", color: "linear-gradient(135deg, #6366f1, #4f46e5)" },
-            { name: "Lina Saad", initials: "LS", subject: "Calculus", date: "Oct 4, 2024", rating: 5, comment: "Fantastic tutor! Made limits and continuity so much clearer for me.", color: "linear-gradient(135deg, #f43f5e, #e11d48)" },
-            { name: "Youssef Amin", initials: "YA", subject: "Algebra", date: "Oct 2, 2024", rating: 4, comment: "Very knowledgeable and helpful. Great at explaining quadratic equations.", color: "linear-gradient(135deg, #22d3ee, #06b6d4)" },
-            { name: "Dina Khalil", initials: "DK", subject: "Statistics", date: "Sep 30, 2024", rating: 5, comment: "Amazing! Helped me understand hypothesis testing perfectly. Highly recommend!", color: "linear-gradient(135deg, #a78bfa, #8b5cf6)" },
-            { name: "Tarek Nassar", initials: "TN", subject: "Geometry", date: "Sep 28, 2024", rating: 5, comment: "Great tutor with excellent communication skills. Made geometry fun!", color: "linear-gradient(135deg, #34d399, #10b981)" },
-            { name: "Hala Rizk", initials: "HR", subject: "Calculus", date: "Sep 26, 2024", rating: 4, comment: "Very patient and thorough. Helped me improve my calculus grades significantly.", color: "linear-gradient(135deg, #fbbf24, #f59e0b)" },
-            { name: "Sami Habib", initials: "SH", subject: "Algebra", date: "Sep 24, 2024", rating: 5, comment: "Outstanding! Made polynomial functions so easy to understand.", color: "linear-gradient(135deg, #fb923c, #f97316)" },
-            { name: "Jana Mousa", initials: "JM", subject: "Statistics", date: "Sep 22, 2024", rating: 2, comment: "Decent tutor but I felt the pace was too fast for me. Could use more examples.", color: "linear-gradient(135deg, #c084fc, #a855f7)" },
-            { name: "Marwan Sleiman", initials: "MS", subject: "Geometry", date: "Sep 20, 2024", rating: 5, comment: "Excellent tutor! Really helped me understand circle theorems and angles.", color: "linear-gradient(135deg, #4ade80, #22c55e)" }
-        ];
+        let allRatings = [];
 
-        let currentFeedbackIndex = 0;
-        const feedbackPerPage = 10;
+        function getCurrentTutorId() {
+            try {
+                const raw = localStorage.getItem('tmUserSession');
+                if (raw) {
+                    const session = JSON.parse(raw);
+                    if (session && session.userId && (session.role === 'tutor' || !session.role)) {
+                        return session.userId;
+                    }
+                }
+            } catch (_) {}
 
-        function populateAllFeedback() {
-            const container = document.getElementById('allFeedbackContainer');
-            container.innerHTML = '';
-            currentFeedbackIndex = 0;
-            
-            // Load first batch
-            loadMoreFeedback();
+            const stored = localStorage.getItem('tutorId');
+            return stored || null;
         }
 
-        function loadMoreFeedback() {
-            const container = document.getElementById('allFeedbackContainer');
-            const loadMoreBtn = document.getElementById('loadMoreContainer');
-            
-            // Use filtered data if available, otherwise use all data
-            const dataSource = window.currentFilteredData || allFeedbackData;
-            
-            // Get the next batch of feedback
-            const endIndex = Math.min(currentFeedbackIndex + feedbackPerPage, dataSource.length);
-            const feedbackBatch = dataSource.slice(currentFeedbackIndex, endIndex);
-            
-            feedbackBatch.forEach(feedback => {
-                const feedbackCard = document.createElement('div');
-                feedbackCard.className = 'feedback-card';
-                feedbackCard.setAttribute('data-student', feedback.name.toLowerCase());
-                feedbackCard.setAttribute('data-subject', feedback.subject.toLowerCase());
-                feedbackCard.setAttribute('data-rating', feedback.rating);
-                
-                const stars = Array(5).fill(0).map((_, i) => 
-                    `<i data-lucide="star" class="w-4 h-4 ${i < feedback.rating ? 'fill-current' : ''}"></i>`
-                ).join('');
-                
-                feedbackCard.innerHTML = `
-                    <div class="flex items-start gap-4 mb-4">
-                        <div class="student-avatar" style="background: ${feedback.color};">
-                            ${feedback.initials}
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="font-bold text-gray-800 dark-mode-text">${feedback.name}</h4>
-                            <p class="text-sm text-gray-500">${feedback.subject} • ${feedback.date}</p>
-                        </div>
-                        <div class="rating-stars">
-                            ${stars}
-                        </div>
-                    </div>
-                    <p class="text-gray-600 dark-mode-text text-sm">"${feedback.comment}"</p>
-                `;
-                
-                container.appendChild(feedbackCard);
+        function formatDate(iso) {
+            if (!iso) return '';
+            const d = new Date(iso);
+            if (Number.isNaN(d.getTime())) return '';
+            return d.toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
             });
-            
-            currentFeedbackIndex = endIndex;
-            
-            // Show or hide "Load More" button
-            if (currentFeedbackIndex < dataSource.length) {
-                loadMoreBtn.style.display = 'block';
-            } else {
-                loadMoreBtn.style.display = 'none';
+        }
+
+        function getInitials(name) {
+            if (!name) return '?';
+            const parts = String(name).trim().split(/\s+/);
+            const first = parts[0]?.[0] || '';
+            const second = parts[1]?.[0] || '';
+            return (first + second || first || '?').toUpperCase();
+        }
+
+        function renderStats(ratings) {
+            const total = ratings.length;
+            const average = total
+                ? ratings.reduce((sum, r) => sum + (Number(r.rating) || 0), 0) / total
+                : 0;
+
+            const dist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+            ratings.forEach(r => {
+                const val = Number(r.rating) || 0;
+                if (dist[val] !== undefined) dist[val]++;
+            });
+
+            const positiveCount = dist[4] + dist[5];
+            const positivePercent = total ? (positiveCount / total) * 100 : 0;
+
+            const overallEl = document.getElementById('overallRatingValue');
+            const positiveEl = document.getElementById('positivePercentValue');
+            if (overallEl) {
+                overallEl.textContent = total ? average.toFixed(1) : '0.0';
             }
-            
-            lucide.createIcons();
+            if (positiveEl) {
+                positiveEl.textContent = `${Math.round(positivePercent)}%`;
+            }
+
+            for (let star = 5; star >= 1; star--) {
+                const count = dist[star] || 0;
+                const pct = total ? (count / total) * 100 : 0;
+                const bar = document.getElementById(`bar${star}`);
+                const countEl = document.getElementById(`count${star}`);
+                if (bar) bar.style.width = `${pct}%`;
+                if (countEl) countEl.textContent = String(count);
+            }
         }
 
-        function filterAllFeedback() {
-            const searchTerm = document.getElementById('feedbackSearchBar').value.toLowerCase().trim();
-            const ratingFilter = document.getElementById('ratingFilter').value;
-            const subjectFilter = document.getElementById('subjectFilter').value;
-            
-            // Reset and reload feedback with filters
+        function renderFeedbackList(ratings) {
             const container = document.getElementById('allFeedbackContainer');
+            const loadMoreContainer = document.getElementById('loadMoreContainer');
+            if (!container) return;
+
             container.innerHTML = '';
-            currentFeedbackIndex = 0;
-            
-            // Filter the data first
-            const filteredData = allFeedbackData.filter(feedback => {
-                const matchesSearch = searchTerm === '' || 
-                    feedback.name.toLowerCase().includes(searchTerm) || 
-                    feedback.subject.toLowerCase().includes(searchTerm);
-                const matchesRating = ratingFilter === 'all' || feedback.rating.toString() === ratingFilter;
-                const matchesSubject = subjectFilter === 'all' || feedback.subject.toLowerCase() === subjectFilter;
-                
-                return matchesSearch && matchesRating && matchesSubject;
-            });
-            
-            // Load first batch of filtered data
-            const endIndex = Math.min(feedbackPerPage, filteredData.length);
-            const feedbackBatch = filteredData.slice(0, endIndex);
-            
-            if (feedbackBatch.length === 0) {
-                const noResultsMsg = document.createElement('div');
-                noResultsMsg.id = 'noFeedbackResultsMsg';
-                noResultsMsg.className = 'text-center py-12 text-gray-500';
-                noResultsMsg.innerHTML = '<i data-lucide="search-x" class="w-16 h-16 mx-auto mb-4 opacity-50"></i><p class="text-xl font-semibold mb-2">No feedback found</p><p class="text-sm">Try adjusting your filters or search terms</p>';
-                container.appendChild(noResultsMsg);
-                document.getElementById('loadMoreContainer').style.display = 'none';
+
+            if (!ratings || ratings.length === 0) {
+                if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+                const empty = document.createElement('div');
+                empty.className = 'text-center py-12 text-gray-500';
+                empty.innerHTML = `
+                    <i data-lucide="message-circle" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
+                    <p class="text-xl font-semibold mb-2">No feedback yet</p>
+                    <p class="text-sm">Once students rate you, their feedback will appear here.</p>
+                `;
+                container.appendChild(empty);
                 lucide.createIcons();
                 return;
             }
-            
-            feedbackBatch.forEach(feedback => {
-                const feedbackCard = document.createElement('div');
-                feedbackCard.className = 'feedback-card';
-                feedbackCard.setAttribute('data-student', feedback.name.toLowerCase());
-                feedbackCard.setAttribute('data-subject', feedback.subject.toLowerCase());
-                feedbackCard.setAttribute('data-rating', feedback.rating);
-                
-                const stars = Array(5).fill(0).map((_, i) => 
-                    `<i data-lucide="star" class="w-4 h-4 ${i < feedback.rating ? 'fill-current' : ''}"></i>`
+
+            if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+
+            ratings.forEach(r => {
+                const card = document.createElement('div');
+                card.className = 'feedback-card';
+
+                const studentName = r.studentName || 'Student';
+                const initials = getInitials(studentName);
+                const subject = r.subject || 'General';
+                const dateLabel = formatDate(r.createdAt);
+                const ratingValue = Number(r.rating) || 0;
+
+                const stars = Array(5).fill(0).map((_, i) =>
+                    `<i data-lucide="star" class="w-4 h-4 ${i < ratingValue ? 'fill-current' : ''}"></i>`
                 ).join('');
-                
-                feedbackCard.innerHTML = `
+
+                card.innerHTML = `
                     <div class="flex items-start gap-4 mb-4">
-                        <div class="student-avatar" style="background: ${feedback.color};">
-                            ${feedback.initials}
+                        <div class="student-avatar" style="background: linear-gradient(135deg, #3b82f6, #1e40af);">
+                            ${initials}
                         </div>
                         <div class="flex-1">
-                            <h4 class="font-bold text-gray-800 dark-mode-text">${feedback.name}</h4>
-                            <p class="text-sm text-gray-500">${feedback.subject} • ${feedback.date}</p>
+                            <h4 class="font-bold text-gray-800 dark-mode-text">${studentName}</h4>
+                            <p class="text-sm text-gray-500">${subject}${dateLabel ? ` • ${dateLabel}` : ''}</p>
                         </div>
                         <div class="rating-stars">
                             ${stars}
                         </div>
                     </div>
-                    <p class="text-gray-600 dark-mode-text text-sm">"${feedback.comment}"</p>
+                    <p class="text-gray-600 dark-mode-text text-sm">"${r.feedback || ''}"</p>
                 `;
-                
-                container.appendChild(feedbackCard);
+
+                container.appendChild(card);
             });
-            
-            // Store filtered data for "Load More"
-            window.currentFilteredData = filteredData;
-            currentFeedbackIndex = endIndex;
-            
-            // Show or hide "Load More" button
-            const loadMoreBtn = document.getElementById('loadMoreContainer');
-            if (currentFeedbackIndex < filteredData.length) {
-                loadMoreBtn.style.display = 'block';
-            } else {
-                loadMoreBtn.style.display = 'none';
-            }
-            
+
             lucide.createIcons();
         }
 
-        // Initialize feedback on page load
-        populateAllFeedback();
+        function applyFilters() {
+            const searchTerm = document.getElementById('feedbackSearchBar')?.value.toLowerCase().trim() || '';
+            const ratingFilter = document.getElementById('ratingFilter')?.value || 'all';
+            const subjectFilter = document.getElementById('subjectFilter')?.value || 'all';
+
+            return allRatings.filter(r => {
+                const name = (r.studentName || '').toLowerCase();
+                const subject = (r.subject || '').toLowerCase();
+
+                const matchesSearch =
+                    !searchTerm ||
+                    name.includes(searchTerm) ||
+                    subject.includes(searchTerm);
+
+                const matchesRating =
+                    ratingFilter === 'all' || String(r.rating) === ratingFilter;
+
+                const matchesSubject =
+                    subjectFilter === 'all' || subject.includes(subjectFilter);
+
+                return matchesSearch && matchesRating && matchesSubject;
+            });
+        }
+
+        function filterAllFeedback() {
+            const filtered = applyFilters();
+            renderFeedbackList(filtered);
+        }
+
+        async function initFeedbackPage() {
+            const tutorId = getCurrentTutorId();
+            if (!tutorId) {
+                alert("Missing tutor session. Please sign in again.");
+                window.location.href = "/Sign in/signin.html";
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/ratings/${encodeURIComponent(tutorId)}`);
+                const payload = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(payload.error || "Failed to load ratings");
+                }
+
+                allRatings = Array.isArray(payload.ratings) ? payload.ratings : [];
+
+                renderStats(allRatings);
+                renderFeedbackList(allRatings);
+            } catch (err) {
+                console.error("Failed to load tutor feedback:", err);
+                const container = document.getElementById('allFeedbackContainer');
+                if (container) {
+                    container.innerHTML = '<p class="text-center text-red-200 py-8">Unable to load feedback at the moment.</p>';
+                }
+            }
+        }
+
+        initFeedbackPage();
     </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99b48516c2d3e30a',t:'MTc2MjU5OTEzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
