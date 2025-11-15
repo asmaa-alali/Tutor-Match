@@ -14,6 +14,7 @@ import cors from "cors";
 
 import { createClient } from "@supabase/supabase-js";
 import cron from "node-cron";
+import nodemailer from "nodemailer";
 
 
 
@@ -82,6 +83,33 @@ import SibApiV3Sdk from "sib-api-v3-sdk";
 const brevoClient = SibApiV3Sdk.ApiClient.instance;
 brevoClient.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+const hasBrevoApiKey =
+  typeof process.env.BREVO_API_KEY === "string" &&
+  process.env.BREVO_API_KEY.trim().length > 0;
+const emailUser = (process.env.EMAIL_USER || "").trim();
+const emailPass = (process.env.EMAIL_PASS || "").trim();
+let fallbackOtpTransporter = null;
+
+if (!hasBrevoApiKey) {
+  if (emailUser && emailPass) {
+    fallbackOtpTransporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: emailUser,
+        pass: emailPass,
+      },
+    });
+    console.warn(
+      "[login-otp] Using Gmail SMTP fallback via EMAIL_USER/EMAIL_PASS for OTP delivery."
+    );
+  } else {
+    console.warn(
+      "[login-otp] BREVO_API_KEY is missing and no EMAIL_USER/EMAIL_PASS provided. OTP codes will only be logged to the server console."
+    );
+  }
+}
 
 async function sendAdminEmail(to, subject, html, text = "") {
   try {
@@ -1163,23 +1191,51 @@ app.post("/api/login-otp", async (req, res) => {
     otpStore.set(email, code);
     setTimeout(() => otpStore.delete(email), 5 * 60 * 1000);
 
-    await apiInstance.sendTransacEmail({
-  sender: { name: "Tutor Match", email: "marjehahmad@gmail.com" },
-  to: [{ email }],
-  subject: "Tutor Match Login Verification Code",
-  htmlContent: `
-    <div style="font-family:Arial;line-height:1.5">
-      <h2>Your Tutor Match Code</h2>
-      <p>Your code is <b>${code}</b>.</p>
-      <p>This code expires in 5 minutes.</p>
-    </div>
-  `,
-  textContent: `Your Tutor Match code is ${code}.`,
-});
+    if (hasBrevoApiKey) {
+      await apiInstance.sendTransacEmail({
+        sender: { name: "Tutor Match", email: "marjehahmad@gmail.com" },
+        to: [{ email }],
+        subject: "Tutor Match Login Verification Code",
+        htmlContent: `
+          <div style="font-family:Arial;line-height:1.5">
+            <h2>Your Tutor Match Code</h2>
+            <p>Your code is <b>${code}</b>.</p>
+            <p>This code expires in 5 minutes.</p>
+          </div>
+        `,
+        textContent: `Your Tutor Match code is ${code}.`,
+      });
+      console.log(`✔️ OTP sent via Brevo to ${email}`);
+      return res.status(200).json({ message: "Code sent successfully" });
+    }
 
+    if (fallbackOtpTransporter) {
+      await fallbackOtpTransporter.sendMail({
+        from: `"Tutor Match" <${emailUser || "no-reply@tutor-match.app"}>`,
+        to: email,
+        subject: "Tutor Match Login Verification Code",
+        text: `Your Tutor Match code is ${code}. It expires in 5 minutes.`,
+        html: `
+          <div style="font-family:Arial;line-height:1.5">
+            <h2>Your Tutor Match Code</h2>
+            <p>Your code is <b>${code}</b>.</p>
+            <p>This code expires in 5 minutes.</p>
+          </div>
+        `,
+      });
+      console.log(`✔️ OTP sent via Gmail SMTP fallback to ${email}`);
+      return res.status(200).json({
+        message: "Code sent successfully",
+        fallbackProvider: "gmail",
+      });
+    }
 
-    console.log(`✔️ OTP sent to ${email}: ${code}`);
-    res.status(200).json({ message: "Code sent successfully" });
+    console.log(`[login-otp] Dev fallback OTP for ${email}: ${code}`);
+    return res.status(200).json({
+      message:
+        "Code generated (dev mode). Email service not configured—check the server logs for your OTP.",
+      devFallback: true,
+    });
 
   } catch (err) {
     console.error("OTP send error:", err);
