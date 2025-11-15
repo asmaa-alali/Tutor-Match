@@ -1,48 +1,25 @@
-document.addEventListener("DOMContentLoaded", async () => {
-  lucide.createIcons(); // ✅ create icons once
+// tutorpage.js
 
-  // ✅ Fetch tutor info
+document.addEventListener("DOMContentLoaded", async () => {
+  lucide.createIcons(); // icons
+
   const tutorId = localStorage.getItem("tutorId");
   if (!tutorId) {
     alert("No tutor logged in. Redirecting...");
-    window.location.href = "/Homepage/home.html"; // redirect to homepage
+    window.location.href = "/Homepage/home.html";
     return;
   }
 
   try {
-    const res = await fetch(`https://tutor-match-n8a7.onrender.com/api/tutors/profile/${tutorId}`);
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.error || "Failed to load tutor profile");
-
-    const t = data.tutor;
-
-    // ✅ Fill fields
-    const fields = document.querySelectorAll(".editable-field");
-    if (fields.length >= 4) {
-      fields[0].value = `${t.firstName || ""} ${t.lastName || ""}`;
-      fields[1].value = t.email || "";
-      fields[2].value = t.rate || "";
-      fields[3].value = Array.isArray(t.subjects) ? t.subjects.join(", ") : t.subjects || "";
-    }
-
-    const bio = document.querySelector("textarea");
-    if (bio) bio.value = t.motivation || "";
-
-    // ✅ Show initials
-    const avatar = document.getElementById("profilePhotoPreview");
-    if (avatar) {
-      const initials =
-        (t.firstName?.[0] || "?") + (t.lastName?.[0] || "");
-      avatar.textContent = initials.toUpperCase();
-    }
+    await loadTutorProfile(tutorId);
   } catch (err) {
     console.error("Tutor page error:", err);
     alert("Could not load your profile. Please sign in again.");
     window.location.href = "/Homepage/home.html";
+    return;
   }
 
-  // ✅ Logout
+  // Extra logout guard (won't run if data-tm-logout is present)
   const logoutBtn = document.querySelector(".logout");
   if (logoutBtn && !logoutBtn.hasAttribute("data-tm-logout")) {
     logoutBtn.addEventListener("click", () => {
@@ -52,17 +29,163 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // ✅ Dark mode, sidebar, etc.
   initUIHandlers();
 });
+
+// ---------- LOAD PROFILE FROM BACKEND ----------
+
+async function loadTutorProfile(tutorId) {
+  const res = await fetch(
+    `https://tutor-match-n8a7.onrender.com/api/tutors/profile/${tutorId}`
+  );
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Failed to load tutor profile");
+  }
+
+  const t = data.tutor || {};
+
+  // === Basic fields: name, email, hourly rate, subjects ===
+  const inputs = document.querySelectorAll(".form-input.editable-field");
+  // 0: full name, 1: email, 2: hourly rate, 3: subjects
+  if (inputs.length >= 4) {
+    const firstName = t.firstName || "";
+    const lastName = t.lastName || "";
+    inputs[0].value = `${firstName} ${lastName}`.trim() || "";
+    inputs[1].value = t.email || "";
+
+    // hourlyRate (numeric column)
+    const rate =
+      typeof t.hourlyRate === "number"
+        ? t.hourlyRate
+        : t.hourlyRate
+        ? Number(t.hourlyRate)
+        : "";
+    inputs[2].value = Number.isNaN(rate) ? "" : rate;
+
+    // subjects: handle array OR JSON string OR plain text
+    const subjectsArray = normalizeSubjects(t.subjects);
+    inputs[3].value = subjectsArray.join(", ");
+  }
+
+  // === Bio (motivation) ===
+  const bio = document.querySelector("textarea.editable-field");
+  if (bio) bio.value = t.motivation || "";
+
+  // === Avatar initials ===
+  const avatar = document.getElementById("profilePhotoPreview");
+  if (avatar) {
+    const initials =
+      (t.firstName?.[0] || "?") + (t.lastName?.[0] || "");
+    avatar.textContent = initials.toUpperCase();
+  }
+
+  // === Availability schedule ===
+  const scheduleFromDb =
+    t.availabilitySchedule || t.availabilitySched || t.availabilitySc || null;
+  const schedule =
+    scheduleFromDb && typeof scheduleFromDb === "object"
+      ? scheduleFromDb
+      : buildDefaultScheduleFromUI();
+
+  renderAvailabilityGrid(schedule);
+}
+
+// Try to interpret whatever is stored in tutors.subjects
+function normalizeSubjects(subjects) {
+  if (Array.isArray(subjects)) {
+    return subjects
+      .map((s) => (typeof s === "string" ? s.trim() : ""))
+      .filter(Boolean);
+  }
+  if (typeof subjects === "string") {
+    // try JSON first
+    try {
+      const parsed = JSON.parse(subjects);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map((s) => (typeof s === "string" ? s.trim() : ""))
+          .filter(Boolean);
+      }
+    } catch {
+      // not JSON, treat as "Math, Physics"
+    }
+    return subjects
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+// Build a default schedule object from whatever is currently in the HTML
+function buildDefaultScheduleFromUI() {
+  const schedule = {};
+  document.querySelectorAll(".availability-day-slot").forEach((slot) => {
+    const dayLabel = slot.querySelector(".day-label");
+    if (!dayLabel) return;
+
+    const key = dayLabel.textContent.trim().toLowerCase(); // "monday"
+    const timeInputs = slot.querySelectorAll('input[type="time"]');
+    const toggle = slot.querySelector('input[type="checkbox"]');
+
+    schedule[key] = {
+      enabled: !!(toggle && toggle.checked),
+      from: timeInputs[0]?.value || null,
+      to: timeInputs[1]?.value || null,
+    };
+  });
+  return schedule;
+}
+
+// Apply a schedule object to the availability grid
+function renderAvailabilityGrid(schedule) {
+  document.querySelectorAll(".availability-day-slot").forEach((slot) => {
+    const dayLabel = slot.querySelector(".day-label");
+    if (!dayLabel) return;
+
+    const key = dayLabel.textContent.trim().toLowerCase();
+    const cfg = schedule[key];
+    const timeInputs = slot.querySelectorAll('input[type="time"]');
+    const toggle = slot.querySelector('input[type="checkbox"]');
+
+    if (!cfg) return; // leave defaults
+
+    if (timeInputs[0]) timeInputs[0].value = cfg.from || "";
+    if (timeInputs[1]) timeInputs[1].value = cfg.to || "";
+    if (toggle) toggle.checked = !!cfg.enabled;
+  });
+}
+
+// Collect schedule from UI into JSON we send to backend
+function collectAvailabilitySchedule() {
+  const schedule = {};
+  document.querySelectorAll(".availability-day-slot").forEach((slot) => {
+    const dayLabel = slot.querySelector(".day-label");
+    if (!dayLabel) return;
+
+    const key = dayLabel.textContent.trim().toLowerCase();
+    const timeInputs = slot.querySelectorAll('input[type="time"]');
+    const toggle = slot.querySelector('input[type="checkbox"]');
+
+    schedule[key] = {
+      enabled: !!(toggle && toggle.checked),
+      from: timeInputs[0]?.value || null,
+      to: timeInputs[1]?.value || null,
+    };
+  });
+  return schedule;
+}
+
+// ---------- UI HELPERS (SIDEBAR / DARK MODE / TOASTS) ----------
 
 function initUIHandlers() {
   // Sidebar toggle
   window.toggleSidebar = function () {
     const sidebar = document.querySelector(".sidebar");
     const overlay = document.querySelector(".sidebar-overlay");
-    sidebar.classList.toggle("open");
-    overlay.classList.toggle("active");
+    sidebar?.classList.toggle("open");
+    overlay?.classList.toggle("active");
   };
 
   // Dark mode toggle
@@ -72,16 +195,20 @@ function initUIHandlers() {
     document.querySelectorAll(".dark-mode-toggle").forEach((t) => {
       t.classList.toggle("active");
       const icon = t.querySelector("i");
-      if (t.classList.contains("active")) {
-        icon.setAttribute("data-lucide", "moon");
-      } else {
-        icon.setAttribute("data-lucide", "sun");
+      if (icon) {
+        icon.setAttribute(
+          "data-lucide",
+          t.classList.contains("active") ? "moon" : "sun"
+        );
       }
     });
 
     lucide.createIcons();
     const isDark = document.body.classList.contains("dark-mode");
-    showToast(isDark ? "Dark mode activated" : "Light mode activated", "info");
+    showToast(
+      isDark ? "Dark mode activated" : "Light mode activated",
+      "info"
+    );
     updateDarkModeText();
   };
 
@@ -129,7 +256,8 @@ function initUIHandlers() {
   };
 }
 
-// Initialize and expose edit/cancel/save + photo handlers used by the HTML
+// ---------- EDIT / SAVE / PHOTO / SEARCH ----------
+
 (function initEditModeHandlers() {
   const editBtn = document.getElementById("editBtn");
   const saveBtn = document.getElementById("saveBtn");
@@ -141,20 +269,72 @@ function initUIHandlers() {
 
   window.cancelEdit = function () {
     setEditMode(false);
-    // Reload to restore original values from server
     window.location.reload();
   };
 
+  // ✅ REAL SAVE to backend
   window.saveProfile = async function () {
     try {
       const tutorId = localStorage.getItem("tutorId");
-      const values = collectFormValues();
-      // No tutor update API yet; keep locally so UI feels responsive
-      sessionStorage.setItem("tutorDraftProfile:" + tutorId, JSON.stringify(values));
-      showToast("Changes saved (local only)", "success");
+      if (!tutorId) {
+        showToast("No tutor ID found, please log in again.", "error");
+        return;
+      }
+
+      const inputs = document.querySelectorAll(".form-input.editable-field");
+      const nameInput = inputs[0]; // not saved yet, mostly display
+      const emailInput = inputs[1]; // read-only
+      const rateInput = inputs[2];
+      const subjectsInput = inputs[3];
+      const bioTextarea = document.querySelector("textarea.editable-field");
+
+      const hourlyRateRaw = rateInput?.value ?? "";
+      const hourlyRate = hourlyRateRaw === "" ? null : Number(hourlyRateRaw);
+
+      if (hourlyRate !== null && Number.isNaN(hourlyRate)) {
+        showToast("Hourly rate must be a number.", "error");
+        return;
+      }
+
+      const subjectsString = subjectsInput?.value || "";
+      const subjects = subjectsString
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const availabilitySchedule = collectAvailabilitySchedule();
+      const motivation = bioTextarea?.value || null;
+
+      const payload = {
+        userId: tutorId,
+        hourlyRate,
+        availabilitySchedule,
+        motivation,
+        experience: null, // you can wire this later if you add a field
+        subjects,
+        format: null, // same here
+      };
+
+      const res = await fetch(
+        "https://tutor-match-n8a7.onrender.com/api/tutors/profile",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) {
+        console.error("Save profile error:", data);
+        showToast(data.error || "Failed to update profile", "error");
+        return;
+      }
+
+      showToast("Profile updated successfully", "success");
       setEditMode(false);
     } catch (e) {
-      console.error(e);
+      console.error("saveProfile exception:", e);
       showToast("Failed to save changes", "error");
     }
   };
@@ -188,27 +368,28 @@ function initUIHandlers() {
       delete preview.dataset.photoObjectUrl;
     }
     preview.style.backgroundImage = "";
-    const nameInput = document.querySelector('.editable-field[type="text"]');
+    const nameInput = document.querySelector(
+      '.editable-field[type="text"]'
+    );
     if (nameInput && nameInput.value) {
       const parts = nameInput.value.trim().split(/\s+/);
-      const initials = (parts[0]?.[0] || "?") + (parts[1]?.[0] || "");
+      const initials =
+        (parts[0]?.[0] || "?") + (parts[1]?.[0] || "");
       preview.textContent = initials.toUpperCase();
     }
   };
-
-  // Search stub to avoid reference error from oninput
-  window.filterFeedback = function () {};
 
   function setEditMode(isEditing) {
     document.body.classList.toggle("editing", isEditing);
     document.querySelectorAll(".editable-field").forEach((el) => {
       const tag = el.tagName.toLowerCase();
       const type = (el.getAttribute("type") || "").toLowerCase();
+
       if (tag === "input" || tag === "textarea") {
         if (type === "checkbox") {
           el.disabled = !isEditing;
         } else if (type === "email") {
-          // Keep email uneditable always
+          // email always read-only
           el.readOnly = true;
           el.classList.add("cursor-not-allowed");
         } else {
@@ -238,23 +419,13 @@ function initUIHandlers() {
     }
   }
 
-  function collectFormValues() {
-    const values = {};
-    const fields = document.querySelectorAll(".editable-field");
-    fields.forEach((el, idx) => {
-      const tag = el.tagName.toLowerCase();
-      const type = (el.getAttribute("type") || "").toLowerCase();
-      const key = el.name || `field_${idx}`;
-      if (tag === "input" || tag === "textarea") {
-        if (type === "email") return; // ignore email in save payload
-        values[key] = type === "checkbox" ? !!el.checked : el.value;
-      }
-    });
-    return values;
-  }
+  // Search stub to avoid reference error from oninput
+  window.filterFeedback = function () {};
+
   // Wire up View All Feedback button to navigate to feedback page
-  const viewBtn = Array.from(document.querySelectorAll("button"))
-    .find((b) => /View All Feedback/i.test(b.textContent || ""));
+  const viewBtn = Array.from(document.querySelectorAll("button")).find((b) =>
+    /View All Feedback/i.test(b.textContent || "")
+  );
   if (viewBtn) {
     viewBtn.addEventListener("click", () => {
       window.location.href = "feedback.html";
@@ -263,16 +434,18 @@ function initUIHandlers() {
 
   // Implement search that filters by student name only
   window.filterFeedback = function () {
-    const q = (document.getElementById("searchBar")?.value || "").trim().toLowerCase();
+    const q = (
+      document.getElementById("searchBar")?.value || ""
+    )
+      .trim()
+      .toLowerCase();
     document.querySelectorAll(".feedback-card").forEach((card) => {
       const nameEl = card.querySelector("h4, .student-name");
-      const name = (nameEl?.textContent || "").trim().toLowerCase();
+      const name = (nameEl?.textContent || "")
+        .trim()
+        .toLowerCase();
       const show = !q || name.includes(q);
       card.style.display = show ? "" : "none";
     });
   };
 })();
-
-
-
-

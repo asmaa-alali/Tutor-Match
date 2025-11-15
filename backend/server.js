@@ -1775,6 +1775,54 @@ app.get("/api/ratings/:tutorId/stats", async (req, res) => {
   }
 });
 
+// -------------------- UPDATE TUTOR PROFILE --------------------
+app.put("/api/tutors/profile", async (req, res) => {
+  try {
+    const {
+      userId,
+      hourlyRate,
+      availabilitySchedule,
+      motivation,
+      experience,
+      subjects,
+      format
+    } = req.body;
+
+    if (!userId)
+      return res.status(400).json({ error: "Missing userId" });
+
+    const normalizedSubjects = Array.isArray(subjects)
+      ? subjects.map(s => s.trim()).filter(Boolean)
+      : [];
+
+    const updates = {
+      hourlyRate: hourlyRate ?? null,
+      availabilitySchedule: availabilitySchedule ?? null,
+      motivation: motivation ?? null,
+      experience: experience ?? null,
+      subjects: normalizedSubjects,
+      format: format ?? null,
+    };
+
+    const { error } = await supabase
+      .from("tutors")
+      .update(updates)
+      .eq("id", userId);
+
+    if (error) {
+      console.error("Tutor update failed:", error);
+      return res.status(500).json({ error: "Failed to update tutor profile" });
+    }
+
+    return res.status(200).json({ message: "Profile updated successfully" });
+
+  } catch (err) {
+    console.error("Tutor update exception:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
 
 
