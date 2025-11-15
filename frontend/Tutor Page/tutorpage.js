@@ -50,7 +50,9 @@ async function loadTutorProfile(tutorId) {
 
   const t = data.tutor || {};
 
-  const inputs = document.querySelectorAll(".form-input.editable-field");
+  const inputs = Array.from(
+    document.querySelectorAll(".form-input.editable-field")
+  ).filter((el) => el.tagName === "INPUT");
 
   if (inputs.length >= 4) {
     const firstName = t.firstName || "";
@@ -259,7 +261,9 @@ function initUIHandlers() {
     const tutorId = localStorage.getItem("tutorId");
     if (!tutorId) return showToast("No tutor ID found.", "error");
 
-    const inputs = document.querySelectorAll(".form-input.editable-field");
+    const inputs = Array.from(
+      document.querySelectorAll(".form-input.editable-field")
+    ).filter((el) => el.tagName === "INPUT");
     const rateInput = inputs[2];
     const subjectsInput = inputs[3];
     const bioTextarea = document.querySelector("textarea.editable-field");
