@@ -1,0 +1,40 @@
+    if (type === "email") {
+      el.readOnly = true;
+    } else if (type === "checkbox") {
+      el.disabled = !isEditing;
+    } else {
+      el.readOnly = !isEditing;
+    }
+  });
+
+  // ENABLE / DISABLE PHOTO BUTTON
+  const uploadBtn = document.getElementById("photoUploadBtn");
+  const removeBtn = document.getElementById("removePhotoBtn");
+
+  if (uploadBtn) {
+    uploadBtn.disabled = !isEditing;
+    uploadBtn.classList.toggle("opacity-50", !isEditing);
+    uploadBtn.classList.toggle("cursor-not-allowed", !isEditing);
+  }
+
+  if (removeBtn) {
+    removeBtn.style.display = isEditing ? "" : "none";
+  }
+
+  document.getElementById("editBtn").style.display = isEditing ? "none" : "";
+  document.getElementById("saveBtn").style.display = isEditing ? "" : "none";
+  document.getElementById("cancelBtn").style.display = isEditing ? "" : "none";
+
+  lucide.createIcons();
+}
+
+})();
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("viewAllFeedbackBtn");
+  if (btn) {
+    btn.onclick = () => {
+      window.location.href = "feedback.html"; 
+    };
+  }
+});
+
