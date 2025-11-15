@@ -223,8 +223,27 @@
     setText(elements.headline, [tutor.degree, tutor.major].filter(Boolean).join(" • "));
     setText(elements.university, tutor.university || "Tutor Match");
     if (elements.avatar) {
-      elements.avatar.src = tutor.avatarUrl || tutor.profilePhoto || tutor.passportPhoto || elements.avatar.src;
-      elements.avatar.alt = `${fullName} avatar`;
+      // Prefer the dedicated profile photo URL used on the tutor account page.
+      const photoUrl =
+        tutor.profilePhotoUrl ||
+        tutor.avatarUrl ||
+        tutor.profilePhoto ||
+        tutor.passportPhoto ||
+        "";
+
+      if (photoUrl) {
+        elements.avatar.onload = () => {
+          elements.avatar.style.display = "";
+        };
+        elements.avatar.onerror = () => {
+          // If the image fails to load (bad URL, permissions, etc.), hide it
+          elements.avatar.style.display = "none";
+        };
+        elements.avatar.src = photoUrl;
+        elements.avatar.alt = `${fullName} avatar`;
+      } else {
+        elements.avatar.style.display = "none";
+      }
     }
     let rate = Number(tutor.rate || tutor.hourlyRate);
 
