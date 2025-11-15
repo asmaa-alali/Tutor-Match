@@ -1787,7 +1787,8 @@ app.put(
         hourlyRate,
         motivation,
         experience,
-        format
+        format,
+        removePhoto,
       } = req.body;
 
       if (!userId)
@@ -1837,7 +1838,13 @@ app.put(
         availabilitySchedule,      // <-- FIXED (actual JSON object)
       };
 
-      if (profilePhotoUrl) updates.profilePhotoUrl = profilePhotoUrl;
+      if (profilePhotoUrl) {
+        // New photo uploaded: overwrite existing URL
+        updates.profilePhotoUrl = profilePhotoUrl;
+      } else if (removePhoto === "true") {
+        // Explicitly clear existing photo
+        updates.profilePhotoUrl = null;
+      }
 
       const { error } = await supabase
         .from("tutors")
