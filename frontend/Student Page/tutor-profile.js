@@ -216,32 +216,6 @@
     }
   }
 
-  // Use the same backend as the tutor account page for profile details
-  async function loadTutorRemote() {
-    if (!tutorId) {
-      alert("Missing tutor id. Please return to Find Tutors and try again.");
-      window.location.href = "./findtutor.html";
-      return;
-    }
-    try {
-      elements.status.textContent = "Loading profile…";
-      const res = await fetch(
-        `https://tutor-match-n8a7.onrender.com/api/tutors/profile/${encodeURIComponent(
-          tutorId
-        )}`
-      );
-      if (!res.ok) throw new Error("Tutor not found");
-      const payload = await res.json();
-      const tutor = payload?.tutor;
-      if (!tutor) throw new Error("Invalid payload");
-      populatePage(tutor);
-    } catch (err) {
-      console.error(err);
-      alert("Unable to load tutor profile right now.");
-      window.location.href = "./findtutor.html";
-    }
-  }
-
   function populatePage(tutor) {
     const fullName = [tutor.firstName, tutor.lastName].filter(Boolean).join(" ").trim() || "Tutor Profile";
     document.title = `${fullName} • Tutor Match`;
@@ -342,6 +316,6 @@
   document.addEventListener("DOMContentLoaded", () => {
     if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
     wireActions();
-    loadTutorRemote();
+    loadTutor();
   });
 })();
