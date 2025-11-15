@@ -1,3 +1,5 @@
+const DEFAULT_AVATAR_SRC = "/assets/default-avatar.svg";
+
 document.addEventListener("DOMContentLoaded", () => {
     const sessionRaw = localStorage.getItem("tmUserSession");
     if (!sessionRaw) return;
@@ -48,15 +50,10 @@ document.addEventListener("DOMContentLoaded", () => {
             avatar.textContent = "";
             avatar.dataset.avatarUrl = avatarUrl;
         } else {
-            const initialsSource = fullName || "Student";
-            const initials = [firstName[0], lastName[0]]
-                .filter(Boolean)
-                .join("");
-            const fallback = initials
-                ? initials.toUpperCase()
-                : initialsSource.slice(0, 2).toUpperCase() || "ST";
-            avatar.style.backgroundImage = "";
-            avatar.textContent = fallback;
+            avatar.style.backgroundImage = `url(${DEFAULT_AVATAR_SRC})`;
+            avatar.style.backgroundSize = "cover";
+            avatar.style.backgroundPosition = "center";
+            avatar.textContent = "";
             delete avatar.dataset.avatarUrl;
         }
     }

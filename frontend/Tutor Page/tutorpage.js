@@ -1,5 +1,7 @@
 // tutorpage.js
 
+const DEFAULT_AVATAR_SRC = "/assets/default-avatar.svg";
+
 document.addEventListener("DOMContentLoaded", async () => {
   lucide.createIcons();
 
@@ -77,10 +79,13 @@ async function loadTutorProfile(tutorId) {
   if (avatar) {
     if (t.profilePhotoUrl) {
       avatar.style.backgroundImage = `url(${t.profilePhotoUrl})`;
+      avatar.style.backgroundSize = "cover";
+      avatar.style.backgroundPosition = "center";
       avatar.textContent = "";
     } else {
       const initials =
         (t.firstName?.[0] || "?") + (t.lastName?.[0] || "?");
+      avatar.style.backgroundImage = "";
       avatar.textContent = initials.toUpperCase();
     }
   }
@@ -196,6 +201,12 @@ window.handlePhotoUpload = function (event) {
 window.removePhoto = function () {
   const preview = document.getElementById("profilePhotoPreview");
   preview.style.backgroundImage = "";
+  removePhotoRequested = true;
+
+  const photoInput = document.getElementById("photoInput");
+  if (photoInput) {
+    photoInput.value = "";
+  }
 
   const nameInput = document.querySelector('.editable-field[type="text"]');
   if (nameInput) {
@@ -372,4 +383,3 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 });
-

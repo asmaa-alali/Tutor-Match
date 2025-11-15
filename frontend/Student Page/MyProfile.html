@@ -224,8 +224,7 @@
     <div class="glass-card p-8 mb-8">
      <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
       <div class="flex flex-col items-center">
-       <div class="profile-avatar mb-4" id="profileAvatar">
-        AS
+       <div class="profile-avatar mb-4" id="profileAvatar" style="background-image: url('/assets/default-avatar.svg'); background-size: cover; background-position: center;">
        </div><button id="changePhotoBtn" class="glass-btn-primary text-sm" onclick="changePhoto()"> <i data-lucide="camera" class="w-4 h-4"></i> Change Photo </button> <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="handlePhotoChange(event)">
       </div>
       <div class="flex-1 text-center md:text-left">
@@ -310,6 +309,7 @@
         })();
 
         const SESSION_KEY = 'tmUserSession';
+        const DEFAULT_AVATAR_SRC = '/assets/default-avatar.svg';
         let activeSession = null;
         let editingEnabled = false;
         let currentSubjects = [];
@@ -385,43 +385,32 @@
             }
         }
 
-        function getAvatarInitials(fullName) {
-            const trimmed = (fullName || '').trim();
-            if (!trimmed) return 'ST';
-            const parts = trimmed.split(/\s+/).filter(Boolean).slice(0, 2);
-            if (!parts.length) return 'ST';
-            return parts.map(part => part[0]?.toUpperCase() || '').join('') || 'ST';
-        }
-
-        function setAvatarImage(url, fullName) {
+        function setAvatarImage(url) {
             const avatar = document.getElementById('profileAvatar');
             if (!avatar) return;
 
-            const hasUrl = typeof url === 'string' && url.trim().length > 0;
-            if (hasUrl) {
-                avatar.style.backgroundImage = `url(${url})`;
+            const trimmedUrl = typeof url === 'string' ? url.trim() : '';
+            if (trimmedUrl) {
+                avatar.style.backgroundImage = `url(${trimmedUrl})`;
                 avatar.style.backgroundSize = 'cover';
                 avatar.style.backgroundPosition = 'center';
                 avatar.textContent = '';
-                avatar.dataset.avatarUrl = url;
+                avatar.dataset.avatarUrl = trimmedUrl;
             } else {
-                avatar.style.backgroundImage = '';
-                avatar.textContent = getAvatarInitials(fullName);
+                avatar.style.backgroundImage = `url(${DEFAULT_AVATAR_SRC})`;
+                avatar.style.backgroundSize = 'cover';
+                avatar.style.backgroundPosition = 'center';
+                avatar.textContent = '';
                 delete avatar.dataset.avatarUrl;
             }
         }
 
         function updateHeaderFromFullName(fullName) {
             const header = document.getElementById('profileHeaderName');
-            const avatar = document.getElementById('profileAvatar');
             const trimmed = (fullName || '').trim();
 
             if (header) {
                 header.textContent = trimmed || 'Student';
-            }
-
-            if (avatar && !avatar.style.backgroundImage) {
-                avatar.textContent = getAvatarInitials(fullName);
             }
         }
 
@@ -521,7 +510,7 @@
             document.getElementById('university').value = university;
             document.getElementById('major').value = major;
 
-            setAvatarImage(profile.avatarUrl, fullName);
+            setAvatarImage(profile.avatarUrl);
             const yearSelect = document.getElementById('yearOfStudy');
             if (yearSelect) {
                 if (yearOfStudy && Array.from(yearSelect.options).some(opt => opt.value === yearOfStudy)) {
@@ -613,7 +602,7 @@
                 }
 
                 const photoUrl = payload.photoUrl;
-                setAvatarImage(photoUrl, document.getElementById('fullName')?.value || '');
+                setAvatarImage(photoUrl);
 
                 if (!activeSession.profile || typeof activeSession.profile !== 'object') {
                     activeSession.profile = {};
