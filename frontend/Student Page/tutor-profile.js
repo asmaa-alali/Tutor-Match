@@ -84,12 +84,31 @@
   function renderCertificates(tutor) {
     if (!elements.certificates) return;
     const certs = [];
-    if (tutor.certificate) certs.push({ label: "Certificate", url: tutor.certificate });
-    if (tutor.additionalCertificates) {
-      toArray(tutor.additionalCertificates).forEach((url, idx) => {
-        certs.push({ label: `Certificate ${idx + 1}`, url });
+
+    // Main certificate URL (most signups store it in tutors.certificate)
+    if (tutor.certificate) {
+      const list = toArray(tutor.certificate);
+      list.forEach((url, idx) => {
+        certs.push({
+          label: idx === 0 ? "Certificate" : `Certificate ${idx + 1}`,
+          url,
+        });
       });
     }
+
+    // Some records may use certificateUrl/certificateURL instead
+    if (tutor.certificateUrl || tutor.certificateURL) {
+      const url = tutor.certificateUrl || tutor.certificateURL;
+      certs.push({ label: certs.length ? `Certificate ${certs.length + 1}` : "Certificate", url });
+    }
+
+    // Any additional certificate URLs
+    if (tutor.additionalCertificates) {
+      toArray(tutor.additionalCertificates).forEach((url, idx) => {
+        certs.push({ label: `Certificate ${certs.length + 1}`, url });
+      });
+    }
+
     if (!certs.length) {
       elements.certificates.innerHTML = "<p>No certificates uploaded yet.</p>";
       return;
