@@ -360,3 +360,11 @@ function initUIHandlers() {
 }
 
 })();
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("viewAllFeedbackBtn");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      window.location.href = "feedback.html"; 
+    });
+  }
+});
