@@ -369,7 +369,10 @@ console.log("✅ findtutor.js loaded!");
       const overlay = document.createElement('div');
       overlay.id = 'rating-modal-overlay';
       overlay.className = 'fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4';
-      
+      overlay.dataset.tutorId = tutorId;
+
+
+
       overlay.innerHTML = `
         <div class="glass dark:glass-dark rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
           <div class="flex justify-between items-center mb-6">
@@ -559,7 +562,7 @@ console.log("✅ findtutor.js loaded!");
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              tutorId,
+              tutorId: overlay.dataset.tutorId,
               studentId,
               rating,
               feedback,
@@ -570,7 +573,8 @@ console.log("✅ findtutor.js loaded!");
           
           if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Failed to submit rating');
+            throw new Error(error.error || error.message || 'Failed to submit rating');
+
           }
           
           // Success!
