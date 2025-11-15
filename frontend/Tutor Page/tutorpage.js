@@ -97,9 +97,6 @@ async function loadTutorProfile(tutorId) {
 
 // ======================= HELPERS =======================
 
-// Track if the user has explicitly requested to remove their profile photo
-let removePhotoRequested = false;
-
 function normalizeSubjects(subjects) {
   if (Array.isArray(subjects)) {
     return subjects.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean);
@@ -187,9 +184,6 @@ window.handlePhotoUpload = function (event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  // A new upload cancels any previous "remove photo" request
-  removePhotoRequested = false;
-
   const preview = document.getElementById("profilePhotoPreview");
   const url = URL.createObjectURL(file);
 
@@ -202,13 +196,6 @@ window.handlePhotoUpload = function (event) {
 window.removePhoto = function () {
   const preview = document.getElementById("profilePhotoPreview");
   preview.style.backgroundImage = "";
-  removePhotoRequested = true;
-
-  // Clear any selected file so it isn't re-uploaded
-  const photoInput = document.getElementById("photoInput");
-  if (photoInput) {
-    photoInput.value = "";
-  }
 
   const nameInput = document.querySelector('.editable-field[type="text"]');
   if (nameInput) {
