@@ -1785,46 +1785,57 @@ app.put(
       const {
         userId,
         hourlyRate,
-        availabilitySchedule,
         motivation,
         experience,
-        subjects,
         format
       } = req.body;
 
       if (!userId)
         return res.status(400).json({ error: "Missing userId" });
 
-      // Parse subjects
+      // -----------------------------
+      // FIX 1 — Parse JSON fields
+      // -----------------------------
+      let subjects = [];
+      try {
+        subjects = JSON.parse(req.body.subjects || "[]");
+      } catch {}
+
+      let availabilitySchedule = null;
+      try {
+        availabilitySchedule = JSON.parse(req.body.availabilitySchedule || "null");
+      } catch {}
+
+      // -----------------------------
+      // FIX 2 — Validate subjects
+      // -----------------------------
       const normalizedSubjects = Array.isArray(subjects)
-        ? subjects.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean)
+        ? subjects.map(s => (typeof s === "string" ? s.trim() : "")).filter(Boolean)
         : [];
 
-      // Handle profile photo (optional)
+      // -----------------------------
+      // OPTIONAL PROFILE PHOTO
+      // -----------------------------
       let profilePhotoUrl = null;
       if (req.file) {
-        try {
-          profilePhotoUrl = await uploadToSupabaseStorage(
-            req.file,
-            `profile/${userId}`
-          );
-        } catch (uploadErr) {
-          console.error("Profile photo upload failed:", uploadErr);
-          return res.status(500).json({ error: "Failed to upload profile photo." });
-        }
+        profilePhotoUrl = await uploadToSupabaseStorage(
+          req.file,
+          `profile/${userId}`
+        );
       }
 
-      // Build update payload
+      // -----------------------------
+      // FIX 3 — Prepare update payload
+      // -----------------------------
       const updates = {
         hourlyRate: hourlyRate ?? null,
-        availabilitySchedule: availabilitySchedule ?? null,
         motivation: motivation ?? null,
         experience: experience ?? null,
-        subjects: normalizedSubjects,
         format: format ?? null,
+        subjects: normalizedSubjects,
+        availabilitySchedule,      // <-- FIXED (actual JSON object)
       };
 
-      // Only update profilePhotoUrl if a new file was uploaded
       if (profilePhotoUrl) updates.profilePhotoUrl = profilePhotoUrl;
 
       const { error } = await supabase
@@ -1834,15 +1845,14 @@ app.put(
 
       if (error) {
         console.error("Tutor update failed:", error);
-        return res
-          .status(500)
-          .json({ error: "Failed to update tutor profile" });
+        return res.status(500).json({ error: "Failed to update tutor profile" });
       }
 
       return res.status(200).json({
         message: "Profile updated successfully",
         profilePhotoUrl,
       });
+
     } catch (err) {
       console.error("Tutor update exception:", err);
       return res.status(500).json({ error: "Server error" });
