@@ -539,10 +539,11 @@ console.log("✅ findtutor.js loaded!");
         submitBtn.disabled = true;
         
         try {
-          // Get student info from localStorage
-          const session = JSON.parse(localStorage.getItem('session') || '{}');
+          // Get student info from stored session (supports legacy and tmUserSession keys)
+          let rawSession = localStorage.getItem('tmUserSession') || localStorage.getItem('session');
+          const session = rawSession ? JSON.parse(rawSession) : {};
           const studentId = session.userId;
-          
+
           if (!studentId) {
             throw new Error('Please log in to submit a rating');
           }
