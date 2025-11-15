@@ -164,14 +164,6 @@ console.log("✅ findtutor.js loaded!");
         <button class="w-full glass dark:glass-dark px-4 py-2 rounded-xl text-white hover:bg-white/20 transition-all" data-action="rate" data-id="${t.id || ''}" data-name="${name}">
           <i data-lucide="star" class="w-4 h-4 inline mr-2"></i> Rate This Tutor
         </button>
-        <button 
-           class="w-full glass dark:glass-dark px-4 py-2 mt-3 rounded-xl text-white hover:bg-white/20 transition-all" 
-           data-action="feedback" 
-           data-id="${t.id || ''}">
-          <i data-lucide="message-square" class="w-4 h-4 inline mr-2"></i>
-          Leave Feedback
-          </button>
-
       </div>
     `;
   }
@@ -634,11 +626,6 @@ console.log("✅ findtutor.js loaded!");
           const name = btn.dataset.name;
           openRatingModal(id, name);
         }
-        else if (action === 'feedback') {
-           e.stopPropagation();
-          window.location.href = `/TutorProfile/feedback.html?tutorId=${encodeURIComponent(id)}`;
-      }
-
         return;
       }
 
