@@ -8,10 +8,73 @@
   <link href="student-dashboard.css" rel="stylesheet" />
   <script src="../common/session-guard.js" defer></script>
   <script src="../common/logout.js" defer></script>
+  <style>
+    .dashboard-nav {
+      backdrop-filter: blur(14px);
+      background: rgba(15, 23, 42, 0.75);
+    }
+    .dashboard-nav a {
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .dashboard-nav a:hover {
+      transform: translateY(-1px);
+    }
+    body.dark {
+      background: #0f172a;
+      color: #f8fafc;
+    }
+    body.dark .dashboard-nav {
+      background: rgba(2, 6, 23, 0.9);
+      border-color: rgba(148, 163, 184, 0.2);
+    }
+    body.dark aside {
+      background: #0b1120;
+    }
+    body.dark aside a {
+      color: #e2e8f0;
+    }
+    body.dark aside a:hover {
+      background: rgba(59, 130, 246, 0.3);
+    }
+    body.dark main {
+      background: transparent;
+    }
+    body.dark .card-dark {
+      background: rgba(15, 23, 42, 0.9);
+      color: #f8fafc;
+      border: 1px solid rgba(148, 163, 184, 0.15);
+    }
+  </style>
 </head>
 <body class="bg-gray-50 font-poppins text-gray-800">
 
-  <div class="flex min-h-screen">
+  <!-- Top navigation -->
+  <header class="dashboard-nav fixed top-0 left-0 right-0 z-30 border-b border-white/10 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-2 text-sm">
+        <a href="/FindTutor/find-tutor.html" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10">
+          <span>🔍</span>
+          <span>Find Tutors</span>
+        </a>
+        <a href="/About/about.html" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10">
+          <span>ℹ️</span>
+          <span>About</span>
+        </a>
+        <a href="/Contact/contact.html" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10">
+          <span>✉️</span>
+          <span>Contact</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="dash-theme-toggle" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-400/80 text-black font-semibold">
+          <span class="text-lg">☀️</span>
+          <span class="text-sm">Toggle Theme</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex min-h-screen pt-28 sm:pt-24">
     <!-- Sidebar -->
     <aside class="w-64 bg-indigo-900 text-white flex flex-col">
       <div class="flex flex-col items-center py-8 border-b border-indigo-700">
@@ -37,17 +100,17 @@
 
       <!-- Cards Section -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition">
+        <div class="bg-white card-dark rounded-2xl shadow-md p-6 hover:shadow-lg transition">
           <h3 class="text-lg font-semibold text-indigo-800 mb-2">Find Tutors</h3>
           <p class="text-gray-600 text-sm">Browse tutors by subject, experience, or rating to find the best match.</p>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition">
+        <div class="bg-white card-dark rounded-2xl shadow-md p-6 hover:shadow-lg transition">
           <h3 class="text-lg font-semibold text-indigo-800 mb-2">My Bookings</h3>
           <p class="text-gray-600 text-sm">View, edit, or cancel your existing tutoring sessions easily.</p>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition">
+        <div class="bg-white card-dark rounded-2xl shadow-md p-6 hover:shadow-lg transition">
           <h3 class="text-lg font-semibold text-indigo-800 mb-2">Support</h3>
           <p class="text-gray-600 text-sm">Need help? Reach out to our support team or check FAQs.</p>
         </div>
@@ -55,5 +118,30 @@
     </main>
   </div>
 
+  <script>
+    (function () {
+      const btn = document.getElementById('dash-theme-toggle');
+      if (!btn) return;
+      const applyTheme = (mode) => {
+        if (mode === 'dark') {
+          document.body.classList.add('dark');
+          localStorage.setItem('dashTheme', 'dark');
+          btn.innerHTML = '<span class="text-lg">🌙</span><span class="text-sm">Light Mode</span>';
+        } else {
+          document.body.classList.remove('dark');
+          localStorage.setItem('dashTheme', 'light');
+          btn.innerHTML = '<span class="text-lg">☀️</span><span class="text-sm">Dark Mode</span>';
+        }
+      };
+
+      const saved = localStorage.getItem('dashTheme');
+      applyTheme(saved === 'dark' ? 'dark' : 'light');
+
+      btn.addEventListener('click', () => {
+        const nextMode = document.body.classList.contains('dark') ? 'light' : 'dark';
+        applyTheme(nextMode);
+      });
+    })();
+  </script>
 </body>
 </html>
