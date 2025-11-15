@@ -222,23 +222,9 @@
     setText(elements.name, fullName);
     setText(elements.headline, [tutor.degree, tutor.major].filter(Boolean).join(" • "));
     setText(elements.university, tutor.university || "Tutor Match");
-
     if (elements.avatar) {
-      const photoUrl =
-        tutor.profilePhotoUrl || // main tutor profile photo from tutor account
-        tutor.avatarUrl ||
-        tutor.profilePhoto ||
-        tutor.passportPhoto ||
-        "";
-
-      if (photoUrl) {
-        elements.avatar.src = photoUrl;
-        elements.avatar.alt = `${fullName} avatar`;
-        elements.avatar.style.display = "";
-      } else {
-        // No uploaded photo: hide the image entirely on the student view
-        elements.avatar.style.display = "none";
-      }
+      elements.avatar.src = tutor.avatarUrl || tutor.profilePhoto || tutor.passportPhoto || elements.avatar.src;
+      elements.avatar.alt = `${fullName} avatar`;
     }
     let rate = Number(tutor.rate || tutor.hourlyRate);
 
