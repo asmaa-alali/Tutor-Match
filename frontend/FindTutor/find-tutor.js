@@ -161,9 +161,7 @@ console.log("✅ findtutor.js loaded!");
             </button>
           </div>
         </div>
-        <button class="w-full glass dark:glass-dark px-4 py-2 rounded-xl text-white hover:bg-white/20 transition-all" data-action="rate" data-id="${t.id || ''}" data-name="${name}">
-          <i data-lucide="star" class="w-4 h-4 inline mr-2"></i> Rate This Tutor
-        </button>
+        
       </div>
     `;
   }
