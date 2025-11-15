@@ -566,28 +566,6 @@ const deleteLocalProfilePhoto = async (avatarPath) => {
   }
 };
 
-const cleanupStoredAvatar = async (avatarPath) => {
-  if (!avatarPath || typeof avatarPath !== "string") return;
-  if (avatarPath.startsWith("/uploads/profile/")) {
-    await deleteLocalProfilePhoto(avatarPath);
-    return;
-  }
-
-  const match = avatarPath.match(/\/storage\/v1\/object\/public\/([^/]+)\/(.+)$/i);
-  if (!match) return;
-  const [, bucket, filePath] = match;
-  if (!bucket || !filePath || bucket !== TUTOR_UPLOAD_BUCKET) return;
-
-  try {
-    const { error } = await supabase.storage.from(bucket).remove([filePath]);
-    if (error) {
-      console.warn("Failed to delete previous remote avatar:", error);
-    }
-  } catch (err) {
-    console.warn("Unexpected error deleting remote avatar:", err);
-  }
-};
-
 // Upload a local temp file (multer) to Supabase Storage and return a public or fallback URL
 async function uploadToSupabaseStorage(file, folder) {
   const buffer = fs.readFileSync(file.path);
@@ -1175,9 +1153,12 @@ app.post(
 
       if (previousAvatar && previousAvatar !== photoUrl) {
         try {
-          await cleanupStoredAvatar(previousAvatar);
+          await deleteLocalProfilePhoto(previousAvatar);
         } catch (cleanupErr) {
-          console.warn("Unable to clean up previous profile photo:", cleanupErr);
+          console.warn(
+            "Unable to clean up previous local profile photo:",
+            cleanupErr
+          );
         }
       }
 
@@ -1193,62 +1174,6 @@ app.post(
     }
   }
 );
-
-app.delete("/api/students/profile/photo", async (req, res) => {
-  try {
-    const userId = (req.body?.userId || "").trim();
-    if (!userId) {
-      return res.status(400).json({ error: "Missing user ID." });
-    }
-
-    const { data: userLookup, error: userLookupError } =
-      await supabase.auth.admin.getUserById(userId);
-    if (userLookupError || !userLookup?.user) {
-      console.error("Unable to fetch user for photo removal:", userLookupError);
-      return res.status(404).json({ error: "Student not found." });
-    }
-
-    const authUser = userLookup.user;
-    const metadata = authUser.user_metadata || {};
-
-    if (metadata.role && metadata.role !== "student") {
-      return res.status(403).json({ error: "Only students can delete this photo." });
-    }
-
-    const previousAvatar =
-      typeof metadata.avatarUrl === "string" ? metadata.avatarUrl.trim() : "";
-
-    const updatedMetadata = {
-      ...metadata,
-      avatarUrl: "",
-    };
-
-    const { error: updateError } = await supabase.auth.admin.updateUserById(
-      userId,
-      { user_metadata: updatedMetadata }
-    );
-
-    if (updateError) {
-      console.error("Failed to clear photo metadata:", updateError);
-      return res.status(500).json({ error: "Unable to update profile photo metadata." });
-    }
-
-    if (previousAvatar) {
-      try {
-        await cleanupStoredAvatar(previousAvatar);
-      } catch (cleanupErr) {
-        console.warn("Unable to clean up profile photo during delete:", cleanupErr);
-      }
-    }
-
-    return res.json({ message: "Profile photo removed." });
-  } catch (err) {
-    console.error("Profile photo delete error:", err);
-    return res
-      .status(500)
-      .json({ error: "Unexpected error while removing photo." });
-  }
-});
 
 // -------------------- GENERATE AND SEND LOGIN OTP --------------------
 import crypto from "crypto";

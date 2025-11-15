@@ -58,28 +58,6 @@
             transform: translateY(-2px);
         }
 
-        .glass-btn-danger {
-            background: linear-gradient(135deg, rgba(248, 113, 113, 0.9), rgba(220, 38, 38, 0.95));
-            color: #fee2e2;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 18px rgba(239, 68, 68, 0.35);
-        }
-
-        .glass-btn-danger:hover {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(185, 28, 28, 0.95));
-            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.45);
-            transform: translateY(-2px);
-        }
-
         .glass-btn-large {
             background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
             color: white;
@@ -230,8 +208,12 @@
   
  </head>
  <body>
-  <div class="fixed top-4 right-4 z-50">
-    <a href="findtutor.html" class="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-white/20 bg-black/20 hover:bg-white/10 text-white transition">
+  <!-- Top-right controls: Back + Dark Mode -->
+  <div class="fixed top-4 right-4 z-50 flex items-center gap-3">
+    <button id="theme-toggle" aria-label="Toggle dark mode" class="inline-flex items-center justify-center w-12 h-12 rounded-2xl border border-white/20 bg-transparent hover:bg-white/10 transition">
+      <i data-lucide="moon" class="w-6 h-6 text-blue-300"></i>
+    </button>
+    <a href="findtutor.html" class="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-white/20 bg-transparent hover:bg-white/10 text-white transition">
       <i data-lucide="arrow-left" class="w-5 h-5"></i>
       <span>return back</span>
     </a>
@@ -241,26 +223,15 @@
    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="glass-card p-8 mb-8">
      <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
-      <div class="flex flex-col items-center gap-3">
-       <div class="profile-avatar mb-2" id="profileAvatar" style="background-image: url('/assets/default-avatar.svg'); background-size: cover; background-position: center;">
-       </div>
-       <div class="flex flex-col sm:flex-row items-center gap-3">
-        <button id="changePhotoBtn" class="glass-btn-primary text-sm" type="button" onclick="changePhoto()">
-         <i data-lucide="camera" class="w-4 h-4"></i>
-         Change Photo
-        </button>
-        <button id="deletePhotoBtn" class="glass-btn-danger text-sm" type="button" onclick="deletePhoto()">
-         <i data-lucide="trash-2" class="w-4 h-4"></i>
-         Delete Photo
-        </button>
-       </div>
-       <p class="text-xs text-slate-400 text-center max-w-xs">Update your profile photo anytime.</p>
-       <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="handlePhotoChange(event)">
+      <div class="flex flex-col items-center">
+       <div class="profile-avatar mb-4" id="profileAvatar" style="background-image: url('/assets/default-avatar.svg'); background-size: cover; background-position: center;">
+       </div><button id="changePhotoBtn" class="glass-btn-primary text-sm" onclick="changePhoto()"> <i data-lucide="camera" class="w-4 h-4"></i> Change Photo </button> <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="handlePhotoChange(event)">
       </div>
       <div class="flex-1 text-center md:text-left">
        <h1 class="text-4xl font-bold text-white mb-2" id="profileHeaderName">Alex Smith</h1>
        <p class="text-xl text-gray-300 mb-6" id="majorCaption">Computer Science Student</p>
       </div>
+      <div class="flex-shrink-0"><button class="glass-btn-primary" onclick="editProfile()"> <i data-lucide="edit" class="w-5 h-5"></i> Edit Profile </button>
       </div>
      </div>
     </div>
@@ -270,11 +241,11 @@
       <div class="section-icon personal-icon"><i data-lucide="user" class="w-4 h-4 text-white"></i>
        </div> Personal Information</h2>
       <div class="space-y-6">
-       <div class="form-group"><label class="form-label">Full Name</label> <input type="text" value="" class="form-input" id="fullName" placeholder="Enter your full name" data-free-edit="true">
+       <div class="form-group"><label class="form-label">Full Name</label> <input type="text" value="" class="form-input" id="fullName" placeholder="Enter your full name" readonly>
        </div>
-       <div class="form-group"><label class="form-label">Email Address</label> <input type="email" value="" class="form-input" id="email" placeholder="Enter your email" data-free-edit="true">
+       <div class="form-group"><label class="form-label">Email Address</label> <input type="email" value="" class="form-input" id="email" placeholder="Enter your email" readonly>
        </div>
-       <div class="form-group"><label class="form-label">Phone Number</label> <input type="tel" value="" class="form-input" id="phone" placeholder="Enter your phone number" data-free-edit="true">
+       <div class="form-group"><label class="form-label">Phone Number</label> <input type="tel" value="" class="form-input" id="phone" placeholder="Enter your phone number" readonly>
        </div>
       </div>
      </div>
@@ -283,11 +254,11 @@
        <div class="section-icon academic-icon"><i data-lucide="graduation-cap" class="w-4 h-4 text-white"></i>
        </div> Academic Information</h2>
       <div class="space-y-6">
-       <div class="form-group"><label class="form-label">University</label> <input type="text" value="" class="form-input" id="university" placeholder="Enter your university" data-free-edit="true">
+       <div class="form-group"><label class="form-label">University</label> <input type="text" value="" class="form-input" id="university" placeholder="Enter your university" readonly>
        </div>
-       <div class="form-group"><label class="form-label">Major</label> <input type="text" value="" class="form-input" id="major" oninput="updateMajorCaption()" placeholder="Enter your major" data-free-edit="true">
+       <div class="form-group"><label class="form-label">Major</label> <input type="text" value="" class="form-input" id="major" oninput="updateMajorCaption()" placeholder="Enter your major" readonly>
        </div>
-       <div class="form-group"><label class="form-label">Year of Study</label> <select class="form-input" id="yearOfStudy" data-free-edit="true"> <option value="" selected disabled>Choose your year</option> <option value="freshman">Freshman (1st Year)</option> <option value="sophomore">Sophomore (2nd Year)</option> <option value="junior">Junior (3rd Year)</option> <option value="senior">Senior (4th Year)</option> <option value="graduate">Graduate Student</option> </select>
+       <div class="form-group"><label class="form-label">Year of Study</label> <select class="form-input" id="yearOfStudy" disabled> <option value="" selected disabled>Choose your year</option> <option value="freshman">Freshman (1st Year)</option> <option value="sophomore">Sophomore (2nd Year)</option> <option value="junior">Junior (3rd Year)</option> <option value="senior">Senior (4th Year)</option> <option value="graduate">Graduate Student</option> </select>
        </div>
        <div class="form-group"><label class="form-label">Preferred Subjects</label>
         <div class="flex flex-wrap gap-2 mt-2" id="subjectTags"></div>
@@ -299,15 +270,7 @@
       </div>
      </div>
     </div>
-    <div class="text-center flex flex-col sm:flex-row items-center justify-center gap-4">
-     <button id="saveProfileBtn" class="glass-btn-large" type="button" onclick="saveChanges(this)">
-      <i data-lucide="save" class="w-5 h-5"></i>
-      Save Changes
-     </button>
-     <button id="cancelEditBtn" class="glass-btn-primary hidden" type="button" onclick="cancelEdit()">
-      <i data-lucide="x-circle" class="w-5 h-5"></i>
-      Cancel
-     </button>
+    <div class="text-center"><button class="glass-btn-large" onclick="saveChanges(this)"> <i data-lucide="save" class="w-5 h-5"></i> Save Changes </button>
     </div>
    </div>
   </div>
@@ -315,13 +278,38 @@
   <script>
         lucide.createIcons();
 
+        // Simple theme toggle (persists across pages)
+        (function initThemeToggle(){
+            const htmlEl = document.documentElement;
+            const btn = document.getElementById('theme-toggle');
+            const sun = () => btn.querySelector('[data-lucide="sun"]');
+            const moon = () => btn.querySelector('[data-lucide="moon"]');
+
+            const saved = localStorage.getItem('theme');
+            if (saved === 'dark') htmlEl.classList.add('dark');
+            if (saved === 'light') htmlEl.classList.remove('dark');
+
+            function syncIcons(){
+                const isDark = htmlEl.classList.contains('dark');
+                if (isDark){
+                    if (!sun()) btn.innerHTML = '<i data-lucide="sun" class="w-6 h-6 text-yellow-300"></i>';
+                } else {
+                    if (!moon()) btn.innerHTML = '<i data-lucide="moon" class="w-6 h-6 text-blue-300"></i>';
+                }
+                lucide.createIcons();
+            }
+            syncIcons();
+
+            if (btn) btn.addEventListener('click', ()=>{
+                htmlEl.classList.toggle('dark');
+                const isDark = htmlEl.classList.contains('dark');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                syncIcons();
+            });
+        })();
+
         const SESSION_KEY = 'tmUserSession';
         const DEFAULT_AVATAR_SRC = '/assets/default-avatar.svg';
-        const DEFAULT_REMOTE_API = 'https://tutor-match-n8a7.onrender.com';
-        const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-        const isSameRemoteHost = window.location.origin.includes('tutor-match-n8a7.onrender.com');
-        const API_BASE = window.tmApiBase || (isLocalHost || isSameRemoteHost ? '' : DEFAULT_REMOTE_API);
-        const apiUrl = (path) => `${API_BASE}${path}`;
         let activeSession = null;
         let editingEnabled = false;
         let currentSubjects = [];
@@ -349,7 +337,7 @@
             }
 
             try {
-                const response = await fetch(apiUrl(`/api/students/profile/${encodeURIComponent(userId)}`));
+                const response = await fetch(`https://tutor-match-n8a7.onrender.com/api/students/profile/${encodeURIComponent(userId)}`);
 
                 if (!response.ok) {
                     let message = 'Failed to load profile.';
@@ -415,7 +403,6 @@
                 avatar.textContent = '';
                 delete avatar.dataset.avatarUrl;
             }
-            updatePhotoButtonsState();
         }
 
         function updateHeaderFromFullName(fullName) {
@@ -424,27 +411,6 @@
 
             if (header) {
                 header.textContent = trimmed || 'Student';
-            }
-        }
-
-        function hasCustomAvatar() {
-            const avatar = document.getElementById('profileAvatar');
-            return Boolean(avatar && avatar.dataset && avatar.dataset.avatarUrl);
-        }
-
-        function updatePhotoButtonsState() {
-            const changeBtn = document.getElementById('changePhotoBtn');
-            const deleteBtn = document.getElementById('deletePhotoBtn');
-            if (changeBtn) {
-                changeBtn.disabled = !editingEnabled;
-                changeBtn.classList.toggle('opacity-50', !editingEnabled);
-                changeBtn.classList.toggle('cursor-not-allowed', !editingEnabled);
-            }
-            if (deleteBtn) {
-                const disabled = !editingEnabled || !hasCustomAvatar();
-                deleteBtn.disabled = disabled;
-                deleteBtn.classList.toggle('opacity-50', disabled);
-                deleteBtn.classList.toggle('cursor-not-allowed', disabled);
             }
         }
 
@@ -484,16 +450,7 @@
 
             document.querySelectorAll('.form-input').forEach(input => {
                 const isSelect = input.tagName === 'SELECT';
-                const freeEdit = input.dataset.freeEdit === 'true';
-                if (freeEdit) {
-                    if (isSelect) {
-                        input.removeAttribute('disabled');
-                    } else {
-                        input.readOnly = false;
-                        input.style.background = 'rgba(30, 41, 59, 0.6)';
-                    }
-                    return;
-                }
+                const isEmailField = input.id === 'email';
 
                 if (isSelect) {
                     if (enabled) {
@@ -502,13 +459,21 @@
                         input.setAttribute('disabled', 'disabled');
                     }
                 } else {
-                    if (enabled) {
-                        input.removeAttribute('readonly');
-                    } else {
+                    if (isEmailField) {
                         input.setAttribute('readonly', 'readonly');
+                    } else {
+                        if (enabled) {
+                            input.removeAttribute('readonly');
+                        } else {
+                            input.setAttribute('readonly', 'readonly');
+                        }
                     }
                 }
-                input.style.background = enabled ? 'rgba(30, 41, 59, 0.8)' : '';
+                if (!isEmailField) {
+                    input.style.background = enabled ? 'rgba(30, 41, 59, 0.8)' : '';
+                } else {
+                    input.style.background = '';
+                }
             });
 
             const addBtn = document.getElementById('addSubjectBtn');
@@ -519,18 +484,6 @@
             }
 
             renderSubjects();
-            updatePhotoButtonsState();
-
-            const saveBtn = document.getElementById('saveProfileBtn');
-            const cancelBtn = document.getElementById('cancelEditBtn');
-            if (saveBtn) {
-                saveBtn.disabled = !enabled;
-                saveBtn.classList.toggle('opacity-50', !enabled);
-                saveBtn.classList.toggle('cursor-not-allowed', !enabled);
-            }
-            if (cancelBtn) {
-                cancelBtn.classList.toggle('hidden', !enabled);
-            }
         }
 
         function populateProfileFromSession() {
@@ -572,13 +525,23 @@
 
             currentSubjects = Array.isArray(profile.subjects) ? [...profile.subjects] : [];
             renderSubjects();
-            toggleEditMode(true);
+            toggleEditMode(false);
         }
 
         function ensureActiveSession() {
             if (activeSession && activeSession.userId) return true;
             showToast('Please sign in to edit your profile.', 'error');
             return false;
+        }
+
+        function editProfile() {
+            if (!ensureActiveSession()) return;
+            if (editingEnabled) {
+                showToast('You are already editing your profile.', 'info');
+                return;
+            }
+            toggleEditMode(true);
+            showToast('Profile editing enabled! Make your changes and click Save.');
         }
 
         function changePhoto() {
@@ -627,7 +590,7 @@
             formData.append('userId', activeSession.userId);
 
             try {
-                const response = await fetch(apiUrl("/api/students/profile/photo"), {
+                const response = await fetch("https://tutor-match-n8a7.onrender.com/api/students/profile/photo", {
                     method: "POST",
                     body: formData,
                 });
@@ -664,79 +627,12 @@
                     lucide.createIcons();
                 }
                 event.target.value = '';
-                updatePhotoButtonsState();
-            }
-        }
-
-        async function deletePhoto() {
-            if (!ensureActiveSession()) return;
-            if (!hasCustomAvatar()) {
-                showToast('You are already using the default avatar.', 'info');
-                return;
-            }
-
-            if (!confirm('Remove your current profile photo?')) {
-                return;
-            }
-
-            const deleteBtn = document.getElementById('deletePhotoBtn');
-            const originalBtnHtml = deleteBtn ? deleteBtn.innerHTML : '';
-
-            if (deleteBtn) {
-                deleteBtn.disabled = true;
-                deleteBtn.innerHTML = `
-                    <span class="flex items-center gap-2">
-                        <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-                        Removing...
-                    </span>
-                `;
-                lucide.createIcons();
-            }
-
-            try {
-                const response = await fetch(apiUrl("/api/students/profile/photo"), {
-                    method: "DELETE",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ userId: activeSession.userId }),
-                });
-
-                const payload = await response.json().catch(() => ({}));
-                if (!response.ok) {
-                    throw new Error(payload?.error || 'Failed to remove profile photo.');
-                }
-
-                setAvatarImage('');
-                if (!activeSession.profile || typeof activeSession.profile !== 'object') {
-                    activeSession.profile = {};
-                }
-                activeSession.profile.avatarUrl = '';
-                try {
-                    localStorage.setItem(SESSION_KEY, JSON.stringify(activeSession));
-                } catch (storageErr) {
-                    console.warn('Unable to persist photo deletion:', storageErr);
-                }
-                const photoInputEl = document.getElementById('photoInput');
-                if (photoInputEl) {
-                    photoInputEl.value = '';
-                }
-                showToast('Profile photo removed.', 'success');
-            } catch (err) {
-                console.error('Profile photo removal failed:', err);
-                showToast(err.message || 'Failed to delete photo.', 'error');
-            } finally {
-                if (deleteBtn) {
-                    deleteBtn.innerHTML = originalBtnHtml || '<i data-lucide="trash-2" class="w-4 h-4"></i> Delete Photo';
-                }
-                updatePhotoButtonsState();
-                if (typeof lucide !== 'undefined' && lucide.createIcons) {
-                    lucide.createIcons();
-                }
             }
         }
 
         function showAddSubjectForm() {
             if (!editingEnabled) {
-                showToast('Please sign in to update your subjects.', 'info');
+                showToast('Click "Edit Profile" before adding subjects.', 'info');
                 return;
             }
             const form = document.getElementById('addSubjectForm');
@@ -760,7 +656,7 @@
 
         function confirmAddSubject() {
             if (!editingEnabled) {
-                showToast('Please sign in to update your subjects.', 'info');
+                showToast('Click "Edit Profile" before adding subjects.', 'info');
                 return;
             }
             const input = document.getElementById('newSubjectInput');
@@ -785,7 +681,7 @@
 
         function removeSubject(button) {
             if (!editingEnabled) {
-                showToast('Please sign in to update your subjects.', 'info');
+                showToast('Click "Edit Profile" to modify subjects.', 'info');
                 return;
             }
             const subjectName = button?.dataset?.subject || button?.closest('.subject-tag')?.dataset?.subject;
@@ -917,7 +813,7 @@
             let saveSucceeded = false;
  try {
              
-              const response = await fetch(apiUrl("/api/students/profile"), {
+              const response = await fetch("https://tutor-match-n8a7.onrender.com/api/students/profile", {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(requestBody),
@@ -983,7 +879,7 @@
 
                 updateMajorCaption();
                 updateHeaderFromFullName(payload.fullName);
-                toggleEditMode(true);
+                toggleEditMode(false);
                 showToast('Profile updated successfully!', 'success');
 
                 button.style.background = 'linear-gradient(135deg, #10b981, #059669)';
@@ -1000,20 +896,6 @@
                     restoreButton();
                 }
                 isSavingProfile = false;
-            }
-        }
-
-        function cancelEdit() {
-            if (!editingEnabled) return;
-            populateProfileFromSession();
-            showToast('Changes discarded.', 'info');
-        }
-
-        function enableSaveButton() {
-            const saveBtn = document.getElementById('saveProfileBtn');
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
 
@@ -1053,20 +935,6 @@
                     this.style.transform = 'scale(1)';
                 });
             });
-
-            ['fullName','email','phone','university','major'].forEach((id) => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('input', () => enableSaveButton());
-                }
-            });
-
-            const yearSelect = document.getElementById('yearOfStudy');
-            if (yearSelect) {
-                yearSelect.addEventListener('change', () => enableSaveButton());
-            }
-
-            updatePhotoButtonsState();
         });
 
         window.addEventListener('storage', (event) => {
