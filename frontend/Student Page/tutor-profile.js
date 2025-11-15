@@ -29,6 +29,12 @@
   const params = new URLSearchParams(window.location.search);
   const tutorId = params.get("id");
 
+  const isNumericString = (value) => {
+    if (value === null || value === undefined) return false;
+    const str = String(value).trim();
+    return str !== "" && /^[0-9]+(\.[0-9]+)?$/.test(str);
+  };
+
   function toArray(value) {
     if (!value) return [];
     if (Array.isArray(value)) return value;
@@ -53,18 +59,25 @@
   function renderSubjects(list) {
     if (!elements.subjectsWrap) return;
     elements.subjectsWrap.innerHTML = "";
-    if (!list.length) {
+
+    // Filter out numeric-only entries (these likely came from a previous hourly-rate bug)
+    const cleanList = list.filter((subject) => !isNumericString(subject));
+
+    if (!cleanList.length) {
       elements.subjectsWrap.innerHTML = '<span class="text-white/60 text-sm">Subject list will appear here.</span>';
       setText(elements.subjectsCount, "0 subjects");
       return;
     }
-    list.forEach((subject) => {
+    cleanList.forEach((subject) => {
       const span = document.createElement("span");
       span.className = "info-chip";
       span.innerHTML = `<i data-lucide="zap" class="w-4 h-4"></i>${subject}`;
       elements.subjectsWrap.appendChild(span);
     });
-    setText(elements.subjectsCount, `${list.length} subject${list.length === 1 ? "" : "s"}`);
+    setText(
+      elements.subjectsCount,
+      `${cleanList.length} subject${cleanList.length === 1 ? "" : "s"}`
+    );
   }
 
   function renderCertificates(tutor) {
@@ -213,8 +226,21 @@
       elements.avatar.src = tutor.avatarUrl || tutor.profilePhoto || tutor.passportPhoto || elements.avatar.src;
       elements.avatar.alt = `${fullName} avatar`;
     }
-    const rate = Number(tutor.rate || tutor.hourlyRate);
-    setText(elements.rate, Number.isFinite(rate) ? `$${rate}/hr` : "$40/hr");
+    let rate = Number(tutor.rate || tutor.hourlyRate);
+
+    // If rate is missing or zero, try to recover it from a numeric-only "subject"
+    if (!Number.isFinite(rate) || rate <= 0) {
+      const rawSubjects = toArray(tutor.subjects);
+      const numericSubject = rawSubjects.find((s) => isNumericString(s));
+      if (numericSubject) {
+        rate = Number(numericSubject);
+      }
+    }
+
+    setText(
+      elements.rate,
+      Number.isFinite(rate) && rate > 0 ? `$${rate}/hr` : "$40/hr"
+    );
     setText(elements.format, tutor.format || "Online & In-person");
     const rating = Number(tutor.rating || tutor.averageRating);
     setText(
