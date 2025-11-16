@@ -169,16 +169,13 @@ async function resolveTutorContact(userId) {
 
   const tutorRow = await fetchSingleRowById(
     "tutors",
-    "email, firstName, lastName, fullName",
+    "email, firstName, lastName",
     userId
   );
   if (tutorRow) {
     contact.email = tutorRow.email || contact.email;
     contact.firstName =
-      tutorRow.firstName ||
-      tutorRow.fullName ||
-      tutorRow.lastName ||
-      contact.firstName;
+      tutorRow.firstName || tutorRow.lastName || contact.firstName;
     if (contact.email) return contact;
   }
 
