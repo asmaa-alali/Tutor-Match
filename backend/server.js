@@ -90,64 +90,99 @@ const emailUser = (process.env.EMAIL_USER || "").trim();
 const emailPass = (process.env.EMAIL_PASS || "").trim();
 let fallbackOtpTransporter = null;
 
-if (!hasBrevoApiKey) {
-  if (emailUser && emailPass) {
-    fallbackOtpTransporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: emailUser,
-        pass: emailPass,
-      },
-    });
-    console.warn(
-      "[login-otp] Using Gmail SMTP fallback via EMAIL_USER/EMAIL_PASS for OTP delivery."
+if (emailUser && emailPass) {
+  fallbackOtpTransporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: emailUser,
+      pass: emailPass,
+    },
+  });
+  console.log("[mail] SMTP fallback configured via EMAIL_USER/EMAIL_PASS.");
+}
+
+if (!hasBrevoApiKey && !fallbackOtpTransporter) {
+  console.warn(
+    "[mail] BREVO_API_KEY is missing and no EMAIL_USER/EMAIL_PASS provided. Emails will only be logged to the server console."
+  );
+}
+
+async function getAuthUserById(userId) {
+  if (!userId) return null;
+  try {
+    const { data, error } = await supabase.auth.admin.getUserById(userId);
+    if (error) {
+      console.warn(
+        `[getAuthUserById] Failed to fetch auth user ${userId}:`,
+        error.message || error
+      );
+      return null;
+    }
+    return data?.user || null;
+  } catch (err) {
+    console.error(
+      `[getAuthUserById] Exception fetching auth user ${userId}:`,
+      err?.message || err
     );
-  } else {
-    console.warn(
-      "[login-otp] BREVO_API_KEY is missing and no EMAIL_USER/EMAIL_PASS provided. OTP codes will only be logged to the server console."
-    );
+    return null;
   }
 }
 
 async function sendAdminEmail(to, subject, html, text = "") {
-  try {
-    if (hasBrevoApiKey) {
+  const plainText =
+    typeof text === "string" && text.trim().length > 0
+      ? text
+      : typeof html === "string"
+        ? html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+        : "";
+  let lastError = null;
+
+  if (hasBrevoApiKey) {
+    try {
       await apiInstance.sendTransacEmail({
         sender: { name: "Tutor Match", email: "no-reply@tutor-match.app" },
         to: [{ email: to }],
         subject,
         htmlContent: html,
-        textContent: text,
+        textContent: plainText || text,
       });
       console.log("[sendAdminEmail] Email sent via Brevo to:", to);
       return;
+    } catch (err) {
+      lastError = err;
+      console.warn(
+        "[sendAdminEmail] Brevo send failed:",
+        err?.message || err
+      );
     }
+  }
 
-    if (fallbackOtpTransporter) {
-      const plainText =
-        text && text.trim().length > 0
-          ? text
-          : html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-
+  if (fallbackOtpTransporter) {
+    try {
       await fallbackOtpTransporter.sendMail({
         from: `"Tutor Match" <${emailUser || "no-reply@tutor-match.app"}>`,
         to,
         subject,
         html,
-        text: plainText,
+        text: plainText || text,
       });
       console.log("[sendAdminEmail] Email sent via SMTP fallback to:", to);
       return;
+    } catch (smtpErr) {
+      lastError = smtpErr;
+      console.warn(
+        "[sendAdminEmail] SMTP fallback failed:",
+        smtpErr?.message || smtpErr
+      );
     }
-
-    console.warn(
-      `[sendAdminEmail] No email provider configured. Unable to send message to ${to}.`
-    );
-  } catch (e) {
-    console.error("[sendAdminEmail] Email failed:", e.message || e);
   }
+
+  console.error(
+    "[sendAdminEmail] No email provider available.",
+    lastError ? lastError.message || lastError : ""
+  );
 }
 
 
@@ -298,14 +333,9 @@ app.post('/api/admin/tutor-requests/reject', requireAdmin, async (req, res) => {
     const { userId } = req.body || {};
     if (!userId) return res.status(400).json({ error: 'Missing userId' });
 
-    // Fetch email and name first
-    let toEmail = null, firstName = '';
-    try {
-      const { data: listData } = await supabase.auth.admin.listUsers();
-      const authUser = (listData?.users || []).find(u => u.id === userId);
-      toEmail = authUser?.email || null;
-      firstName = authUser?.user_metadata?.firstName || '';
-    } catch (_) {}
+    const authUser = await getAuthUserById(userId);
+    const toEmail = authUser?.email || null;
+    const firstName = authUser?.user_metadata?.firstName || '';
 
     // Send rejection email before deletion
     if (toEmail) {
@@ -355,16 +385,14 @@ app.post('/api/admin/tutor-requests/accept', requireAdmin, async (req, res) => {
     try { await supabase.from('users').update({ approved: true }).eq('id', userId); } catch (_) {}
 
     // Send approval email with login link
-    try {
-      const { data: listData } = await supabase.auth.admin.listUsers();
-      const authUser = (listData?.users || []).find(u => u.id === userId);
-      const toEmail = authUser?.email || null;
-      const firstName = authUser?.user_metadata?.firstName || '';
-      if (toEmail) {
-        const subj = 'Welcome to Tutor Match — Application Approved';
-        const signinUrl =  'https://tutor-match-n8a7.onrender.com/Sign%20in/signin.html';
+    const authUser = await getAuthUserById(userId);
+    const toEmail = authUser?.email || null;
+    const firstName = authUser?.user_metadata?.firstName || '';
+    if (toEmail) {
+      const subj = 'Welcome to Tutor Match – Application Approved';
+      const signinUrl =  'https://tutor-match-n8a7.onrender.com/Sign%20in/signin.html';
 
-        const html = `
+      const html = `
           <div style="font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.6">
             <h2 style=\"margin:0 0 8px;color:#111827\">Congratulations!</h2>
             <p>Dear ${firstName || 'Tutor'},</p>
@@ -372,11 +400,8 @@ app.post('/api/admin/tutor-requests/accept', requireAdmin, async (req, res) => {
             <p><a href=\"${signinUrl}\" style=\"display:inline-block;background:#2563eb;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none\">Log In</a></p>
             <p>We’re excited to have you on board!<br/>Tutor Match Team</p>
           </div>`;
-        const text = `Dear ${firstName || 'Tutor'},\n\nYour tutor application has been approved. You can now log in at: ${signinUrl}\n\nWelcome aboard!\nTutor Match Team`;
-        await sendAdminEmail(toEmail, subj, html, text);
-      }
-    } catch (e) {
-      console.warn('Approval email failed:', e?.message || e);
+      const text = `Dear ${firstName || 'Tutor'},\n\nYour tutor application has been approved. You can now log in at: ${signinUrl}\n\nWelcome aboard!\nTutor Match Team`;
+      await sendAdminEmail(toEmail, subj, html, text);
     }
 
     res.json({ success: true });
