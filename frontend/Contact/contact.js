@@ -67,9 +67,6 @@ function makeCall() {
 function openWhatsApp() {
   window.open("https://wa.me/96170123456?text=Hello! I have a question about AUB Tutor Hub.", "_blank");
 }
-function openLiveChat() {
-  alert("💬 Live Chat Opening...\n\n✅ Connecting you with our support team\n⚡ Average wait time: < 30 seconds\n🎯 Get instant help with your questions");
-}
 function getDirections() {
   window.open("https://maps.google.com/?q=American+University+of+Beirut+Bliss+Street+Hamra+Beirut+Lebanon", "_blank");
 }
@@ -162,4 +159,3 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 });
-
