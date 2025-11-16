@@ -231,8 +231,6 @@
        <h1 class="text-4xl font-bold text-white mb-2" id="profileHeaderName">Alex Smith</h1>
        <p class="text-xl text-gray-300 mb-6" id="majorCaption">Computer Science Student</p>
       </div>
-      <div class="flex-shrink-0"><button class="glass-btn-primary" onclick="editProfile()"> <i data-lucide="edit" class="w-5 h-5"></i> Edit Profile </button>
-      </div>
      </div>
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -241,11 +239,11 @@
       <div class="section-icon personal-icon"><i data-lucide="user" class="w-4 h-4 text-white"></i>
        </div> Personal Information</h2>
       <div class="space-y-6">
-       <div class="form-group"><label class="form-label">Full Name</label> <input type="text" value="" class="form-input" id="fullName" placeholder="Enter your full name" readonly>
+       <div class="form-group"><label class="form-label">Full Name</label> <input type="text" value="" class="form-input" id="fullName" placeholder="Enter your full name">
        </div>
-       <div class="form-group"><label class="form-label">Email Address</label> <input type="email" value="" class="form-input" id="email" placeholder="Enter your email" readonly>
+       <div class="form-group"><label class="form-label">Email Address</label> <input type="email" value="" class="form-input" id="email" placeholder="Enter your email">
        </div>
-       <div class="form-group"><label class="form-label">Phone Number</label> <input type="tel" value="" class="form-input" id="phone" placeholder="Enter your phone number" readonly>
+       <div class="form-group"><label class="form-label">Phone Number</label> <input type="tel" value="" class="form-input" id="phone" placeholder="Enter your phone number">
        </div>
       </div>
      </div>
@@ -254,18 +252,18 @@
        <div class="section-icon academic-icon"><i data-lucide="graduation-cap" class="w-4 h-4 text-white"></i>
        </div> Academic Information</h2>
       <div class="space-y-6">
-       <div class="form-group"><label class="form-label">University</label> <input type="text" value="" class="form-input" id="university" placeholder="Enter your university" readonly>
+       <div class="form-group"><label class="form-label">University</label> <input type="text" value="" class="form-input" id="university" placeholder="Enter your university">
        </div>
-       <div class="form-group"><label class="form-label">Major</label> <input type="text" value="" class="form-input" id="major" oninput="updateMajorCaption()" placeholder="Enter your major" readonly>
+       <div class="form-group"><label class="form-label">Major</label> <input type="text" value="" class="form-input" id="major" oninput="updateMajorCaption()" placeholder="Enter your major">
        </div>
-       <div class="form-group"><label class="form-label">Year of Study</label> <select class="form-input" id="yearOfStudy" disabled> <option value="" selected disabled>Choose your year</option> <option value="freshman">Freshman (1st Year)</option> <option value="sophomore">Sophomore (2nd Year)</option> <option value="junior">Junior (3rd Year)</option> <option value="senior">Senior (4th Year)</option> <option value="graduate">Graduate Student</option> </select>
+       <div class="form-group"><label class="form-label">Year of Study</label> <select class="form-input" id="yearOfStudy"> <option value="" selected disabled>Choose your year</option> <option value="freshman">Freshman (1st Year)</option> <option value="sophomore">Sophomore (2nd Year)</option> <option value="junior">Junior (3rd Year)</option> <option value="senior">Senior (4th Year)</option> <option value="graduate">Graduate Student</option> </select>
        </div>
        <div class="form-group"><label class="form-label">Preferred Subjects</label>
         <div class="flex flex-wrap gap-2 mt-2" id="subjectTags"></div>
         <div class="mt-3 hidden" id="addSubjectForm">
          <div class="flex gap-2"><input type="text" placeholder="Enter subject name..." class="form-input flex-1" id="newSubjectInput"> <button class="glass-btn-primary text-sm" onclick="confirmAddSubject()"> <i data-lucide="check" class="w-4 h-4"></i> Add </button> <button class="glass-btn-primary text-sm bg-gray-600 hover:bg-gray-700" onclick="cancelAddSubject()"> <i data-lucide="x" class="w-4 h-4"></i> Cancel </button>
          </div>
-        </div><button class="glass-btn-primary mt-3 text-sm hidden" id="addSubjectBtn" onclick="showAddSubjectForm()"> <i data-lucide="plus" class="w-4 h-4"></i> Add Subject </button>
+        </div><button class="glass-btn-primary mt-3 text-sm" id="addSubjectBtn" onclick="showAddSubjectForm()"> <i data-lucide="plus" class="w-4 h-4"></i> Add Subject </button>
        </div>
       </div>
      </div>
@@ -311,7 +309,6 @@
         const SESSION_KEY = 'tmUserSession';
         const DEFAULT_AVATAR_SRC = '/assets/default-avatar.svg';
         let activeSession = null;
-        let editingEnabled = false;
         let currentSubjects = [];
         let isSavingProfile = false;
 
@@ -423,7 +420,7 @@
             if (!currentSubjects.length) {
                 const placeholder = document.createElement('span');
                 placeholder.className = 'text-sm text-slate-400';
-                placeholder.textContent = editingEnabled ? 'Add your first subject.' : 'No subjects added yet.';
+                placeholder.textContent = 'Add your first subject.';
                 container.appendChild(placeholder);
                 return;
             }
@@ -445,52 +442,10 @@
             lucide.createIcons();
         }
 
-        function toggleEditMode(enabled) {
-            editingEnabled = enabled;
-
-            document.querySelectorAll('.form-input').forEach(input => {
-                const isSelect = input.tagName === 'SELECT';
-                const isEmailField = input.id === 'email';
-
-                if (isSelect) {
-                    if (enabled) {
-                        input.removeAttribute('disabled');
-                    } else {
-                        input.setAttribute('disabled', 'disabled');
-                    }
-                } else {
-                    if (isEmailField) {
-                        input.setAttribute('readonly', 'readonly');
-                    } else {
-                        if (enabled) {
-                            input.removeAttribute('readonly');
-                        } else {
-                            input.setAttribute('readonly', 'readonly');
-                        }
-                    }
-                }
-                if (!isEmailField) {
-                    input.style.background = enabled ? 'rgba(30, 41, 59, 0.8)' : '';
-                } else {
-                    input.style.background = '';
-                }
-            });
-
-            const addBtn = document.getElementById('addSubjectBtn');
-            if (addBtn) addBtn.classList.toggle('hidden', !enabled);
-
-            if (!enabled) {
-                cancelAddSubject();
-            }
-
-            renderSubjects();
-        }
-
         function populateProfileFromSession() {
             activeSession = getStoredSession();
             if (!activeSession || activeSession.role !== 'student') {
                 showToast('Please sign in as a student to manage your profile.', 'error');
-                toggleEditMode(false);
                 return;
             }
 
@@ -525,23 +480,13 @@
 
             currentSubjects = Array.isArray(profile.subjects) ? [...profile.subjects] : [];
             renderSubjects();
-            toggleEditMode(false);
+            cancelAddSubject();
         }
 
         function ensureActiveSession() {
             if (activeSession && activeSession.userId) return true;
             showToast('Please sign in to edit your profile.', 'error');
             return false;
-        }
-
-        function editProfile() {
-            if (!ensureActiveSession()) return;
-            if (editingEnabled) {
-                showToast('You are already editing your profile.', 'info');
-                return;
-            }
-            toggleEditMode(true);
-            showToast('Profile editing enabled! Make your changes and click Save.');
         }
 
         function changePhoto() {
@@ -631,10 +576,6 @@
         }
 
         function showAddSubjectForm() {
-            if (!editingEnabled) {
-                showToast('Click "Edit Profile" before adding subjects.', 'info');
-                return;
-            }
             const form = document.getElementById('addSubjectForm');
             const button = document.getElementById('addSubjectBtn');
             const input = document.getElementById('newSubjectInput');
@@ -655,10 +596,6 @@
         }
 
         function confirmAddSubject() {
-            if (!editingEnabled) {
-                showToast('Click "Edit Profile" before adding subjects.', 'info');
-                return;
-            }
             const input = document.getElementById('newSubjectInput');
             if (!input) return;
             const subjectName = input.value.trim();
@@ -680,10 +617,6 @@
         }
 
         function removeSubject(button) {
-            if (!editingEnabled) {
-                showToast('Click "Edit Profile" to modify subjects.', 'info');
-                return;
-            }
             const subjectName = button?.dataset?.subject || button?.closest('.subject-tag')?.dataset?.subject;
             if (!subjectName) return;
 
@@ -879,7 +812,7 @@
 
                 updateMajorCaption();
                 updateHeaderFromFullName(payload.fullName);
-                toggleEditMode(false);
+                cancelAddSubject();
                 showToast('Profile updated successfully!', 'success');
 
                 button.style.background = 'linear-gradient(135deg, #10b981, #059669)';

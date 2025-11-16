@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Find Tutors - Tutor Match</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        };
+    </script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="../common/session-guard.js" defer></script>
     <script src="../common/logout.js" defer></script>
@@ -554,17 +559,17 @@
   </div>
 
                 
-                <div class="hidden md:flex items-center space-x-8">
+                <div class="flex flex-col items-end gap-2 text-sm sm:text-base sm:flex-row sm:items-center sm:gap-6">
 <a href="./findtutor.html" class="magnetic text-blue-300 font-medium transition-all duration-300 border-b-2 border-blue-300">Find Tutors</a>
                     <a href="/About/about.html" class="magnetic text-white hover:text-green-300 font-medium transition-all duration-300">About</a>
                     <a href="/Contact/contact.html" class="magnetic text-white hover:text-pink-300 font-medium transition-all duration-300">Contact</a>
-                    
-                    
-                    
+<<<<<<< ours
+=======
                     <button id="theme-toggle" class="magnetic glass dark:glass-dark p-3 rounded-2xl">
                         <i data-lucide="sun" class="w-5 h-5 text-white dark:hidden"></i>
                         <i data-lucide="moon" class="w-5 h-5 text-white hidden dark:block"></i>
                     </button>
+>>>>>>> theirs
                 </div>
                 
             </div>
@@ -607,6 +612,8 @@
             </nav>
 
             <div class="mt-auto space-y-3 pt-6">
+<<<<<<< ours
+=======
                 <button id="side-theme-toggle" class="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white">
                     <span class="flex items-center gap-3">
                         <i data-lucide="moon" class="w-5 h-5"></i>
@@ -614,6 +621,7 @@
                     </span>
                     <i data-lucide="toggle-right" class="w-5 h-5"></i>
                 </button>
+>>>>>>> theirs
                 <a href="/Homepage/home.html" data-tm-logout data-logout-redirect="/Homepage/home.html" class="block text-center px-4 py-3 rounded-xl bg-red-500/80 hover:bg-red-500 text-white font-medium">
                     <i data-lucide="log-out" class="inline w-5 h-5 mr-1 align-text-bottom"></i>
                     Log Out
@@ -1090,57 +1098,54 @@
         // Initialize Lucide icons
         lucide.createIcons();
         // Theme Management
-        const themeToggle = document.getElementById('theme-toggle');
         const html = document.documentElement;
-        
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        if (savedTheme === 'dark') {
-            html.classList.add('dark');
-        }
-        
-        // Set initial icon visibility
-        setTimeout(() => {
-            const sunIcon = themeToggle.querySelector('[data-lucide="sun"]');
-            const moonIcon = themeToggle.querySelector('[data-lucide="moon"]');
-            
-            if (html.classList.contains('dark')) {
-                sunIcon.classList.add('hidden');
-                moonIcon.classList.remove('hidden');
-            } else {
-                sunIcon.classList.remove('hidden');
-                moonIcon.classList.add('hidden');
-            }
-        }, 100);
-        
-        // Theme toggle function
-        function toggleTheme() {
-            const isDark = html.classList.contains('dark');
-            const sunIcon = themeToggle.querySelector('[data-lucide="sun"]');
-            const moonIcon = themeToggle.querySelector('[data-lucide="moon"]');
-            
-            document.body.classList.add('theme-transition');
-            
-            if (isDark) {
-                html.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-                sunIcon.classList.remove('hidden');
-                moonIcon.classList.add('hidden');
-            } else {
+        function applyTheme(mode) {
+            if (mode === 'dark') {
                 html.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-                sunIcon.classList.add('hidden');
-                moonIcon.classList.remove('hidden');
+            } else {
+                html.classList.remove('dark');
             }
-            
+            document.body.classList.add('theme-transition');
             setTimeout(() => {
-                lucide.createIcons();
                 document.body.classList.remove('theme-transition');
-            }, 500);
+            }, 400);
         }
-        
-        themeToggle.addEventListener('click', toggleTheme);
-        // Theme management handled by shared script (frontend/FindTutor/find-tutor.js)
+
+        function initThemeToggle() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const sideThemeToggle = document.getElementById('side-theme-toggle');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const storedTheme = localStorage.getItem('theme');
+            const initialTheme = storedTheme || (prefersDark ? 'dark' : 'light');
+            applyTheme(initialTheme);
+
+            const syncThemeIcons = () => {
+                if (!themeToggle) return;
+                const sunIcon = themeToggle.querySelector('[data-lucide="sun"]');
+                const moonIcon = themeToggle.querySelector('[data-lucide="moon"]');
+                if (!sunIcon || !moonIcon) return;
+                if (html.classList.contains('dark')) {
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                } else {
+                    sunIcon.classList.remove('hidden');
+                    moonIcon.classList.add('hidden');
+                }
+            };
+
+            const toggleTheme = () => {
+                const nextTheme = html.classList.contains('dark') ? 'light' : 'dark';
+                localStorage.setItem('theme', nextTheme);
+                applyTheme(nextTheme);
+                syncThemeIcons();
+            };
+
+            syncThemeIcons();
+            themeToggle?.addEventListener('click', toggleTheme);
+            sideThemeToggle?.addEventListener('click', toggleTheme);
+        }
+
+        initThemeToggle();
 
         // Sidebar: open/close handlers (hamburger before logo)
         const menuBtn = document.getElementById('menu-button');
@@ -1164,13 +1169,7 @@
 
           // Sidebar theme toggle uses same logic
         const sideThemeToggle = document.getElementById('side-theme-toggle');
-        if (sideThemeToggle) {
-            sideThemeToggle.addEventListener('click', () => {
-                if (typeof toggleTheme === 'function') toggleTheme();
-            });
-        }
-
-        // Sidebar theme toggle is wired in shared script
+        // Sidebar theme toggle handled inside initThemeToggle
         
         // Navbar Scroll Effect
         const navbar = document.getElementById('navbar');
