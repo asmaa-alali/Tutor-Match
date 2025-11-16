@@ -130,69 +130,6 @@ async function getAuthUserById(userId) {
   }
 }
 
-async function fetchSingleRowById(table, columns, userId) {
-  try {
-    const { data, error } = await supabase
-      .from(table)
-      .select(columns)
-      .eq("id", userId)
-      .limit(1);
-    if (error) {
-      console.warn(
-        `[resolveTutorContact] ${table} lookup failed for ${userId}:`,
-        error.message || error
-      );
-      return null;
-    }
-    if (Array.isArray(data) && data.length) return data[0];
-    return data || null;
-  } catch (err) {
-    console.warn(
-      `[resolveTutorContact] ${table} lookup exception for ${userId}:`,
-      err?.message || err
-    );
-    return null;
-  }
-}
-
-async function resolveTutorContact(userId) {
-  const contact = { email: null, firstName: "" };
-  const authUser = await getAuthUserById(userId);
-  if (authUser) {
-    contact.email = authUser.email || contact.email;
-    contact.firstName =
-      authUser.user_metadata?.firstName ||
-      authUser.user_metadata?.fullName ||
-      contact.firstName;
-    if (contact.email) return contact;
-  }
-
-  const tutorRow = await fetchSingleRowById(
-    "tutors",
-    "email, firstName, lastName",
-    userId
-  );
-  if (tutorRow) {
-    contact.email = tutorRow.email || contact.email;
-    contact.firstName =
-      tutorRow.firstName || tutorRow.lastName || contact.firstName;
-    if (contact.email) return contact;
-  }
-
-  const userRow = await fetchSingleRowById(
-    "users",
-    "email, firstName, lastName",
-    userId
-  );
-  if (userRow) {
-    contact.email = userRow.email || contact.email;
-    contact.firstName =
-      userRow.firstName || userRow.lastName || contact.firstName;
-  }
-
-  return contact;
-}
-
 async function sendAdminEmail(to, subject, html, text = "") {
   const plainText =
     typeof text === "string" && text.trim().length > 0
@@ -396,7 +333,9 @@ app.post('/api/admin/tutor-requests/reject', requireAdmin, async (req, res) => {
     const { userId } = req.body || {};
     if (!userId) return res.status(400).json({ error: 'Missing userId' });
 
-    const { email: toEmail, firstName } = await resolveTutorContact(userId);
+    const authUser = await getAuthUserById(userId);
+    const toEmail = authUser?.email || null;
+    const firstName = authUser?.user_metadata?.firstName || '';
 
     // Send rejection email before deletion
     if (toEmail) {
@@ -446,7 +385,9 @@ app.post('/api/admin/tutor-requests/accept', requireAdmin, async (req, res) => {
     try { await supabase.from('users').update({ approved: true }).eq('id', userId); } catch (_) {}
 
     // Send approval email with login link
-    const { email: toEmail, firstName } = await resolveTutorContact(userId);
+    const authUser = await getAuthUserById(userId);
+    const toEmail = authUser?.email || null;
+    const firstName = authUser?.user_metadata?.firstName || '';
     if (toEmail) {
       const subj = 'Welcome to Tutor Match – Application Approved';
       const signinUrl =  'https://tutor-match-n8a7.onrender.com/Sign%20in/signin.html';
@@ -461,10 +402,6 @@ app.post('/api/admin/tutor-requests/accept', requireAdmin, async (req, res) => {
           </div>`;
       const text = `Dear ${firstName || 'Tutor'},\n\nYour tutor application has been approved. You can now log in at: ${signinUrl}\n\nWelcome aboard!\nTutor Match Team`;
       await sendAdminEmail(toEmail, subj, html, text);
-    } else {
-      console.warn(
-        `[tutor-requests/accept] No contact email found for tutor ${userId}`
-      );
     }
 
     res.json({ success: true });
