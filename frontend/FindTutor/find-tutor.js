@@ -161,7 +161,9 @@ console.log("✅ findtutor.js loaded!");
             </button>
           </div>
         </div>
-        
+        <button class="w-full glass dark:glass-dark px-4 py-2 rounded-xl text-white hover:bg-white/20 transition-all" data-action="rate" data-id="${t.id || ''}" data-name="${name}">
+          <i data-lucide="star" class="w-4 h-4 inline mr-2"></i> Rate This Tutor
+        </button>
       </div>
     `;
   }
@@ -544,11 +546,10 @@ console.log("✅ findtutor.js loaded!");
         submitBtn.disabled = true;
         
         try {
-          // Get student info from stored session (supports legacy and tmUserSession keys)
-          let rawSession = localStorage.getItem('tmUserSession') || localStorage.getItem('session');
-          const session = rawSession ? JSON.parse(rawSession) : {};
+          // Get student info from localStorage
+          const session = JSON.parse(localStorage.getItem('session') || '{}');
           const studentId = session.userId;
-
+          
           if (!studentId) {
             throw new Error('Please log in to submit a rating');
           }
