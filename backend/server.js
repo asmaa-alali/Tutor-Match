@@ -90,64 +90,78 @@ const emailUser = (process.env.EMAIL_USER || "").trim();
 const emailPass = (process.env.EMAIL_PASS || "").trim();
 let fallbackOtpTransporter = null;
 
-if (!hasBrevoApiKey) {
-  if (emailUser && emailPass) {
-    fallbackOtpTransporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: emailUser,
-        pass: emailPass,
-      },
-    });
-    console.warn(
-      "[login-otp] Using Gmail SMTP fallback via EMAIL_USER/EMAIL_PASS for OTP delivery."
-    );
-  } else {
-    console.warn(
-      "[login-otp] BREVO_API_KEY is missing and no EMAIL_USER/EMAIL_PASS provided. OTP codes will only be logged to the server console."
-    );
-  }
+if (emailUser && emailPass) {
+  fallbackOtpTransporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: emailUser,
+      pass: emailPass,
+    },
+  });
+  console.log("[mail] SMTP fallback configured via EMAIL_USER/EMAIL_PASS.");
+}
+
+if (!hasBrevoApiKey && !fallbackOtpTransporter) {
+  console.warn(
+    "[mail] BREVO_API_KEY is missing and no EMAIL_USER/EMAIL_PASS provided. Emails will only be logged to the server console."
+  );
 }
 
 async function sendAdminEmail(to, subject, html, text = "") {
-  try {
-    if (hasBrevoApiKey) {
+  const plainText =
+    typeof text === "string" && text.trim().length > 0
+      ? text
+      : typeof html === "string"
+        ? html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+        : "";
+  let lastError = null;
+
+  if (hasBrevoApiKey) {
+    try {
       await apiInstance.sendTransacEmail({
         sender: { name: "Tutor Match", email: "no-reply@tutor-match.app" },
         to: [{ email: to }],
         subject,
         htmlContent: html,
-        textContent: text,
+        textContent: plainText || text,
       });
       console.log("[sendAdminEmail] Email sent via Brevo to:", to);
       return;
+    } catch (err) {
+      lastError = err;
+      console.warn(
+        "[sendAdminEmail] Brevo send failed:",
+        err?.message || err
+      );
     }
+  }
 
-    if (fallbackOtpTransporter) {
-      const plainText =
-        text && text.trim().length > 0
-          ? text
-          : html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-
+  if (fallbackOtpTransporter) {
+    try {
       await fallbackOtpTransporter.sendMail({
         from: `"Tutor Match" <${emailUser || "no-reply@tutor-match.app"}>`,
         to,
         subject,
         html,
-        text: plainText,
+        text: plainText || text,
       });
       console.log("[sendAdminEmail] Email sent via SMTP fallback to:", to);
       return;
+    } catch (smtpErr) {
+      lastError = smtpErr;
+      console.warn(
+        "[sendAdminEmail] SMTP fallback failed:",
+        smtpErr?.message || smtpErr
+      );
     }
-
-    console.warn(
-      `[sendAdminEmail] No email provider configured. Unable to send message to ${to}.`
-    );
-  } catch (e) {
-    console.error("[sendAdminEmail] Email failed:", e.message || e);
   }
+
+  console.error(
+    "[sendAdminEmail] No email provider available.",
+    lastError ? lastError.message || lastError : ""
+  );
 }
 
 
