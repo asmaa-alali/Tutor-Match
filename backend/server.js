@@ -113,19 +113,40 @@ if (!hasBrevoApiKey) {
 
 async function sendAdminEmail(to, subject, html, text = "") {
   try {
-    
+    if (hasBrevoApiKey) {
+      await apiInstance.sendTransacEmail({
+        sender: { name: "Tutor Match", email: "no-reply@tutor-match.app" },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+        textContent: text,
+      });
+      console.log("[sendAdminEmail] Email sent via Brevo to:", to);
+      return;
+    }
 
-    await apiInstance.sendTransacEmail({
-      sender: { name: "Tutor Match", email: "no-reply@tutor-match.app" },
-      to: [{ email: to }],
-      subject,
-      htmlContent: html,
-      textContent: text,
-    });
+    if (fallbackOtpTransporter) {
+      const plainText =
+        text && text.trim().length > 0
+          ? text
+          : html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 
-    console.log("✔️ Email sent to:", to);
+      await fallbackOtpTransporter.sendMail({
+        from: `"Tutor Match" <${emailUser || "no-reply@tutor-match.app"}>`,
+        to,
+        subject,
+        html,
+        text: plainText,
+      });
+      console.log("[sendAdminEmail] Email sent via SMTP fallback to:", to);
+      return;
+    }
+
+    console.warn(
+      `[sendAdminEmail] No email provider configured. Unable to send message to ${to}.`
+    );
   } catch (e) {
-    console.error("❌ Email failed:", e.message || e);
+    console.error("[sendAdminEmail] Email failed:", e.message || e);
   }
 }
 
