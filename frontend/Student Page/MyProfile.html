@@ -275,7 +275,25 @@
 
         const SESSION_KEY = 'tmUserSession';
         const DEFAULT_AVATAR_SRC = '/assets/default-avatar.svg';
-        const API_BASE = (window.location.origin && window.location.origin.startsWith('http')) ? '' : 'http://localhost:3000';
+        const API_BASE = (() => {
+            if (window.TM_API_BASE) {
+                return window.TM_API_BASE;
+            }
+
+            const { protocol, hostname, origin } = window.location || {};
+            const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
+            const isFile = protocol === 'file:';
+
+            if (isLocalHost || isFile) {
+                return 'http://localhost:3000';
+            }
+
+            if (origin && origin.startsWith('http')) {
+                return origin;
+            }
+
+            return 'https://tutor-match-n8a7.onrender.com';
+        })();
         let activeSession = null;
         let currentSubjects = [];
         let isSavingProfile = false;
