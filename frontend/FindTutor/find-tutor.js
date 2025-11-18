@@ -142,6 +142,16 @@ console.log("✅ findtutor.js loaded!");
   const rate = t.rate ? Number(t.rate) : 35;
   const fmt = (t.format || 'online/in-person').toLowerCase();
 
+  // Normalize into one of: "online", "in-person", "both"
+  let formatKey = 'both';
+  if (fmt.includes('online') && fmt.includes('in')) {
+    formatKey = 'both';
+  } else if (fmt.includes('online')) {
+    formatKey = 'online';
+  } else if (fmt.includes('in')) {
+    formatKey = 'in-person';
+  }
+
   const degree = (t.degree || '').trim();
   const major = (t.major || '').trim();
   const degreeLine = degree && major
@@ -155,12 +165,12 @@ console.log("✅ findtutor.js loaded!");
     : '';
 
   let formatLabel = 'Online / In-person';
-  if (fmt.includes('online') && fmt.includes('in')) formatLabel = 'Online & In-person';
-  else if (fmt.includes('online')) formatLabel = 'Online';
-  else if (fmt.includes('in')) formatLabel = 'In-person';
+  if (formatKey === 'online') formatLabel = 'Online';
+  else if (formatKey === 'in-person') formatLabel = 'In-person';
+  else if (formatKey === 'both') formatLabel = 'Online & In-person';
 
   return `
-    <div class="tutor-card p-6" data-name="${name.toLowerCase()}" data-rate="${rate}" data-rating="${rating}" data-format="${fmt}" data-profile-id="${t.id || ''}">
+    <div class="tutor-card p-6" data-name="${name.toLowerCase()}" data-rate="${rate}" data-rating="${rating}" data-format="${formatKey}" data-profile-id="${t.id || ''}">
       <div class="flex items-center gap-4 mb-3">
         <img src="${avatar}" alt="${name}" class="w-16 h-16 rounded-full object-cover"
              loading="lazy"
@@ -311,11 +321,13 @@ console.log("✅ findtutor.js loaded!");
 
       // availability — no-op placeholder (not in dataset yet)
 
-      // format — assume many tutors do both; don't over-filter unless explicit
+      // format
       if (state.format && state.format !== 'all') {
-        const want = state.format;
-        if (!format.includes(want) && !(want === 'both' && (format.includes('online') && format.includes('in-person')))) {
-          // keep as-is to avoid hiding most cards
+        const want = state.format.toLowerCase();
+        if (want === 'both') {
+          if (format !== 'both') show = false;
+        } else if (format !== want) {
+          show = false;
         }
       }
 
