@@ -294,7 +294,9 @@
         : "Awaiting reviews"
     );
     setText(elements.gpa, tutor.gpa);
-    setText(elements.experience, tutor.experience);
+    const experienceText = (tutor.experience || "").trim();
+    const experienceFallback = (tutor.motivation || tutor.bio || "").trim();
+    setText(elements.experience, experienceText || experienceFallback);
     const schedule = parseAvailabilitySchedule(tutor.availabilitySchedule);
     if (schedule) {
       renderAvailabilityGrid(schedule);
