@@ -86,8 +86,14 @@ const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 const hasBrevoApiKey =
   typeof process.env.BREVO_API_KEY === "string" &&
   process.env.BREVO_API_KEY.trim().length > 0;
+const brevoFromEmail =
+  (process.env.BREVO_FROM_EMAIL || "no-reply@tutor-match.app").trim() ||
+  "no-reply@tutor-match.app";
+const brevoFromName =
+  (process.env.BREVO_FROM_NAME || "Tutor Match").trim() || "Tutor Match";
 const emailUser = (process.env.EMAIL_USER || "").trim();
 const emailPass = (process.env.EMAIL_PASS || "").trim();
+const isRender = !!process.env.RENDER;
 let fallbackOtpTransporter = null;
 
 if (emailUser && emailPass) {
@@ -119,7 +125,29 @@ async function sendAdminEmail(to, subject, html, text = "") {
         : "";
   let lastError = null;
 
-  if (fallbackOtpTransporter) {
+  // 1) Prefer Brevo everywhere (works on Render)
+  if (hasBrevoApiKey) {
+    try {
+      await apiInstance.sendTransacEmail({
+        sender: { name: brevoFromName, email: brevoFromEmail },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+        textContent: plainText || text,
+      });
+      console.log("[sendAdminEmail] Email sent via Brevo to:", to);
+      return;
+    } catch (err) {
+      lastError = err;
+      console.warn(
+        "[sendAdminEmail] Brevo send failed:",
+        err?.message || err
+      );
+    }
+  }
+
+  // 2) Local / non-Render fallback to Gmail SMTP
+  if (fallbackOtpTransporter && !isRender) {
     try {
       await fallbackOtpTransporter.sendMail({
         from: `"Tutor Match" <${emailUser || "no-reply@tutor-match.app"}>`,
@@ -135,26 +163,6 @@ async function sendAdminEmail(to, subject, html, text = "") {
       console.warn(
         "[sendAdminEmail] SMTP fallback failed:",
         smtpErr?.message || smtpErr
-      );
-    }
-  }
-
-  if (hasBrevoApiKey) {
-    try {
-      await apiInstance.sendTransacEmail({
-        sender: { name: "Tutor Match", email: "no-reply@tutor-match.app" },
-        to: [{ email: to }],
-        subject,
-        htmlContent: html,
-        textContent: plainText || text,
-      });
-      console.log("[sendAdminEmail] Email sent via Brevo to:", to);
-      return;
-    } catch (err) {
-      lastError = err;
-      console.warn(
-        "[sendAdminEmail] Brevo send failed:",
-        err?.message || err
       );
     }
   }
