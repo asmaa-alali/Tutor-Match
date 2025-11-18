@@ -65,14 +65,12 @@ async function loadAllRatings() {
 async function loadRatingStatistics(tutorId) {
   try {
     const res = await fetch(`${API_BASE}/api/ratings/${tutorId}/stats`);
-    const data = await res.json();
+    const stats = await res.json();
 
-    if (!res.ok || !data.success) {
-      console.error("Failed to load rating statistics");
+    if (!res.ok) {
+      console.error("Failed to load rating statistics:", stats.error);
       return;
     }
-
-    const stats = data.stats;
 
     // Update overall rating
     const overallRatingEl = document.querySelector(".card .text-5xl");
@@ -383,4 +381,3 @@ document.addEventListener("DOMContentLoaded", () => {
   lucide.createIcons();
   loadAllRatings();
 });
-
