@@ -189,7 +189,6 @@ console.log("✅ findtutor.js loaded!");
       ` : ''}
 
       <div class="flex items-center justify-between mb-3 gap-3">
-        <div class="text-green-400 font-bold whitespace-nowrap">$${rate}/hour</div>
         <span class="px-3 py-1 rounded-full bg-white/15 text-xs text-white/80 backdrop-blur whitespace-nowrap">
           ${formatLabel}
         </span>
