@@ -119,26 +119,6 @@ async function sendAdminEmail(to, subject, html, text = "") {
         : "";
   let lastError = null;
 
-  if (hasBrevoApiKey) {
-    try {
-      await apiInstance.sendTransacEmail({
-        sender: { name: "Tutor Match", email: "no-reply@tutor-match.app" },
-        to: [{ email: to }],
-        subject,
-        htmlContent: html,
-        textContent: plainText || text,
-      });
-      console.log("[sendAdminEmail] Email sent via Brevo to:", to);
-      return;
-    } catch (err) {
-      lastError = err;
-      console.warn(
-        "[sendAdminEmail] Brevo send failed:",
-        err?.message || err
-      );
-    }
-  }
-
   if (fallbackOtpTransporter) {
     try {
       await fallbackOtpTransporter.sendMail({
@@ -155,6 +135,26 @@ async function sendAdminEmail(to, subject, html, text = "") {
       console.warn(
         "[sendAdminEmail] SMTP fallback failed:",
         smtpErr?.message || smtpErr
+      );
+    }
+  }
+
+  if (hasBrevoApiKey) {
+    try {
+      await apiInstance.sendTransacEmail({
+        sender: { name: "Tutor Match", email: "no-reply@tutor-match.app" },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+        textContent: plainText || text,
+      });
+      console.log("[sendAdminEmail] Email sent via Brevo to:", to);
+      return;
+    } catch (err) {
+      lastError = err;
+      console.warn(
+        "[sendAdminEmail] Brevo send failed:",
+        err?.message || err
       );
     }
   }
