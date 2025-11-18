@@ -251,11 +251,11 @@
     setText(elements.headline, [tutor.degree, tutor.major].filter(Boolean).join(" • "));
     setText(elements.university, tutor.university || "Tutor Match");
     if (elements.avatar) {
+      // Only use an explicit profile photo; do NOT fall back to passport/certificate.
       const photoUrl =
         tutor.profilePhotoUrl ||
         tutor.avatarUrl ||
         tutor.profilePhoto ||
-        tutor.passportPhoto ||
         "";
       const resolvedSrc = photoUrl || DEFAULT_AVATAR_SRC;
 

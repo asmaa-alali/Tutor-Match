@@ -129,7 +129,6 @@ console.log("✅ findtutor.js loaded!");
     t.avatarUrl ||
     t.profilePhoto ||
     t.photoUrl ||
-    t.passportPhoto ||
     DEFAULT_AVATAR_SRC;
 
   const subs = Array.isArray(t.subjects) ? t.subjects : (t.subjects ? [t.subjects] : []);
