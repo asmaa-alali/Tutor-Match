@@ -77,21 +77,14 @@ function requireAdmin(req, res, next) {
   }
 }
 
-// -------------------- MAILER (Brevo / Sendinblue) --------------------
-import SibApiV3Sdk from "sib-api-v3-sdk";
-
-const brevoClient = SibApiV3Sdk.ApiClient.instance;
-brevoClient.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
-const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-const hasBrevoApiKey =
-  typeof process.env.BREVO_API_KEY === "string" &&
-  process.env.BREVO_API_KEY.trim().length > 0;
+// -------------------- MAILER (SMTP via Gmail) --------------------
 const emailUser = (process.env.EMAIL_USER || "").trim();
 const emailPass = (process.env.EMAIL_PASS || "").trim();
-let fallbackOtpTransporter = null;
+
+let mailTransporter = null;
 
 if (emailUser && emailPass) {
-  fallbackOtpTransporter = nodemailer.createTransport({
+  mailTransporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
@@ -100,15 +93,12 @@ if (emailUser && emailPass) {
       pass: emailPass,
     },
   });
-  console.log("[mail] SMTP fallback configured via EMAIL_USER/EMAIL_PASS.");
-}
-
-if (!hasBrevoApiKey && !fallbackOtpTransporter) {
+  console.log("[mail] SMTP configured via EMAIL_USER/EMAIL_PASS.");
+} else {
   console.warn(
-    "[mail] BREVO_API_KEY is missing and no EMAIL_USER/EMAIL_PASS provided. Emails will only be logged to the server console."
+    "[mail] EMAIL_USER / EMAIL_PASS missing. Emails will only be logged to the server console."
   );
 }
-
 
 async function sendAdminEmail(to, subject, html, text = "") {
   const plainText =
@@ -117,52 +107,27 @@ async function sendAdminEmail(to, subject, html, text = "") {
       : typeof html === "string"
         ? html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
         : "";
-  let lastError = null;
 
-  if (hasBrevoApiKey) {
-    try {
-      await apiInstance.sendTransacEmail({
-        sender: { name: "Tutor Match", email: "no-reply@tutor-match.app" },
-        to: [{ email: to }],
-        subject,
-        htmlContent: html,
-        textContent: plainText || text,
-      });
-      console.log("[sendAdminEmail] Email sent via Brevo to:", to);
-      return;
-    } catch (err) {
-      lastError = err;
-      console.warn(
-        "[sendAdminEmail] Brevo send failed:",
-        err?.message || err
-      );
-    }
+  if (!mailTransporter) {
+    console.log("[sendAdminEmail] Dev/log-only mode. Email not sent.", {
+      to,
+      subject,
+    });
+    return;
   }
 
-  if (fallbackOtpTransporter) {
-    try {
-      await fallbackOtpTransporter.sendMail({
-        from: `"Tutor Match" <${emailUser || "no-reply@tutor-match.app"}>`,
-        to,
-        subject,
-        html,
-        text: plainText || text,
-      });
-      console.log("[sendAdminEmail] Email sent via SMTP fallback to:", to);
-      return;
-    } catch (smtpErr) {
-      lastError = smtpErr;
-      console.warn(
-        "[sendAdminEmail] SMTP fallback failed:",
-        smtpErr?.message || smtpErr
-      );
-    }
+  try {
+    const info = await mailTransporter.sendMail({
+      from: `"Tutor Match" <${emailUser}>`,
+      to,
+      subject,
+      html,
+      text: plainText || text,
+    });
+    console.log("[sendAdminEmail] SMTP email sent:", info.messageId, "to:", to);
+  } catch (err) {
+    console.error("[sendAdminEmail] SMTP send failed:", err?.message || err);
   }
-
-  console.error(
-    "[sendAdminEmail] No email provider available.",
-    lastError ? lastError.message || lastError : ""
-  );
 }
 
 
