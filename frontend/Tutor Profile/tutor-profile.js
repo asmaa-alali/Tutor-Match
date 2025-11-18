@@ -295,8 +295,16 @@ let isEditMode = false;
             const bioText = document.getElementById('bioTextarea').value;
             document.getElementById('bioDisplay').innerHTML = bioText.split('\n').map(p => `<p class="mb-4">${p}</p>`).join('');
             
-            document.getElementById('emailDisplay').textContent = document.getElementById('emailEdit').value;
-            document.getElementById('phoneDisplay').textContent = document.getElementById('phoneEdit').value;
+            const emailValue = document.getElementById('emailEdit').value;
+            const emailEl = document.getElementById('emailDisplay');
+            emailEl.textContent = emailValue;
+            emailEl.href = emailValue ? `mailto:${emailValue}` : '#';
+
+            const phoneValue = document.getElementById('phoneEdit').value;
+            const phoneEl = document.getElementById('phoneDisplay');
+            phoneEl.textContent = phoneValue;
+            const digits = (phoneValue || '').replace(/\D/g, '');
+            phoneEl.href = digits ? `https://wa.me/${digits}` : '#';
             document.getElementById('locationDisplay').textContent = document.getElementById('locationEdit').value;
             document.getElementById('linkedinDisplay').textContent = document.getElementById('linkedinEdit').value;
             document.getElementById('twitterDisplay').textContent = document.getElementById('twitterEdit').value;
