@@ -78,15 +78,8 @@ function requireAdmin(req, res, next) {
 }
 
 // -------------------- MAILER (SMTP via Gmail) --------------------
-// Fallback credentials so emails still work even if
-// EMAIL_USER / EMAIL_PASS are not set in the hosting env.
-// NOTE: For security, consider moving these back to env
-// vars only once your deployment env is correctly configured.
-const FALLBACK_EMAIL_USER = "marjehahmad@gmail.com";
-const FALLBACK_EMAIL_PASS = "zhww drsr epkd xske";
-
-const emailUser = (process.env.EMAIL_USER || FALLBACK_EMAIL_USER).trim();
-const emailPass = (process.env.EMAIL_PASS || FALLBACK_EMAIL_PASS).trim();
+const emailUser = (process.env.EMAIL_USER || "").trim();
+const emailPass = (process.env.EMAIL_PASS || "").trim();
 
 let mailTransporter = null;
 
