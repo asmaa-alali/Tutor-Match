@@ -100,6 +100,13 @@ if (emailUser && emailPass) {
   );
 }
 
+// Compatibility flags for legacy OTP logic that referenced Brevo/fallback
+// We now only use Gmail SMTP, so Brevo is disabled and the "fallback"
+// transporter is just the same SMTP transporter.
+const hasBrevoApiKey = false;
+const apiInstance = null;
+const fallbackOtpTransporter = mailTransporter;
+
 async function sendAdminEmail(to, subject, html, text = "") {
   const plainText =
     typeof text === "string" && text.trim().length > 0
