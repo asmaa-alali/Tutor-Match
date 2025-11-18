@@ -1,8 +1,10 @@
 // tutorpage.js
+console.log('✅ tutorpage.js loaded successfully at:', new Date().toLocaleTimeString());
 
 const DEFAULT_AVATAR_SRC = "/assets/default-avatar.svg";
 
 document.addEventListener("DOMContentLoaded", async () => {
+  console.log('✅ DOMContentLoaded event fired');
   lucide.createIcons();
 
   // >>> ENABLE PHOTO UPLOAD LISTENER <<<
@@ -21,6 +23,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     await loadTutorProfile(tutorId);
+    // Load ratings after profile loads
+    await loadTutorRatings(tutorId);
   } catch (err) {
     console.error("Tutor page error:", err);
     alert("Could not load your profile. Please sign in again.");
@@ -38,6 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   initUIHandlers();
+  initFeedbackButton();
 });
 
 
@@ -45,7 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function loadTutorProfile(tutorId) {
   const res = await fetch(
-    `https://tutor-match-n8a7.onrender.com/api/tutors/profile/${tutorId}`
+    `http://localhost:3000/api/tutors/profile/${tutorId}`
   );
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to load tutor profile");
@@ -313,7 +318,7 @@ function initUIHandlers() {
 
 
     const res = await fetch(
-      "https://tutor-match-n8a7.onrender.com/api/tutors/profile",
+      "http://localhost:3000/api/tutors/profile",
       {
         method: "PUT",
         body: formData,  // <-- NO HEADERS, browser sets automatically
@@ -375,11 +380,141 @@ function initUIHandlers() {
 }
 
 })();
-document.addEventListener("DOMContentLoaded", () => {
+// ======================= LOAD FEEDBACK =======================
+
+async function loadTutorRatings(tutorId) {
+  console.log('🔄 [LOAD RATINGS] Starting at:', new Date().toLocaleTimeString());
+  console.log('Loading ratings for tutor ID:', tutorId);
+  
+  try {
+    const url = `http://localhost:3000/api/ratings/${tutorId}`;
+    console.log('Fetching ratings from:', url);
+    
+    const res = await fetch(url);
+    const data = await res.json();
+
+    console.log('Ratings response:', { ok: res.ok, status: res.status, data });
+
+    if (!res.ok) {
+      console.error('Failed to load ratings:', data.error);
+      showNoFeedback();
+      return;
+    }
+
+    const ratings = data.ratings || [];
+    console.log(`Found ${ratings.length} ratings`);
+    
+    // Update recent feedback section
+    const feedbackContainer = document.getElementById('recentFeedbackContainer');
+    if (!feedbackContainer) {
+      console.error('Feedback container not found in DOM!');
+      return;
+    }
+    
+    if (ratings.length === 0) {
+      feedbackContainer.innerHTML = `
+        <div class="col-span-full text-center py-8 text-gray-500 dark-mode-text">
+          <i data-lucide="message-square" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+          <p>No feedback yet</p>
+        </div>
+      `;
+      lucide.createIcons();
+    } else {
+        // Show latest 4 ratings (2x2 grid)
+        const recentRatings = ratings.slice(0, 4);
+        feedbackContainer.innerHTML = recentRatings.map(rating => {
+          const initials = rating.studentName
+            ? rating.studentName.split(' ').map(n => n[0]).join('').toUpperCase()
+            : '?';
+          
+          const stars = Array(5).fill(0).map((_, i) => 
+            `<i data-lucide="star" class="w-4 h-4 ${i < rating.rating ? 'fill-current' : ''}"></i>`
+          ).join('');
+
+          const colors = [
+            'linear-gradient(135deg, #3b82f6, #1e40af)',
+            'linear-gradient(135deg, #8b5cf6, #ec4899)',
+            'linear-gradient(135deg, #10b981, #059669)',
+            'linear-gradient(135deg, #f59e0b, #d97706)',
+            'linear-gradient(135deg, #ef4444, #dc2626)'
+          ];
+          const color = colors[Math.floor(Math.random() * colors.length)];
+
+          const date = new Date(rating.createdAt).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          });
+
+          return `
+            <div class="feedback-card">
+              <div class="flex items-start gap-4 mb-3">
+                <div class="student-avatar" style="background: ${color};">
+                  ${initials}
+                </div>
+                <div class="flex-1">
+                  <h4 class="font-bold text-gray-800 dark-mode-text">${rating.studentName || 'Anonymous'}</h4>
+                  <p class="text-sm text-gray-500">${rating.subject || 'General'} • ${date}</p>
+                </div>
+                <div class="rating-stars">
+                  ${stars}
+                </div>
+              </div>
+              <p class="text-gray-600 dark-mode-text text-sm">"${rating.feedback || 'No comment provided'}"</p>
+            </div>
+          `;
+        }).join('');
+      lucide.createIcons();
+      console.log('Feedback cards rendered successfully');
+    }
+
+    // Update rating statistics
+    const statsRes = await fetch(`http://localhost:3000/api/ratings/${tutorId}/stats`);
+    const statsData = await statsRes.json();
+
+    console.log('Stats response:', { ok: statsRes.ok, data: statsData });
+
+    if (statsRes.ok && statsData.success) {
+      const stats = statsData.stats;
+      
+      // Update average rating display
+      const avgRatingElement = document.querySelector('.text-5xl.font-bold.gradient-text');
+      if (avgRatingElement) {
+        avgRatingElement.textContent = stats.averageRating ? stats.averageRating.toFixed(1) : 'N/A';
+      }
+
+      // Update total reviews
+      const totalReviewsElement = document.querySelector('.text-sm.text-gray-600.dark-mode-text');
+      if (totalReviewsElement && totalReviewsElement.textContent.includes('reviews')) {
+        totalReviewsElement.textContent = `${stats.totalRatings} reviews`;
+      }
+    }
+
+  } catch (err) {
+    console.error('Error loading ratings:', err);
+    showNoFeedback();
+  }
+}
+
+function showNoFeedback() {
+  const feedbackContainer = document.getElementById('recentFeedbackContainer');
+  if (feedbackContainer) {
+    feedbackContainer.innerHTML = `
+      <div class="col-span-full text-center py-8 text-gray-500 dark-mode-text">
+        <i data-lucide="message-square" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+        <p>No feedback yet</p>
+      </div>
+    `;
+    lucide.createIcons();
+  }
+}
+
+// Initialize "View All Feedback" button handler
+function initFeedbackButton() {
   const btn = document.getElementById("viewAllFeedbackBtn");
   if (btn) {
     btn.onclick = () => {
       window.location.href = "feedback.html"; 
     };
   }
-});
+}

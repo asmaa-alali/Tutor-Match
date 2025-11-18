@@ -555,6 +555,27 @@ app.get('/api/account/status', async (req, res) => {
   }
 });
 
+// Initialize ratings table without foreign key to students table
+async function initializeRatingsTable() {
+  try {
+    // Check if ratings table exists
+    const { data: existingTable, error: checkError } = await supabase
+      .from('ratings')
+      .select('id')
+      .limit(1);
+    
+    // If table exists, we're good
+    if (!checkError || checkError.code === 'PGRST116') {
+      console.log('✅ Ratings table already exists or is accessible');
+      return;
+    }
+
+    console.log('⚠️ Ratings table needs to be created. Please run the SQL in database/fix_ratings_constraints.sql in your Supabase dashboard.');
+  } catch (err) {
+    console.warn('Could not verify ratings table:', err.message);
+  }
+}
+
 const ensureDirectory = async (dirPath) => {
   try {
     await fs.promises.mkdir(dirPath, { recursive: true });
@@ -1687,7 +1708,7 @@ app.post("/api/webhook/auth", async (req, res) => {
 // Submit a rating for a tutor
 app.post("/api/ratings", async (req, res) => {
   try {
-    const { tutorId, studentId, rating, feedback, subject, recommend } = req.body;
+    let { tutorId, studentId, rating, feedback, subject, recommend } = req.body;
 
     // Validation
     if (!tutorId || !studentId) {
@@ -1700,6 +1721,119 @@ app.post("/api/ratings", async (req, res) => {
 
     if (!feedback || feedback.trim().length < 20) {
       return res.status(400).json({ error: "Feedback must be at least 20 characters" });
+    }
+
+    // Verify student exists in auth.users
+    const { data: studentUser, error: studentError } = await supabase.auth.admin.getUserById(studentId);
+    if (studentError || !studentUser?.user) {
+      return res.status(400).json({ error: "Invalid student ID" });
+    }
+
+    // Ensure student exists in users and students tables
+    try {
+      const metadata = studentUser.user.user_metadata || {};
+      const email = studentUser.user.email || '';
+      
+      // First, check if user exists by email (might have different ID)
+      let actualUserId = studentId;
+      const { data: existingUserByEmail, error: emailCheckError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (existingUserByEmail) {
+        // User exists with this email, use that ID
+        actualUserId = existingUserByEmail.id;
+        studentId = actualUserId; // Update the studentId to use for rating
+        console.log('✅ Found existing user record by email');
+      } else {
+        // Try to find by ID
+        const { data: userRecord, error: checkUserError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', studentId)
+          .maybeSingle();
+        
+        if (!userRecord) {
+          // Create new user record
+          console.log('Creating missing user record...');
+          const { data: newUser, error: insertUserError } = await supabase
+            .from('users')
+            .insert([{
+              id: studentId,
+              email: email,
+              role: 'student',
+              firstName: metadata.firstName || '',
+              lastName: metadata.lastName || '',
+              phone: metadata.phone || '',
+              birthdate: metadata.birthdate || null
+            }])
+            .select()
+            .single();
+          
+          if (insertUserError) {
+            console.error('❌ Failed to create user record:', insertUserError);
+            return res.status(500).json({ 
+              error: "Could not create user record. Please contact support.",
+              details: insertUserError.message 
+            });
+          }
+          console.log('✅ Created missing user record');
+        }
+      }
+      
+      // Then, ensure student exists in students table (using actualUserId)
+      const { data: studentRecord, error: checkStudentError } = await supabase
+        .from('students')
+        .select('id')
+        .eq('id', actualUserId)
+        .maybeSingle();
+      
+      if (!studentRecord) {
+        console.log('Creating missing student record...');
+        const { data: newStudent, error: insertStudentError } = await supabase
+          .from('students')
+          .insert([{
+            id: actualUserId,
+            firstName: metadata.firstName || '',
+            lastName: metadata.lastName || '',
+            phone: metadata.phone || '',
+            birthdate: metadata.birthdate || null,
+            studentId: metadata.studentId || '',
+            currentYear: metadata.currentYear || '',
+            major: metadata.major || '',
+            gpa: metadata.gpa || null
+          }])
+          .select()
+          .single();
+        
+        if (insertStudentError) {
+          console.error('❌ Failed to create student record:', insertStudentError);
+          return res.status(500).json({ 
+            error: "Could not create student record. Please contact support.",
+            details: insertStudentError.message 
+          });
+        }
+        console.log('✅ Created missing student record');
+      }
+      
+      // Confirm we're using the correct ID
+      if (actualUserId !== req.body.studentId) {
+        console.log(`⚠️ Using corrected student ID: ${actualUserId} instead of ${req.body.studentId}`);
+      }
+    } catch (err) {
+      console.error('❌ Error ensuring student record:', err);
+      return res.status(500).json({ 
+        error: "Database error while verifying student record",
+        details: err.message 
+      });
+    }
+
+    // Verify tutor exists
+    const { data: tutorUser, error: tutorError } = await supabase.auth.admin.getUserById(tutorId);
+    if (tutorError || !tutorUser?.user) {
+      return res.status(400).json({ error: "Invalid tutor ID" });
     }
 
     // Check if student already rated this tutor
@@ -1719,7 +1853,7 @@ app.post("/api/ratings", async (req, res) => {
       return res.status(400).json({ error: "You have already rated this tutor" });
     }
 
-    // Insert the rating
+    // Insert the rating directly
     const { data: newRating, error: insertError } = await supabase
       .from("ratings")
       .insert([
@@ -1738,7 +1872,7 @@ app.post("/api/ratings", async (req, res) => {
 
     if (insertError) {
       console.error("Error inserting rating:", insertError);
-      return res.status(500).json({ error: "Failed to submit rating" });
+      return res.status(500).json({ error: "Failed to submit rating", details: insertError.message });
     }
 
     // Update tutor's average rating
@@ -1775,6 +1909,8 @@ app.get("/api/ratings/:tutorId", async (req, res) => {
   try {
     const { tutorId } = req.params;
 
+    console.log('📊 Fetching ratings for tutor:', tutorId);
+
     if (!tutorId) {
       return res.status(400).json({ error: "Tutor ID is required" });
     }
@@ -1789,7 +1925,7 @@ app.get("/api/ratings/:tutorId", async (req, res) => {
         recommend,
         created_at,
         student_id,
-        students:student_id (
+        students!fk_student (
           firstName,
           lastName
         )
@@ -1798,9 +1934,12 @@ app.get("/api/ratings/:tutorId", async (req, res) => {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching ratings:", error);
-      return res.status(500).json({ error: "Failed to fetch ratings" });
+      console.error("❌ Error fetching ratings:", error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
+      return res.status(500).json({ error: "Failed to fetch ratings", details: error.message });
     }
+
+    console.log(`✅ Found ${ratings?.length || 0} ratings`);
 
     // Format the response
     const formattedRatings = ratings.map(r => ({
@@ -1816,8 +1955,8 @@ app.get("/api/ratings/:tutorId", async (req, res) => {
     res.status(200).json({ ratings: formattedRatings });
 
   } catch (err) {
-    console.error("Error fetching ratings:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error("❌ Error fetching ratings:", err);
+    res.status(500).json({ error: "Server error", details: err.message });
   }
 });
 
@@ -1956,6 +2095,9 @@ app.put(
 
 
 app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
+
+// Initialize ratings table check
+initializeRatingsTable();
 
 
 

@@ -547,7 +547,7 @@ console.log("✅ findtutor.js loaded!");
         
         try {
           // Get student info from localStorage
-          const session = JSON.parse(localStorage.getItem('session') || '{}');
+          const session = JSON.parse(localStorage.getItem('tmUserSession') || '{}');
           const studentId = session.userId;
           
           if (!studentId) {
@@ -571,7 +571,7 @@ console.log("✅ findtutor.js loaded!");
           
           if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Failed to submit rating');
+            throw new Error(error.error || error.message || 'Failed to submit rating');
           }
           
           // Success!
