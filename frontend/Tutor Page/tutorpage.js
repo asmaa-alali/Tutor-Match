@@ -2,6 +2,10 @@
 console.log('✅ tutorpage.js loaded successfully at:', new Date().toLocaleTimeString());
 
 const DEFAULT_AVATAR_SRC = "/assets/default-avatar.svg";
+const API_BASE =
+  window.location.origin && window.location.origin.startsWith("http")
+    ? ""
+    : "http://localhost:3000";
 
 document.addEventListener("DOMContentLoaded", async () => {
   console.log('✅ DOMContentLoaded event fired');
@@ -50,7 +54,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function loadTutorProfile(tutorId) {
   const res = await fetch(
-    `http://localhost:3000/api/tutors/profile/${tutorId}`
+    `${API_BASE}/api/tutors/profile/${tutorId}`
   );
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to load tutor profile");
@@ -317,13 +321,10 @@ function initUIHandlers() {
 }
 
 
-    const res = await fetch(
-      "http://localhost:3000/api/tutors/profile",
-      {
-        method: "PUT",
-        body: formData,  // <-- NO HEADERS, browser sets automatically
-      }
-    );
+    const res = await fetch(`${API_BASE}/api/tutors/profile`, {
+      method: "PUT",
+      body: formData, // <-- NO HEADERS, browser sets automatically
+    });
 
     const data = await res.json();
 
@@ -387,7 +388,7 @@ async function loadTutorRatings(tutorId) {
   console.log('Loading ratings for tutor ID:', tutorId);
   
   try {
-    const url = `http://localhost:3000/api/ratings/${tutorId}`;
+    const url = `${API_BASE}/api/ratings/${tutorId}`;
     console.log('Fetching ratings from:', url);
     
     const res = await fetch(url);
@@ -469,7 +470,7 @@ async function loadTutorRatings(tutorId) {
     }
 
     // Update rating statistics
-    const statsRes = await fetch(`http://localhost:3000/api/ratings/${tutorId}/stats`);
+    const statsRes = await fetch(`${API_BASE}/api/ratings/${tutorId}/stats`);
     const statsData = await statsRes.json();
 
     console.log('Stats response:', { ok: statsRes.ok, data: statsData });

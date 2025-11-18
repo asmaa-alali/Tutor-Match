@@ -1,20 +1,25 @@
 // ======================= DARK MODE =======================
-console.log('✅ feedback.js loaded successfully at:', new Date().toLocaleTimeString());
+console.log('feedback.js loaded successfully at:', new Date().toLocaleTimeString());
+
+const API_BASE =
+  window.location.origin && window.location.origin.startsWith("http")
+    ? ""
+    : "http://localhost:3000";
 
 function toggleDarkMode(toggle) {
-    document.body.classList.toggle('dark-mode');
-    
-    document.querySelectorAll('.dark-mode-toggle').forEach(t => {
-        t.classList.toggle('active');
-        const icon = t.querySelector('i');
-        if (t.classList.contains('active')) {
-            icon.setAttribute('data-lucide', 'moon');
-        } else {
-            icon.setAttribute('data-lucide', 'sun');
-        }
-    });
-    
-    lucide.createIcons();
+  document.body.classList.toggle("dark-mode");
+
+  document.querySelectorAll(".dark-mode-toggle").forEach((t) => {
+    t.classList.toggle("active");
+    const icon = t.querySelector("i");
+    if (t.classList.contains("active")) {
+      icon.setAttribute("data-lucide", "moon");
+    } else {
+      icon.setAttribute("data-lucide", "sun");
+    }
+  });
+
+  lucide.createIcons();
 }
 
 // ======================= LOAD REAL FEEDBACK =======================
@@ -23,311 +28,359 @@ let currentFeedbackIndex = 0;
 const feedbackPerPage = 10;
 
 async function loadAllRatings() {
-    try {
-        const tutorId = localStorage.getItem('tutorId');
-        if (!tutorId) {
-            console.error('No tutor ID found');
-            return;
-        }
-
-        const res = await fetch(`http://localhost:3000/api/ratings/${tutorId}`);
-        const data = await res.json();
-
-        if (!res.ok) {
-            console.error('Failed to load ratings:', data.error);
-            showNoFeedback();
-            return;
-        }
-
-        allFeedbackData = data.ratings || [];
-        
-        if (allFeedbackData.length === 0) {
-            showNoFeedback();
-            return;
-        }
-
-        // Load statistics
-        await loadRatingStatistics(tutorId);
-        
-        // Populate feedback
-        populateAllFeedback();
-
-    } catch (err) {
-        console.error('Error loading ratings:', err);
-        showNoFeedback();
+  try {
+    const tutorId = localStorage.getItem("tutorId");
+    if (!tutorId) {
+      console.error("No tutor ID found");
+      return;
     }
+
+    const res = await fetch(`${API_BASE}/api/ratings/${tutorId}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Failed to load ratings:", data.error);
+      showNoFeedback();
+      return;
+    }
+
+    allFeedbackData = data.ratings || [];
+
+    if (allFeedbackData.length === 0) {
+      showNoFeedback();
+      return;
+    }
+
+    // Load statistics
+    await loadRatingStatistics(tutorId);
+
+    // Populate feedback
+    populateAllFeedback();
+  } catch (err) {
+    console.error("Error loading ratings:", err);
+    showNoFeedback();
+  }
 }
 
 async function loadRatingStatistics(tutorId) {
-    try {
-        const res = await fetch(`http://localhost:3000/api/ratings/${tutorId}/stats`);
-        const data = await res.json();
+  try {
+    const res = await fetch(`${API_BASE}/api/ratings/${tutorId}/stats`);
+    const data = await res.json();
 
-        if (!res.ok || !data.success) {
-            console.error('Failed to load rating statistics');
-            return;
-        }
-
-        const stats = data.stats;
-        
-        // Update overall rating
-        const overallRatingEl = document.querySelector('.card .text-5xl');
-        if (overallRatingEl) {
-            overallRatingEl.textContent = stats.averageRating ? stats.averageRating.toFixed(1) : 'N/A';
-        }
-
-        // Update positive feedback percentage
-        const positivePercentEl = document.querySelectorAll('.card .text-5xl')[1];
-        if (positivePercentEl && stats.totalRatings > 0) {
-            const positiveCount = (stats.ratingDistribution['5'] || 0) + (stats.ratingDistribution['4'] || 0);
-            const positivePercent = Math.round((positiveCount / stats.totalRatings) * 100);
-            positivePercentEl.textContent = `${positivePercent}%`;
-        }
-
-        // Update rating breakdown
-        const ratingBreakdownContainer = document.querySelector('.space-y-4');
-        if (ratingBreakdownContainer && stats.ratingDistribution) {
-            ratingBreakdownContainer.innerHTML = '';
-            
-            for (let rating = 5; rating >= 1; rating--) {
-                const count = stats.ratingDistribution[rating] || 0;
-                const percentage = stats.totalRatings > 0 ? (count / stats.totalRatings) * 100 : 0;
-                
-                const breakdownRow = document.createElement('div');
-                breakdownRow.className = 'flex items-center gap-4';
-                breakdownRow.innerHTML = `
-                    <div class="flex items-center gap-2 w-24">
-                        <span class="font-semibold text-gray-700 dark-mode-text">${rating}</span>
-                        <i data-lucide="star" class="w-4 h-4 text-yellow-500 fill-current"></i>
-                    </div>
-                    <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-                        <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full" style="width: ${percentage}%"></div>
-                    </div>
-                    <span class="font-semibold text-gray-700 dark-mode-text w-16 text-right">${count}</span>
-                `;
-                
-                ratingBreakdownContainer.appendChild(breakdownRow);
-            }
-            
-            lucide.createIcons();
-        }
-
-    } catch (err) {
-        console.error('Error loading statistics:', err);
+    if (!res.ok || !data.success) {
+      console.error("Failed to load rating statistics");
+      return;
     }
+
+    const stats = data.stats;
+
+    // Update overall rating
+    const overallRatingEl = document.querySelector(".card .text-5xl");
+    if (overallRatingEl) {
+      overallRatingEl.textContent = stats.averageRating
+        ? stats.averageRating.toFixed(1)
+        : "N/A";
+    }
+
+    // Update positive feedback percentage
+    const positivePercentEl = document.querySelectorAll(".card .text-5xl")[1];
+    if (positivePercentEl && stats.totalRatings > 0) {
+      const positiveCount =
+        (stats.ratingDistribution["5"] || 0) +
+        (stats.ratingDistribution["4"] || 0);
+      const positivePercent = Math.round(
+        (positiveCount / stats.totalRatings) * 100
+      );
+      positivePercentEl.textContent = `${positivePercent}%`;
+    }
+
+    // Update rating breakdown
+    const ratingBreakdownContainer = document.querySelector(".space-y-4");
+    if (ratingBreakdownContainer && stats.ratingDistribution) {
+      ratingBreakdownContainer.innerHTML = "";
+
+      for (let rating = 5; rating >= 1; rating--) {
+        const count = stats.ratingDistribution[rating] || 0;
+        const percentage =
+          stats.totalRatings > 0 ? (count / stats.totalRatings) * 100 : 0;
+
+        const breakdownRow = document.createElement("div");
+        breakdownRow.className = "flex items-center gap-4";
+        breakdownRow.innerHTML = `
+          <div class="flex items-center gap-2 w-24">
+            <span class="font-semibold text-gray-700 dark-mode-text">${rating}</span>
+            <i data-lucide="star" class="w-4 h-4 text-yellow-500 fill-current"></i>
+          </div>
+          <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full" style="width: ${percentage}%"></div>
+          </div>
+          <span class="font-semibold text-gray-700 dark-mode-text w-16 text-right">${count}</span>
+        `;
+
+        ratingBreakdownContainer.appendChild(breakdownRow);
+      }
+
+      lucide.createIcons();
+    }
+  } catch (err) {
+    console.error("Error loading statistics:", err);
+  }
 }
 
 function showNoFeedback() {
-    const container = document.getElementById('allFeedbackContainer');
-    if (container) {
-        container.innerHTML = `
-            <div class="text-center py-12 text-gray-500">
-                <i data-lucide="message-square" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
-                <p class="text-xl font-semibold mb-2">No feedback yet</p>
-                <p class="text-sm">You haven't received any ratings from students yet.</p>
-            </div>
-        `;
-        lucide.createIcons();
-    }
+  const container = document.getElementById("allFeedbackContainer");
+  if (container) {
+    container.innerHTML = `
+      <div class="text-center py-12 text-gray-500">
+        <i data-lucide="message-square" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
+        <p class="text-xl font-semibold mb-2">No feedback yet</p>
+        <p class="text-sm">You haven't received any ratings from students yet.</p>
+      </div>
+    `;
+    lucide.createIcons();
+  }
 
-    // Hide rating breakdown and stats
-    document.querySelectorAll('.card').forEach(card => {
-        if (card.querySelector('.text-5xl')) {
-            card.querySelector('.text-5xl').textContent = 'N/A';
-        }
-    });
+  // Hide rating breakdown and stats
+  document.querySelectorAll(".card").forEach((card) => {
+    if (card.querySelector(".text-5xl")) {
+      card.querySelector(".text-5xl").textContent = "N/A";
+    }
+  });
 }
 
 function populateAllFeedback() {
-    const container = document.getElementById('allFeedbackContainer');
-    container.innerHTML = '';
-    currentFeedbackIndex = 0;
-    
-    // Load first batch
-    loadMoreFeedback();
+  const container = document.getElementById("allFeedbackContainer");
+  container.innerHTML = "";
+  currentFeedbackIndex = 0;
+
+  // Load first batch
+  loadMoreFeedback();
 }
 
 function loadMoreFeedback() {
-    const container = document.getElementById('allFeedbackContainer');
-    const loadMoreBtn = document.getElementById('loadMoreContainer');
-    
-    // Use filtered data if available, otherwise use all data
-    const dataSource = window.currentFilteredData || allFeedbackData;
-    
-    // Get the next batch of feedback
-    const endIndex = Math.min(currentFeedbackIndex + feedbackPerPage, dataSource.length);
-    const feedbackBatch = dataSource.slice(currentFeedbackIndex, endIndex);
-    
-    feedbackBatch.forEach(feedback => {
-        const feedbackCard = document.createElement('div');
-        feedbackCard.className = 'feedback-card';
-        feedbackCard.setAttribute('data-student', (feedback.studentName || '').toLowerCase());
-        feedbackCard.setAttribute('data-subject', (feedback.subject || '').toLowerCase());
-        feedbackCard.setAttribute('data-rating', feedback.rating);
-        
-        const stars = Array(5).fill(0).map((_, i) => 
-            `<i data-lucide="star" class="w-4 h-4 ${i < feedback.rating ? 'fill-current' : ''}"></i>`
-        ).join('');
+  const container = document.getElementById("allFeedbackContainer");
+  const loadMoreBtn = document.getElementById("loadMoreContainer");
 
-        const initials = feedback.studentName
-            ? feedback.studentName.split(' ').map(n => n[0]).join('').toUpperCase()
-            : '?';
+  // Use filtered data if available, otherwise use all data
+  const dataSource = window.currentFilteredData || allFeedbackData;
 
-        const colors = [
-            'linear-gradient(135deg, #3b82f6, #1e40af)',
-            'linear-gradient(135deg, #8b5cf6, #ec4899)',
-            'linear-gradient(135deg, #10b981, #059669)',
-            'linear-gradient(135deg, #f59e0b, #d97706)',
-            'linear-gradient(135deg, #ef4444, #dc2626)',
-            'linear-gradient(135deg, #06b6d4, #0891b2)',
-            'linear-gradient(135deg, #a855f7, #9333ea)',
-            'linear-gradient(135deg, #14b8a6, #0d9488)'
-        ];
-        const color = colors[Math.floor(Math.random() * colors.length)];
+  // Get the next batch of feedback
+  const endIndex = Math.min(
+    currentFeedbackIndex + feedbackPerPage,
+    dataSource.length
+  );
+  const feedbackBatch = dataSource.slice(currentFeedbackIndex, endIndex);
 
-        const date = new Date(feedback.createdAt).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-        
-        feedbackCard.innerHTML = `
-            <div class="flex items-start gap-4 mb-4">
-                <div class="student-avatar" style="background: ${color};">
-                    ${initials}
-                </div>
-                <div class="flex-1">
-                    <h4 class="font-bold text-gray-800 dark-mode-text">${feedback.studentName || 'Anonymous'}</h4>
-                    <p class="text-sm text-gray-500">${feedback.subject || 'General'} • ${date}</p>
-                </div>
-                <div class="rating-stars">
-                    ${stars}
-                </div>
-            </div>
-            <p class="text-gray-600 dark-mode-text text-sm">"${feedback.feedback || 'No comment provided'}"</p>
-        `;
-        
-        container.appendChild(feedbackCard);
+  feedbackBatch.forEach((feedback) => {
+    const feedbackCard = document.createElement("div");
+    feedbackCard.className = "feedback-card";
+    feedbackCard.setAttribute(
+      "data-student",
+      (feedback.studentName || "").toLowerCase()
+    );
+    feedbackCard.setAttribute(
+      "data-subject",
+      (feedback.subject || "").toLowerCase()
+    );
+    feedbackCard.setAttribute("data-rating", feedback.rating);
+
+    const stars = Array(5)
+      .fill(0)
+      .map(
+        (_, i) =>
+          `<i data-lucide="star" class="w-4 h-4 ${i < feedback.rating ? "fill-current" : ""}"></i>`
+      )
+      .join("");
+
+    const initials = feedback.studentName
+      ? feedback.studentName
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+      : "?";
+
+    const colors = [
+      "linear-gradient(135deg, #3b82f6, #1e40af)",
+      "linear-gradient(135deg, #8b5cf6, #ec4899)",
+      "linear-gradient(135deg, #10b981, #059669)",
+      "linear-gradient(135deg, #f59e0b, #d97706)",
+      "linear-gradient(135deg, #ef4444, #dc2626)",
+      "linear-gradient(135deg, #06b6d4, #0891b2)",
+      "linear-gradient(135deg, #a855f7, #9333ea)",
+      "linear-gradient(135deg, #14b8a6, #0d9488)",
+    ];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+
+    const date = new Date(feedback.createdAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
-    
-    currentFeedbackIndex = endIndex;
-    
-    // Show or hide "Load More" button
-    if (currentFeedbackIndex < dataSource.length) {
-        loadMoreBtn.style.display = 'block';
-    } else {
-        loadMoreBtn.style.display = 'none';
-    }
-    
-    lucide.createIcons();
+
+    feedbackCard.innerHTML = `
+      <div class="flex items-start gap-4 mb-4">
+        <div class="student-avatar" style="background: ${color};">
+          ${initials}
+        </div>
+        <div class="flex-1">
+          <h4 class="font-bold text-gray-800 dark-mode-text">${feedback.studentName || "Anonymous"}</h4>
+          <p class="text-sm text-gray-500">${feedback.subject || "General"} • ${date}</p>
+        </div>
+        <div class="rating-stars">
+          ${stars}
+        </div>
+      </div>
+      <p class="text-gray-600 dark-mode-text text-sm">"${
+        feedback.feedback || "No comment provided"
+      }"</p>
+    `;
+
+    container.appendChild(feedbackCard);
+  });
+
+  currentFeedbackIndex = endIndex;
+
+  // Show or hide "Load More" button
+  if (currentFeedbackIndex < dataSource.length) {
+    loadMoreBtn.style.display = "block";
+  } else {
+    loadMoreBtn.style.display = "none";
+  }
+
+  lucide.createIcons();
 }
 
 function filterAllFeedback() {
-    const searchTerm = document.getElementById('feedbackSearchBar').value.toLowerCase().trim();
-    const ratingFilter = document.getElementById('ratingFilter').value;
-    const subjectFilter = document.getElementById('subjectFilter').value;
-    
-    // Reset and reload feedback with filters
-    const container = document.getElementById('allFeedbackContainer');
-    container.innerHTML = '';
-    currentFeedbackIndex = 0;
-    
-    // Filter the data first
-    const filteredData = allFeedbackData.filter(feedback => {
-        const matchesSearch = searchTerm === '' || 
-            (feedback.studentName || '').toLowerCase().includes(searchTerm) || 
-            (feedback.subject || '').toLowerCase().includes(searchTerm);
-        const matchesRating = ratingFilter === 'all' || feedback.rating.toString() === ratingFilter;
-        const matchesSubject = subjectFilter === 'all' || (feedback.subject || '').toLowerCase() === subjectFilter;
-        
-        return matchesSearch && matchesRating && matchesSubject;
-    });
-    
-    // Load first batch of filtered data
-    const endIndex = Math.min(feedbackPerPage, filteredData.length);
-    const feedbackBatch = filteredData.slice(0, endIndex);
-    
-    if (feedbackBatch.length === 0) {
-        const noResultsMsg = document.createElement('div');
-        noResultsMsg.id = 'noFeedbackResultsMsg';
-        noResultsMsg.className = 'text-center py-12 text-gray-500';
-        noResultsMsg.innerHTML = '<i data-lucide="search-x" class="w-16 h-16 mx-auto mb-4 opacity-50"></i><p class="text-xl font-semibold mb-2">No feedback found</p><p class="text-sm">Try adjusting your filters or search terms</p>';
-        container.appendChild(noResultsMsg);
-        document.getElementById('loadMoreContainer').style.display = 'none';
-        lucide.createIcons();
-        return;
-    }
-    
-    feedbackBatch.forEach(feedback => {
-        const feedbackCard = document.createElement('div');
-        feedbackCard.className = 'feedback-card';
-        feedbackCard.setAttribute('data-student', (feedback.studentName || '').toLowerCase());
-        feedbackCard.setAttribute('data-subject', (feedback.subject || '').toLowerCase());
-        feedbackCard.setAttribute('data-rating', feedback.rating);
-        
-        const stars = Array(5).fill(0).map((_, i) => 
-            `<i data-lucide="star" class="w-4 h-4 ${i < feedback.rating ? 'fill-current' : ''}"></i>`
-        ).join('');
+  const searchTerm = document
+    .getElementById("feedbackSearchBar")
+    .value.toLowerCase()
+    .trim();
+  const ratingFilter = document.getElementById("ratingFilter").value;
+  const subjectFilter = document.getElementById("subjectFilter").value;
 
-        const initials = feedback.studentName
-            ? feedback.studentName.split(' ').map(n => n[0]).join('').toUpperCase()
-            : '?';
+  // Reset and reload feedback with filters
+  const container = document.getElementById("allFeedbackContainer");
+  container.innerHTML = "";
+  currentFeedbackIndex = 0;
 
-        const colors = [
-            'linear-gradient(135deg, #3b82f6, #1e40af)',
-            'linear-gradient(135deg, #8b5cf6, #ec4899)',
-            'linear-gradient(135deg, #10b981, #059669)',
-            'linear-gradient(135deg, #f59e0b, #d97706)',
-            'linear-gradient(135deg, #ef4444, #dc2626)',
-            'linear-gradient(135deg, #06b6d4, #0891b2)',
-            'linear-gradient(135deg, #a855f7, #9333ea)',
-            'linear-gradient(135deg, #14b8a6, #0d9488)'
-        ];
-        const color = colors[Math.floor(Math.random() * colors.length)];
+  // Filter the data first
+  const filteredData = allFeedbackData.filter((feedback) => {
+    const matchesSearch =
+      searchTerm === "" ||
+      (feedback.studentName || "").toLowerCase().includes(searchTerm) ||
+      (feedback.subject || "").toLowerCase().includes(searchTerm);
+    const matchesRating =
+      ratingFilter === "all" || feedback.rating.toString() === ratingFilter;
+    const matchesSubject =
+      subjectFilter === "all" ||
+      (feedback.subject || "").toLowerCase() === subjectFilter;
 
-        const date = new Date(feedback.createdAt).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-        
-        feedbackCard.innerHTML = `
-            <div class="flex items-start gap-4 mb-4">
-                <div class="student-avatar" style="background: ${color};">
-                    ${initials}
-                </div>
-                <div class="flex-1">
-                    <h4 class="font-bold text-gray-800 dark-mode-text">${feedback.studentName || 'Anonymous'}</h4>
-                    <p class="text-sm text-gray-500">${feedback.subject || 'General'} • ${date}</p>
-                </div>
-                <div class="rating-stars">
-                    ${stars}
-                </div>
-            </div>
-            <p class="text-gray-600 dark-mode-text text-sm">"${feedback.feedback || 'No comment provided'}"</p>
-        `;
-        
-        container.appendChild(feedbackCard);
-    });
-    
-    // Store filtered data for "Load More"
-    window.currentFilteredData = filteredData;
-    currentFeedbackIndex = endIndex;
-    
-    // Show or hide "Load More" button
-    const loadMoreBtn = document.getElementById('loadMoreContainer');
-    if (currentFeedbackIndex < filteredData.length) {
-        loadMoreBtn.style.display = 'block';
-    } else {
-        loadMoreBtn.style.display = 'none';
-    }
-    
+    return matchesSearch && matchesRating && matchesSubject;
+  });
+
+  // Load first batch of filtered data
+  const endIndex = Math.min(feedbackPerPage, filteredData.length);
+  const feedbackBatch = filteredData.slice(0, endIndex);
+
+  if (feedbackBatch.length === 0) {
+    const noResultsMsg = document.createElement("div");
+    noResultsMsg.id = "noFeedbackResultsMsg";
+    noResultsMsg.className = "text-center py-12 text-gray-500";
+    noResultsMsg.innerHTML =
+      '<i data-lucide="search-x" class="w-16 h-16 mx-auto mb-4 opacity-50"></i><p class="text-xl font-semibold mb-2">No feedback found</p><p class="text-sm">Try adjusting your filters or search terms</p>';
+    container.appendChild(noResultsMsg);
+    document.getElementById("loadMoreContainer").style.display = "none";
     lucide.createIcons();
+    return;
+  }
+
+  feedbackBatch.forEach((feedback) => {
+    const feedbackCard = document.createElement("div");
+    feedbackCard.className = "feedback-card";
+    feedbackCard.setAttribute(
+      "data-student",
+      (feedback.studentName || "").toLowerCase()
+    );
+    feedbackCard.setAttribute(
+      "data-subject",
+      (feedback.subject || "").toLowerCase()
+    );
+    feedbackCard.setAttribute("data-rating", feedback.rating);
+
+    const stars = Array(5)
+      .fill(0)
+      .map(
+        (_, i) =>
+          `<i data-lucide="star" class="w-4 h-4 ${i < feedback.rating ? "fill-current" : ""}"></i>`
+      )
+      .join("");
+
+    const initials = feedback.studentName
+      ? feedback.studentName
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+      : "?";
+
+    const colors = [
+      "linear-gradient(135deg, #3b82f6, #1e40af)",
+      "linear-gradient(135deg, #8b5cf6, #ec4899)",
+      "linear-gradient(135deg, #10b981, #059669)",
+      "linear-gradient(135deg, #f59e0b, #d97706)",
+      "linear-gradient(135deg, #ef4444, #dc2626)",
+      "linear-gradient(135deg, #06b6d4, #0891b2)",
+      "linear-gradient(135deg, #a855f7, #9333ea)",
+      "linear-gradient(135deg, #14b8a6, #0d9488)",
+    ];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+
+    const date = new Date(feedback.createdAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    feedbackCard.innerHTML = `
+      <div class="flex items-start gap-4 mb-4">
+        <div class="student-avatar" style="background: ${color};">
+          ${initials}
+        </div>
+        <div class="flex-1">
+          <h4 class="font-bold text-gray-800 dark-mode-text">${feedback.studentName || "Anonymous"}</h4>
+          <p class="text-sm text-gray-500">${feedback.subject || "General"} • ${date}</p>
+        </div>
+        <div class="rating-stars">
+          ${stars}
+        </div>
+      </div>
+      <p class="text-gray-600 dark-mode-text text-sm">"${
+        feedback.feedback || "No comment provided"
+      }"</p>
+    `;
+
+    container.appendChild(feedbackCard);
+  });
+
+  // Store filtered data for "Load More"
+  window.currentFilteredData = filteredData;
+  currentFeedbackIndex = endIndex;
+
+  // Show or hide "Load More" button
+  const loadMoreBtn = document.getElementById("loadMoreContainer");
+  if (currentFeedbackIndex < filteredData.length) {
+    loadMoreBtn.style.display = "block";
+  } else {
+    loadMoreBtn.style.display = "none";
+  }
+
+  lucide.createIcons();
 }
 
 // ======================= INITIALIZE =======================
-document.addEventListener('DOMContentLoaded', () => {
-    lucide.createIcons();
-    loadAllRatings();
+document.addEventListener("DOMContentLoaded", () => {
+  lucide.createIcons();
+  loadAllRatings();
 });
 
