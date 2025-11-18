@@ -152,14 +152,9 @@ console.log("✅ findtutor.js loaded!");
         <div class="mb-4 flex flex-wrap gap-2">${subjectsHtml || '<span class="text-white/60 text-sm">No subjects listed</span>'}</div>
         <div class="flex items-center justify-between mb-3">
           <div class="text-green-400 font-bold">$${rate}/hour</div>
-          <div class="flex items-center gap-2">
-            <button class="btn-premium px-6 py-2" data-action="view" data-id="${t.id || ''}">
-              <i data-lucide="user" class="w-4 h-4 inline mr-2"></i> View Profile
-            </button>
-            <button class="glass dark:glass-dark px-4 py-2 rounded-xl text-white" data-action="message" data-id="${t.id || ''}">
-              <i data-lucide="message-circle" class="w-4 h-4 inline"></i>
-            </button>
-          </div>
+          <button class="btn-premium px-6 py-2" data-action="view" data-id="${t.id || ''}">
+            <i data-lucide="user" class="w-4 h-4 inline mr-2"></i> View Profile
+          </button>
         </div>
         <button class="w-full glass dark:glass-dark px-4 py-2 rounded-xl text-white hover:bg-white/20 transition-all" data-action="rate" data-id="${t.id || ''}" data-name="${name}">
           <i data-lucide="star" class="w-4 h-4 inline mr-2"></i> Rate This Tutor
