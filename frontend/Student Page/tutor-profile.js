@@ -31,6 +31,7 @@
     feedbackSummary: document.querySelector("#feedbackSummary"),
     feedbackAverage: document.querySelector("#feedbackAverage"),
     feedbackCount: document.querySelector("#feedbackCount"),
+    feedbackLoadMore: document.querySelector("#feedbackLoadMore"),
   };
 
   const params = new URLSearchParams(window.location.search);
@@ -360,6 +361,147 @@ if (tutor.phone) {
         alert("Profile link copied!");
       }
     });
+  }
+
+  // ----- STUDENT FEEDBACK PREVIEW -----
+  let allTutorRatings = [];
+  let feedbackShownCount = 0;
+
+  function renderFeedbackSlice() {
+    const list = elements.feedbackList;
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    if (!allTutorRatings.length) {
+      const p = document.createElement("p");
+      p.className = "text-white/60";
+      p.textContent =
+        "This tutor hasn't received any feedback yet. Be the first to leave a review after your session.";
+      list.appendChild(p);
+      elements.feedbackLoadMore?.classList.add("hidden");
+      return;
+    }
+
+    const toShow = allTutorRatings.slice(0, feedbackShownCount);
+
+    toShow.forEach((r) => {
+      const wrapper = document.createElement("div");
+      wrapper.className =
+        "bg-white/5 border border-white/10 rounded-2xl p-4 flex gap-4 items-start";
+
+      const initials =
+        (r.studentName || "")
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase() || "?";
+
+      const dateLabel = r.createdAt
+        ? new Date(r.createdAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : "";
+
+      const starsHtml = Array(5)
+        .fill(0)
+        .map(
+          (_, i) =>
+            `<i data-lucide="star" class="w-4 h-4 ${
+              i < (r.rating || 0)
+                ? "fill-current text-yellow-400"
+                : "text-slate-400"
+            }"></i>`
+        )
+        .join("");
+
+      wrapper.innerHTML = `
+        <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-sm font-semibold">
+          ${initials}
+        </div>
+        <div class="flex-1 space-y-1">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="font-semibold text-white">${
+                r.studentName || "Anonymous student"
+              }</p>
+              <p class="text-xs text-white/60">${r.subject || "General"}${
+        dateLabel ? " • " + dateLabel : ""
+      }</p>
+            </div>
+            <div class="flex items-center gap-1 text-yellow-400">
+              ${starsHtml}
+            </div>
+          </div>
+          <p class="text-sm text-white/80">${
+            r.feedback || "No written comment."
+          }</p>
+        </div>
+      `;
+
+      list.appendChild(wrapper);
+    });
+
+    if (elements.feedbackLoadMore) {
+      if (feedbackShownCount < allTutorRatings.length) {
+        elements.feedbackLoadMore.textContent = "View more feedback";
+        elements.feedbackLoadMore.classList.remove("hidden");
+      } else {
+        elements.feedbackLoadMore.classList.add("hidden");
+      }
+    }
+
+    if (typeof lucide !== "undefined" && lucide.createIcons) {
+      lucide.createIcons();
+    }
+  }
+
+  async function loadTutorFeedback(id) {
+    if (!id || !elements.feedbackList) return;
+    try {
+      const res = await fetch(`/api/ratings/${encodeURIComponent(id)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        console.error("Failed to load ratings for tutor profile:", data.error);
+        return;
+      }
+      allTutorRatings = Array.isArray(data.ratings) ? data.ratings : [];
+
+      // Summary
+      if (
+        allTutorRatings.length > 0 &&
+        elements.feedbackSummary &&
+        elements.feedbackAverage &&
+        elements.feedbackCount
+      ) {
+        const avg =
+          allTutorRatings.reduce(
+            (sum, r) => sum + (Number(r.rating) || 0),
+            0
+          ) / allTutorRatings.length;
+        elements.feedbackAverage.textContent = avg.toFixed(1);
+        elements.feedbackCount.textContent =
+          allTutorRatings.length === 1
+            ? "1 rating"
+            : `${allTutorRatings.length} ratings`;
+        elements.feedbackSummary.classList.remove("hidden");
+      }
+
+      // Initial slice: show up to 3 feedbacks
+      feedbackShownCount = Math.min(3, allTutorRatings.length || 3);
+      renderFeedbackSlice();
+
+      if (elements.feedbackLoadMore) {
+        elements.feedbackLoadMore.onclick = () => {
+          feedbackShownCount = allTutorRatings.length;
+          renderFeedbackSlice();
+        };
+      }
+    } catch (err) {
+      console.error("Error loading tutor feedback:", err);
+    }
   }
 
   async function loadTutorFeedback(id) {
