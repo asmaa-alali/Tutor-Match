@@ -192,6 +192,17 @@
               <option value="business">Business</option>
               <option value="engineering">Engineering</option>
             </select>
+
+            <!-- Tutoring format directly under subject for better layout -->
+            <div class="mt-4">
+              <label class="block text-white font-medium mb-3">Tutoring Format</label>
+              <div class="flex flex-wrap gap-3">
+                <button class="filter-btn active" data-format="all">All Formats</button>
+                <button class="filter-btn" data-format="online">Online Only</button>
+                <button class="filter-btn" data-format="in-person">In-Person</button>
+                <button class="filter-btn" data-format="both">Both</button>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -223,16 +234,6 @@
               <option value="evening">Evening</option>
               <option value="weekend">Weekend</option>
             </select>
-          </div>
-        </div>
-
-        <div class="mt-8">
-          <label class="block text-white font-medium mb-4">Tutoring Format</label>
-          <div class="flex flex-wrap gap-4">
-            <button class="filter-btn active" data-format="all">All Formats</button>
-            <button class="filter-btn" data-format="online">Online Only</button>
-            <button class="filter-btn" data-format="in-person">In-Person</button>
-            <button class="filter-btn" data-format="both">Both</button>
           </div>
         </div>
       </div>
