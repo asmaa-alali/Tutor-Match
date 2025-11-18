@@ -301,8 +301,28 @@
     setText(elements.formatDetails, tutor.format || "Online & In-person");
     setText(elements.languages, tutor.languages || "English");
     setText(elements.degree, [tutor.degree, tutor.major].filter(Boolean).join(" • "));
-    setText(elements.email, tutor.email, "Not shared");
-    setText(elements.phone, tutor.phone, "Not shared");
+    // ----- EMAIL LINK -----
+if (tutor.email) {
+  elements.email.textContent = tutor.email;
+  elements.email.href = `mailto:${tutor.email}`;
+} else {
+  elements.email.textContent = "Not shared";
+  elements.email.removeAttribute("href");
+}
+
+// ----- PHONE → WHATSAPP LINK -----
+if (tutor.phone) {
+  elements.phone.textContent = tutor.phone;
+
+  // Clean phone number for WhatsApp URL:
+  const cleanPhone = tutor.phone.replace(/\D/g, ""); // removes +, spaces, etc.
+  elements.phone.href = `https://wa.me/${cleanPhone}`;
+  elements.phone.target = "_blank";
+} else {
+  elements.phone.textContent = "Not shared";
+  elements.phone.removeAttribute("href");
+}
+
     if (elements.status) {
       elements.status.textContent = tutor.approved ? "Approved tutor" : "Pending approval";
       elements.status.classList.toggle("bg-emerald-500/20", Boolean(tutor.approved));
