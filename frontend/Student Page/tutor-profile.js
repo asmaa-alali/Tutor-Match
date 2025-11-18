@@ -23,8 +23,9 @@
     subjectsCount: $("#subjectsCount"),
     degree: $("#profileDegree"),
     certificates: $("#profileCertificates"),
-    email: $("#profileEmail"),
-    phone: $("#profilePhone"),
+    // Use the actual clickable links in the Contact section
+    email: $("#emailLink"),
+    phone: $("#phoneLink"),
   };
 
   const params = new URLSearchParams(window.location.search);
