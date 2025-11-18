@@ -1,4 +1,4 @@
- // ====================== THEME MANAGEMENT ======================
+// ====================== THEME MANAGEMENT ======================
 function toggleTheme() {
   document.body.classList.toggle("dark");
   const isDark = document.body.classList.contains("dark");
@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
   updateThemeIcons(isDark);
   lucide.createIcons();
 });
+
 // ================= FILE UPLOAD PREVIEW =================
 function handleFileUpload(inputId, previewId, allowedSizeMB) {
   const input = document.getElementById(inputId);
@@ -38,21 +39,27 @@ function handleFileUpload(inputId, previewId, allowedSizeMB) {
 
     const maxSize = allowedSizeMB * 1024 * 1024;
     if (file.size > maxSize) {
-      preview.innerHTML = `<p class="text-red-400 text-sm">❌ File exceeds ${allowedSizeMB}MB limit</p>`;
+      preview.innerHTML = `<p class="text-red-400 text-sm">File exceeds ${allowedSizeMB}MB limit</p>`;
       input.value = "";
       return;
     }
 
     const fileName = document.createElement("p");
     fileName.className = "text-sm text-green-400 mt-1";
-    fileName.textContent = `✅ ${file.name}`;
+    fileName.textContent = `• ${file.name}`;
     preview.appendChild(fileName);
   });
 }
 
 // init previews
 handleFileUpload("passportPhoto", "passportPhotoPreview", 2); // 2MB
-handleFileUpload("certificate", "certificatePreview", 5);     // 5MB
+handleFileUpload("certificate", "certificatePreview", 5); // 5MB
+
+// ================= BACKEND BASE URL =================
+const API_BASE =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000"
+    : window.location.origin;
 
 // ================= PASSWORD VALIDATION =================
 function updatePasswordStrength() {
@@ -61,7 +68,7 @@ function updatePasswordStrength() {
   const strengthText = document.getElementById("strengthText");
 
   let strength = 0;
-  let feedback = [];
+  const feedback = [];
 
   if (password.length >= 8) strength++;
   else feedback.push("at least 8 characters");
@@ -124,8 +131,12 @@ function validatePasswordMatch() {
 
 // ====================== FORM SUBMISSION ======================
 const form = document.getElementById("tutorForm");
-document.getElementById("password").addEventListener("input", updatePasswordStrength);
-document.getElementById("confirmPassword").addEventListener("input", validatePasswordMatch);
+document
+  .getElementById("password")
+  .addEventListener("input", updatePasswordStrength);
+document
+  .getElementById("confirmPassword")
+  .addEventListener("input", validatePasswordMatch);
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -141,7 +152,9 @@ form.addEventListener("submit", async (e) => {
   }
 
   // subjects check
-  const subjectsSelected = [...document.querySelectorAll("input[name='subjects']:checked")].map(s => s.value);
+  const subjectsSelected = [
+    ...document.querySelectorAll("input[name='subjects']:checked"),
+  ].map((s) => s.value);
   if (subjectsSelected.length === 0) {
     document.getElementById("subjectsError").style.display = "block";
     return;
@@ -150,7 +163,10 @@ form.addEventListener("submit", async (e) => {
   }
 
   // agreements check
-  if (!document.getElementById("accurateInfo").checked || !document.getElementById("terms").checked) {
+  if (
+    !document.getElementById("accurateInfo").checked ||
+    !document.getElementById("terms").checked
+  ) {
     document.getElementById("agreementsError").style.display = "block";
     return;
   } else {
@@ -165,7 +181,7 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  // ✅ Build multipart form
+  // Build multipart form
   const fd = new FormData();
   fd.append("firstName", document.getElementById("firstName").value.trim());
   fd.append("lastName", document.getElementById("lastName").value.trim());
@@ -185,31 +201,33 @@ form.addEventListener("submit", async (e) => {
   fd.append("certificate", certificateFile);
 
   try {
-      const res = await fetch("https://tutor-match-n8a7.onrender.com/api/signup/tutor", {
+    const res = await fetch(`${API_BASE}/api/signup/tutor`, {
       method: "POST",
-      body: fd, // ⚠️ no Content-Type header; the browser sets it for multipart
+      body: fd, // browser sets Content-Type for multipart automatically
     });
 
     const data = await res.json();
 
     if (res.ok) {
-      document.getElementById("welcomeMessage").textContent =
-        `🎉 Welcome ${document.getElementById("firstName").value.trim()}! Please verify your email to activate your tutor account.`;
+      document.getElementById("welcomeMessage").textContent = `Welcome ${
+        document.getElementById("firstName").value.trim() || "Tutor"
+      }! Please verify your email to activate your tutor account.`;
       document.getElementById("successModal").style.display = "flex";
     } else {
-      alert("Error: " + data.error);
+      alert("Error: " + (data.error || "Failed to sign up"));
     }
   } catch (err) {
     console.error("Server error:", err);
     alert("Server error. Try again later.");
   }
 });
+
 // ====================== NAVIGATION ======================
 function goToHome() {
   window.location.href = "/Homepage/home.html";
 }
 
-// ✅ Allow clicking outside modal to close
+// Allow clicking outside modal to close
 document.getElementById("successModal").addEventListener("click", (e) => {
   if (e.target === document.getElementById("successModal")) goToHome();
-});  
+});
