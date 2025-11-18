@@ -123,45 +123,89 @@ console.log("✅ findtutor.js loaded!");
   }
 
   function renderTutorCard(t) {
-    const name = [t.firstName || '', t.lastName || ''].join(' ').trim() || 'Tutor';
-    const avatar =
-      t.profilePhotoUrl ||
-      t.avatarUrl ||
-      t.profilePhoto ||
-      t.photoUrl ||
-      t.passportPhoto ||
-      DEFAULT_AVATAR_SRC;
-    const subs = Array.isArray(t.subjects) ? t.subjects : (t.subjects ? [t.subjects] : []);
-    const subjectsHtml = subs.map(s =>
-      `<span class="subject-tag" data-subject="${String(s).toLowerCase()}">${String(s)}</span>`
-    ).join('');
-    const rating = (typeof t.rating === 'number' ? t.rating : 4.9).toFixed(1);
-    const reviews = t.reviews ? `${t.reviews} reviews` : 'New';
-    const rate = t.rate ? Number(t.rate) : 35;
-    const fmt = t.format || 'online/in-person';
+  const name = [t.firstName || '', t.lastName || ''].join(' ').trim() || 'Tutor';
+  const avatar =
+    t.profilePhotoUrl ||
+    t.avatarUrl ||
+    t.profilePhoto ||
+    t.photoUrl ||
+    t.passportPhoto ||
+    DEFAULT_AVATAR_SRC;
 
-    return `
-      <div class="tutor-card p-6" data-name="${name.toLowerCase()}" data-rate="${rate}" data-rating="${rating}" data-format="${String(fmt).toLowerCase()}" data-profile-id="${t.id || ''}">
-        <div class="flex items-center gap-4 mb-4">
-          <img src="${avatar}" alt="${name}" class="w-16 h-16 rounded-full object-cover" loading="lazy" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR_SRC}';"/>
-          <div>
-            <h3 class="text-xl font-semibold text-white">${name}</h3>
-            <div class="star-rating text-sm">★ ${rating} <span class="text-white/60">(${reviews})</span></div>
-          </div>
+  const subs = Array.isArray(t.subjects) ? t.subjects : (t.subjects ? [t.subjects] : []);
+  const subjectsHtml = subs.map(s =>
+    `<span class="subject-tag" data-subject="${String(s).toLowerCase()}">${String(s)}</span>`
+  ).join('');
+
+  const rating = (typeof t.rating === 'number' ? t.rating : 4.9).toFixed(1);
+  const reviews = t.reviews ? `${t.reviews} reviews` : 'New';
+  const rate = t.rate ? Number(t.rate) : 35;
+  const fmt = (t.format || 'online/in-person').toLowerCase();
+
+  const degree = (t.degree || '').trim();
+  const major = (t.major || '').trim();
+  const degreeLine = degree && major
+    ? `${degree} in ${major}`
+    : (degree || major);
+  const gpa = t.gpa ? Number(t.gpa).toFixed(2) : null;
+
+  const experienceRaw = (t.experience || '').trim();
+  const experienceSnippet = experienceRaw
+    ? (experienceRaw.length > 110 ? experienceRaw.slice(0, 107) + '…' : experienceRaw)
+    : '';
+
+  let formatLabel = 'Online / In-person';
+  if (fmt.includes('online') && fmt.includes('in')) formatLabel = 'Online & In-person';
+  else if (fmt.includes('online')) formatLabel = 'Online';
+  else if (fmt.includes('in')) formatLabel = 'In-person';
+
+  return `
+    <div class="tutor-card p-6" data-name="${name.toLowerCase()}" data-rate="${rate}" data-rating="${rating}" data-format="${fmt}" data-profile-id="${t.id || ''}">
+      <div class="flex items-center gap-4 mb-3">
+        <img src="${avatar}" alt="${name}" class="w-16 h-16 rounded-full object-cover"
+             loading="lazy"
+             onerror="this.onerror=null;this.src='${DEFAULT_AVATAR_SRC}';"/>
+        <div>
+          <h3 class="text-xl font-semibold text-white">${name}</h3>
+          <div class="star-rating text-sm">★ ${rating} <span class="text-white/60">(${reviews})</span></div>
+          ${degreeLine || gpa ? `
+            <div class="mt-1 text-xs text-white/70">
+              ${degreeLine ? `<span>${degreeLine}</span>` : ''}
+              ${degreeLine && gpa ? ' · ' : ''}
+              ${gpa ? `<span>GPA ${gpa}</span>` : ''}
+            </div>
+          ` : ''}
         </div>
-        <div class="mb-4 flex flex-wrap gap-2">${subjectsHtml || '<span class="text-white/60 text-sm">No subjects listed</span>'}</div>
-        <div class="flex items-center justify-between mb-3">
-          <div class="text-green-400 font-bold">$${rate}/hour</div>
-          <button class="btn-premium px-6 py-2" data-action="view" data-id="${t.id || ''}">
-            <i data-lucide="user" class="w-4 h-4 inline mr-2"></i> View Profile
-          </button>
-        </div>
-        <button class="w-full glass dark:glass-dark px-4 py-2 rounded-xl text-white hover:bg-white/20 transition-all" data-action="rate" data-id="${t.id || ''}" data-name="${name}">
-          <i data-lucide="star" class="w-4 h-4 inline mr-2"></i> Rate This Tutor
+      </div>
+
+      <div class="mb-2 flex flex-wrap gap-2">
+        ${subjectsHtml || '<span class="text-white/60 text-sm">No subjects listed</span>'}
+      </div>
+
+      ${experienceSnippet ? `
+        <p class="mb-3 text-sm text-white/80 leading-snug max-h-12 overflow-hidden">
+          ${experienceSnippet}
+        </p>
+      ` : ''}
+
+      <div class="flex items-center justify-between mb-3 gap-3">
+        <div class="text-green-400 font-bold whitespace-nowrap">$${rate}/hour</div>
+        <span class="px-3 py-1 rounded-full bg-white/15 text-xs text-white/80 backdrop-blur whitespace-nowrap">
+          ${formatLabel}
+        </span>
+        <button class="btn-premium flex-1 px-4 py-2 text-sm" data-action="view" data-id="${t.id || ''}">
+          <i data-lucide="user" class="w-4 h-4 inline mr-2"></i> View Profile
         </button>
       </div>
-    `;
-  }
+
+      <button class="w-full glass dark:glass-dark px-4 py-2 rounded-xl text-white hover:bg-white/20 transition-all"
+              data-action="rate" data-id="${t.id || ''}" data-name="${name}">
+        <i data-lucide="star" class="w-4 h-4 inline mr-2"></i> Rate This Tutor
+      </button>
+    </div>
+  `;
+}
+
 
   async function fetchTutors({ subject = '', search = '' } = {}) {
     const params = new URLSearchParams();
