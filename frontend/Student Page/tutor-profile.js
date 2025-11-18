@@ -26,6 +26,11 @@
     // Use the actual clickable links in the Contact section
     email: $("#emailLink"),
     phone: $("#phoneLink"),
+    feedbackList: document.querySelector("#feedbackList"),
+    feedbackEmpty: document.querySelector("#feedbackEmpty"),
+    feedbackSummary: document.querySelector("#feedbackSummary"),
+    feedbackAverage: document.querySelector("#feedbackAverage"),
+    feedbackCount: document.querySelector("#feedbackCount"),
   };
 
   const params = new URLSearchParams(window.location.search);
@@ -230,6 +235,7 @@
       const tutor = payload?.tutor;
       if (!tutor) throw new Error("Invalid payload");
       populatePage(tutor);
+      loadTutorFeedback(tutor.id || tutorId);
     } catch (err) {
       console.error(err);
       alert("Unable to load tutor profile right now.");
@@ -354,6 +360,96 @@ if (tutor.phone) {
         alert("Profile link copied!");
       }
     });
+  }
+
+  async function loadTutorFeedback(id) {
+    if (!id || !elements.feedbackList) return;
+    try {
+      const res = await fetch(`/api/ratings/${encodeURIComponent(id)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        console.error("Failed to load ratings for tutor profile:", data.error);
+        return;
+      }
+      const ratings = Array.isArray(data.ratings) ? data.ratings : [];
+
+      // Summary
+      if (ratings.length > 0 && elements.feedbackSummary && elements.feedbackAverage && elements.feedbackCount) {
+        const avg =
+          ratings.reduce((sum, r) => sum + (Number(r.rating) || 0), 0) / ratings.length;
+        elements.feedbackAverage.textContent = avg.toFixed(1);
+        elements.feedbackCount.textContent =
+          ratings.length === 1 ? "1 rating" : `${ratings.length} ratings`;
+        elements.feedbackSummary.classList.remove("hidden");
+      }
+
+      // List
+      elements.feedbackList.innerHTML = "";
+      if (ratings.length === 0) {
+        const p = document.createElement("p");
+        p.className = "text-white/60";
+        p.textContent =
+          "This tutor hasn't received any feedback yet. Be the first to leave a review after your session.";
+        elements.feedbackList.appendChild(p);
+        return;
+      }
+
+      const recent = ratings.slice(0, 3);
+      recent.forEach((r) => {
+        const wrapper = document.createElement("div");
+        wrapper.className =
+          "bg-white/5 border border-white/10 rounded-2xl p-4 flex gap-4 items-start";
+
+        const initials =
+          (r.studentName || "")
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase() || "?";
+
+        const dateLabel = r.createdAt
+          ? new Date(r.createdAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          : "";
+
+        const starsHtml = Array(5)
+          .fill(0)
+          .map(
+            (_, i) =>
+              `<i data-lucide="star" class="w-4 h-4 ${i < (r.rating || 0) ? "fill-current text-yellow-400" : "text-slate-400"}"></i>`
+          )
+          .join("");
+
+        wrapper.innerHTML = `
+          <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-sm font-semibold">
+            ${initials}
+          </div>
+          <div class="flex-1 space-y-1">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <p class="font-semibold text-white">${r.studentName || "Anonymous student"}</p>
+                <p class="text-xs text-white/60">${r.subject || "General"}${dateLabel ? " • " + dateLabel : ""}</p>
+              </div>
+              <div class="flex items-center gap-1 text-yellow-400">
+                ${starsHtml}
+              </div>
+            </div>
+            <p class="text-sm text-white/80">${r.feedback || "No written comment."}</p>
+          </div>
+        `;
+
+        elements.feedbackList.appendChild(wrapper);
+      });
+
+      if (typeof lucide !== "undefined" && lucide.createIcons) {
+        lucide.createIcons();
+      }
+    } catch (err) {
+      console.error("Error loading tutor feedback:", err);
+    }
   }
 
   document.addEventListener("DOMContentLoaded", () => {
