@@ -270,6 +270,20 @@ if (savedTheme === 'dark') {
                 });
             }
         });
+
+        // Override key CTA buttons to redirect to Sign Up
+        document.querySelectorAll('button').forEach(button => {
+            const text = button.textContent || '';
+            if (text.includes('Start Learning') ||
+                text.includes('Start Your Journey') ||
+                text.includes('Submit Feedback')) {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    window.location.href = '/Sign Up/sign-up.html';
+                }, true);
+            }
+        });
         
         // Star Rating System
         const starRatings = document.querySelectorAll('.star-rating');
